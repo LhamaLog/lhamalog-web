@@ -23,32 +23,33 @@ Instale e inicie o [Docker Desktop](https://docs.docker.com/desktop/setup/instal
 
 Para esta opção, não é necessário instalar Node.js ou executar `npm ci` na máquina: a imagem fornece Node.js 24 e instala as dependências dentro do contêiner.
 
-Na pasta do projeto, construa a imagem:
+Na pasta do projeto, construa a imagem e inicie o ambiente em segundo plano:
 
 ```powershell
-docker build -t lhamalog-web:dev .
+docker compose up -d --build
 ```
 
-Inicie o contêiner:
+Para acompanhar os logs:
 
 ```powershell
-docker run --rm --init --name lhamalog-web-dev -p 127.0.0.1:5173:5173 lhamalog-web:dev
+docker compose logs -f
 ```
 
 Abra http://localhost:5173. A página deve mostrar “LhamaLog” e “Aplicação iniciada.”. A porta 5173 da máquina aponta para a porta 5173 do contêiner. Execute localmente, pelo Docker ou pelo preview, um de cada vez, pois todos usam a mesma porta.
 
-Os logs aparecem nesse terminal. Para parar, use `Ctrl+C` ou, em outro terminal:
+Use `Ctrl+C` para sair da visualização dos logs; o ambiente continua funcionando. Para parar e remover os contêineres e a rede deste projeto:
 
 ```powershell
-docker stop lhamalog-web-dev
+docker compose down
 ```
 
-O contêiner é removido automaticamente ao encerrar por causa de `--rm`; a imagem permanece. Como o código é copiado para a imagem, depois de alterar arquivos pare o contêiner, execute novamente o build e inicie outro contêiner. A primeira construção precisa de acesso à internet para baixar a imagem e as dependências.
+A imagem permanece disponível depois de encerrar o ambiente. Como o código é copiado para a imagem, depois de alterar arquivos execute novamente `docker compose up -d --build`; o Compose reconstrói a imagem e atualiza o contêiner quando necessário. A primeira construção precisa de acesso à internet para baixar a imagem e as dependências.
 
 Esta configuração executa o servidor de desenvolvimento do Vite. Não é uma configuração de publicação em produção.
 
 - `Dockerfile`: prepara o ambiente Node.js, instala as dependências como usuário `node` e define a inicialização.
 - `.dockerignore`: evita copiar Git, dependências locais, build, configurações privadas e logs para a imagem.
+- `compose.yaml`: define o serviço frontend, o build e o mapeamento da porta 5173, evitando repetir essas opções no terminal.
 
 ## Entrada da aplicação
 
