@@ -1,7 +1,7 @@
 export function App() {
   return (
-    <main>
-      <h1>LhamaLog</h1>
+    <main className="p-6">
+      <h1 className="text-2xl font-bold">LhamaLog</h1>
       <p>Aplicação iniciada.</p>
     </main>
   )
