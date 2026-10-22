@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Input } from '../shared/ui/Input'
 import { PasswordInput } from '../shared/ui/PasswordInput'
 import { Checkbox } from '../shared/ui/Checkbox'
@@ -12,14 +12,12 @@ import { PageHeader } from '../shared/ui/PageHeader'
 import { FilterButton } from '../shared/ui/FilterButton'
 import { Pagination } from '../shared/ui/Pagination'
 import { ProgressBar } from '../shared/ui/ProgressBar'
-import { Navbar } from './layouts/Navbar'
 import { Breadcrumbs } from '../shared/ui/Breadcrumbs'
 import { SystemStatus } from '../shared/ui/SystemStatus'
 import { PeriodSelector } from '../shared/ui/PeriodSelector'
 import { NotificationButton } from '../shared/ui/NotificationButton'
 import { UserIdentity } from '../shared/ui/UserIdentity'
-import { Header } from './layouts/Header'
-import { Footer } from './layouts/Footer'
+import { AppLayout } from './layouts/AppLayout'
 import { ProductsHeader } from '../features/products/components/ProductsHeader'
 import { ProductCard } from '../features/products/components/ProductCard'
 import { ProductList } from '../features/products/components/ProductList'
@@ -31,6 +29,9 @@ import { ProductsByEnvironment } from '../features/products/components/ProductsB
 import { LogsByProduct } from '../features/products/components/LogsByProduct'
 import { ProductsView } from '../features/products/components/ProductsView'
 import { Sparkline } from '../shared/ui/Sparkline'
+import { LoadingState } from '../shared/ui/LoadingState'
+import { EmptyState } from '../shared/ui/EmptyState'
+import { ErrorState } from '../shared/ui/ErrorState'
 
 const demoListIcon = (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true">
@@ -114,36 +115,42 @@ export function App() {
   const [demoProductPage, setDemoProductPage] = useState(1)
   const [demoViewPage, setDemoViewPage] = useState(1)
   const [demoViewSearch, setDemoViewSearch] = useState('')
+  const [demoDataState, setDemoDataState] = useState<'loading' | 'empty' | 'no-results' | 'error' | 'success'>('error')
+  useEffect(() => {
+    if (demoDataState !== 'loading') return
+    const timeout = window.setTimeout(() => setDemoDataState('success'), 1200)
+    return () => window.clearTimeout(timeout)
+  }, [demoDataState])
   const productsPerPage = 2
   const firstProductIndex = (demoProductPage - 1) * productsPerPage
   const visibleProducts = demoProducts.slice(firstProductIndex, firstProductIndex + productsPerPage)
 
   return (
-    <div className="flex min-h-screen">
-      <Navbar
-        activeItem={demoNavigation}
-        onItemSelect={setDemoNavigation}
-        productName="API Gateway"
-        onProductSelect={() => alert('Demonstração do seletor. A lista de produtos ainda será definida.')}
-      />
-      <div className="flex min-w-0 flex-1 flex-col">
-      <Header
-        breadcrumbs={{
+    <AppLayout
+      navbar={{
+        activeItem: demoNavigation,
+        onItemSelect: setDemoNavigation,
+        productName: 'API Gateway',
+        onProductSelect: () => alert('Demonstração do seletor. A lista de produtos ainda será definida.'),
+      }}
+      header={{
+        breadcrumbs: {
           homeHref: '#components-top',
           items: [{ label: 'Demonstração' }, { label: 'Componentes' }],
-        }}
-        systemStatus={{ label: 'Sistema operacional (exemplo)' }}
-        period={{
+        },
+        systemStatus: { label: 'Sistema operacional (exemplo)' },
+        period: {
           label: 'Últimas 24 horas',
           onClick: () => alert('Demonstração: as opções de período ainda serão definidas.'),
-        }}
-        notifications={{
+        },
+        notifications: {
           count: 1,
           onClick: () => alert('Demonstração: o conteúdo das notificações ainda será definido.'),
-        }}
-        user={{ name: 'João Silva', role: 'Administrador' }}
-      />
-      <main className="mx-auto min-w-0 w-full max-w-7xl flex-1 space-y-10 p-6">
+        },
+        user: { name: 'João Silva', role: 'Administrador' },
+      }}
+      footer={{ links: [{ label: 'Voltar ao início', href: '#components-top' }] }}
+    >
       <h1 id="components-top" className="text-2xl font-bold text-slate-900">
         Componentes LhamaLog
       </h1>
@@ -824,9 +831,48 @@ export function App() {
           }}
         />
       </section>
-      </main>
-      <Footer links={[{ label: 'Voltar ao início', href: '#components-top' }]} />
-      </div>
-    </div>
+      <section id="shared-states-demo" className="space-y-4">
+        <h2 className="text-lg font-semibold">Estados compartilhados</h2>
+        <p className="text-sm text-slate-600">
+          Demonstração local, sem requisição ao backend. Escolha um estado;
+          carregar ou tentar novamente mostra os produtos após 1,2 segundo.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Button size="small" fullWidth={false} variant="outline" onClick={() => setDemoDataState('loading')}>Ver carregamento</Button>
+          <Button size="small" fullWidth={false} variant="outline" onClick={() => setDemoDataState('empty')}>Ver lista vazia</Button>
+          <Button size="small" fullWidth={false} variant="outline" onClick={() => setDemoDataState('no-results')}>Ver busca sem resultados</Button>
+          <Button size="small" fullWidth={false} variant="outline" onClick={() => setDemoDataState('error')}>Ver falha</Button>
+        </div>
+        <div role="region" aria-label="Resultado da demonstração de estados" aria-busy={demoDataState === 'loading'}>
+          {demoDataState === 'loading' && <LoadingState label="Carregando produtos de demonstração..." rows={2} />}
+          {demoDataState === 'empty' && (
+            <EmptyState
+              title="Nenhum produto cadastrado"
+              description="Os produtos cadastrados aparecerão nesta área."
+            />
+          )}
+          {demoDataState === 'no-results' && (
+            <EmptyState
+              title="Nenhum resultado encontrado"
+              description="Tente outro termo de busca ou revise os filtros."
+              action={<Button size="small" fullWidth={false} onClick={() => setDemoDataState('success')}>Mostrar dados de demonstração</Button>}
+            />
+          )}
+          {demoDataState === 'error' && (
+            <ErrorState
+              title="Não foi possível carregar os produtos"
+              description="Falha de exemplo. Tente novamente para demonstrar a recuperação."
+              onRetry={() => setDemoDataState('loading')}
+            />
+          )}
+          {demoDataState === 'success' && (
+            <div className="space-y-3">
+              <p role="status" className="text-sm text-green-700">Produtos de demonstração carregados.</p>
+              <ProductList products={demoProducts.slice(0, 2)} />
+            </div>
+          )}
+        </div>
+      </section>
+    </AppLayout>
   )
 }

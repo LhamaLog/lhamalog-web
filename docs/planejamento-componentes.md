@@ -32,15 +32,17 @@ Referências: login, navbar, header, Produtos, Empresa e Ocorrências fornecidos
 - [x] Implementar Navbar lateral com logo e grupos de navegação.
 - [x] Implementar itens de navegação com ícone, texto e indicação de página atual.
 - [x] Implementar a apresentação do seletor de produto na Navbar.
-- [ ] Implementar recolher e expandir a Navbar, após definir o estado recolhido.
+- [x] Implementar recolher e expandir a Navbar, após definir o estado recolhido.
 - [x] Implementar Breadcrumbs com caminho da página.
 - [x] Implementar indicador do estado do sistema.
 - [x] Implementar a apresentação do seletor de período.
 - [x] Implementar botão de notificações com contador.
 - [x] Implementar identificação do usuário com avatar, nome e função.
 - [x] Implementar Header compondo os elementos compartilhados.
-- [ ] Implementar AppLayout com Navbar, Header e área de conteúdo responsiva.
+- [x] Implementar AppLayout com Navbar, Header e área de conteúdo responsiva.
 - [x] Implementar Footer com copyright e links.
+
+Comportamento adotado para a Navbar: no desktop, o botão de três linhas no topo alterna entre expandida e recolhida. Recolher mantém apenas os ícones, seus nomes acessíveis e o mesmo botão para expandir. Em telas menores que 768 px, o botão Abrir menu exibe a navegação acima do conteúdo. Selecionar um item ou pressionar Escape dentro do menu fecha a navegação e devolve o foco ao botão. O seletor de produto continua apenas como apresentação; as opções ainda precisam ser definidas.
 
 ## 4 Produtos
 
@@ -90,9 +92,9 @@ Criar os componentes desta seção quando forem necessários para os painéis da
 - [x] Implementar RankingList com posições, barras e valores.
 - [x] Implementar Sparkline para os minigráficos dos indicadores.
 - [x] Implementar barras de distribuição com rótulos e valores.
-- [ ] Implementar estado de carregamento de listas e painéis.
-- [ ] Implementar estado vazio e sem resultados.
-- [ ] Implementar mensagem de falha com ação de tentar novamente, quando houver operação de dados.
+- [x] Implementar estado de carregamento de listas e painéis.
+- [x] Implementar estado vazio e sem resultados.
+- [x] Implementar mensagem de falha com ação de tentar novamente, quando houver operação de dados.
 
 ## Organização dos arquivos
 
@@ -128,7 +130,6 @@ Os SVGs mostram o estado fechado ou o resumo dessas áreas. Implementar sua apre
 - Destinos dos links, detalhes de produtos e detalhes de ocorrências.
 - Formulários de cadastro de produto e edição dos dados da empresa.
 - Conteúdo dos menus do usuário e das notificações.
-- Comportamento da Navbar recolhida e navegação em telas pequenas.
 - Fórmulas das métricas, tendências e significado das células do gráfico de intensidade.
 - Relação entre projeto e produto, contratos de API e permissões.
 - Exportação real de PDF, sincronização, upload e integrações.
