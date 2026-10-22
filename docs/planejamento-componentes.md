@@ -17,15 +17,15 @@ Referências: login, navbar, header, Produtos, Empresa e Ocorrências fornecidos
 - [ ] Implementar tamanhos e opção de largura total no Button.
 - [ ] Implementar IconButton para ações que usam somente ícone.
 - [ ] Implementar Badge para status e indicadores coloridos.
-- [ ] Implementar Tag para categorias e etiquetas, reaproveitando Badge se suficiente.
-- [ ] Implementar Avatar com iniciais.
-- [ ] Implementar suporte a ícone inicial no Input.
-- [ ] Implementar SearchInput com lupa e tamanho compacto.
-- [ ] Implementar Card para a estrutura visual dos painéis.
-- [ ] Implementar PageHeader com título, descrição opcional e ações.
-- [ ] Implementar FilterButton com ícone e contador de filtros.
-- [ ] Implementar Pagination com páginas, anterior, próximo e resumo de resultados.
-- [ ] Implementar ProgressBar para conclusão de perfil.
+- [x] Implementar Tag para categorias e etiquetas, reaproveitando Badge se suficiente.
+- [x] Implementar Avatar com iniciais.
+- [x] Implementar suporte a ícone inicial no Input.
+- [x] Implementar SearchInput com lupa e tamanho compacto.
+- [x] Implementar Card para a estrutura visual dos painéis.
+- [x] Implementar PageHeader com título, descrição opcional e ações.
+- [x] Implementar FilterButton com ícone e contador de filtros.
+- [x] Implementar Pagination com páginas, anterior, próximo e resumo de resultados.
+- [x] Implementar ProgressBar para conclusão de perfil.
 
 ## 3 Navbar e header
 

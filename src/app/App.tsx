@@ -1,11 +1,22 @@
+import { useState } from 'react'
 import { Input } from '../shared/ui/Input'
 import { PasswordInput } from '../shared/ui/PasswordInput'
 import { Checkbox } from '../shared/ui/Checkbox'
 import { Button } from '../shared/ui/Button'
 import { IconButton } from '../shared/ui/IconButton'
 import { Badge } from '../shared/ui/Badge'
+import { Avatar } from '../shared/ui/Avatar'
+import { SearchInput } from '../shared/ui/SearchInput'
+import { Card } from '../shared/ui/Card'
+import { PageHeader } from '../shared/ui/PageHeader'
+import { FilterButton } from '../shared/ui/FilterButton'
+import { Pagination } from '../shared/ui/Pagination'
+import { ProgressBar } from '../shared/ui/ProgressBar'
 
 export function App() {
+  const [demoPage, setDemoPage] = useState(1)
+  const [demoProgress, setDemoProgress] = useState(85)
+
   return (
     <main className="mx-auto max-w-3xl space-y-10 p-6">
       <h1 className="text-2xl font-bold text-slate-900">
@@ -235,6 +246,213 @@ export function App() {
       </section>
 
 
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">
+          Tags de categorias e etiquetas
+        </h2>
+
+        <p className="text-sm text-slate-600">
+          Exemplos de etiquetas reutilizando o Badge.
+        </p>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Badge>Aplicação web</Badge>
+          <Badge>API / Serviço</Badge>
+          <Badge>Microsserviço</Badge>
+          <Badge variant="neutral" dot>Dados</Badge>
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">
+          Avatar com iniciais
+        </h2>
+
+        <div className="flex flex-wrap items-center gap-6">
+          <div className="flex items-center gap-2">
+            <Avatar name="João Silva" />
+            <span className="text-sm text-slate-700">João Silva</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Avatar name="Ana" />
+            <span className="text-sm text-slate-700">Ana</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Avatar name="" />
+            <span className="text-sm text-slate-700">Sem nome</span>
+          </div>
+        </div>
+      </section>
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">
+          Input com ícone inicial
+        </h2>
+
+        <div className="max-w-96">
+          <Input
+            id="email-with-icon"
+            label="E-mail com ícone"
+            type="email"
+            placeholder="seu@exemplo.com"
+            autoComplete="email"
+            startIcon={
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="3" y="5" width="18" height="14" rx="2" />
+                <path d="m3 7 9 6 9-6" />
+              </svg>
+            }
+          />
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">
+          Busca compacta
+        </h2>
+
+        <p className="text-sm text-slate-600">
+          Demonstração visual dos campos, sem filtrar produtos nesta etapa.
+        </p>
+
+        <SearchInput
+          id="product-search"
+          label="Buscar produtos"
+          placeholder="Buscar produtos..."
+        />
+
+        <SearchInput
+          id="disabled-search"
+          label="Busca indisponível"
+          placeholder="Busca indisponível"
+          disabled
+        />
+
+        <SearchInput
+          id="search-with-error"
+          label="Busca com erro de exemplo"
+          placeholder="Buscar produtos..."
+          error="Mensagem de erro apenas para demonstração."
+        />
+      </section>
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">
+          Card para painéis
+        </h2>
+
+        <div className="grid gap-4 rounded-xl bg-slate-50 p-4 sm:grid-cols-2">
+          <Card>
+            <h3 className="font-semibold text-[#083B7A]">
+              Resumo dos produtos
+            </h3>
+            <p className="mt-2 text-sm text-slate-600">
+              Conteúdo ilustrativo do painel, sem dados reais.
+            </p>
+            <div className="mt-4">
+              <Badge variant="success" dot>Conectado</Badge>
+            </div>
+          </Card>
+
+          <Card>
+            <h3 className="font-semibold text-[#083B7A]">
+              Produtos por ambiente
+            </h3>
+            <p className="mt-2 text-sm text-slate-600">
+              O mesmo Card pode receber conteúdos diferentes.
+            </p>
+          </Card>
+        </div>
+      </section>
+
+      <section className="space-y-6">
+        <PageHeader
+          title="Produtos — exemplo de PageHeader"
+          headingLevel={2}
+          description="Acompanhe os produtos cadastrados e o status da integração."
+          actions={
+            <Button
+              size="small"
+              fullWidth={false}
+              onClick={() => alert('Demonstração: cadastrar produto')}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              Cadastrar produto
+            </Button>
+          }
+        />
+
+        <PageHeader
+          title="Cabeçalho somente com título"
+          headingLevel={2}
+        />
+      </section>
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Botão de filtros</h2>
+        <p className="text-sm text-slate-600">
+          Demonstração do botão; o painel de filtros será definido depois.
+        </p>
+        <div className="flex flex-wrap items-center gap-6 pt-2">
+          <FilterButton onClick={() => alert('Demonstração: filtros sem seleção')} />
+          <FilterButton count={3} onClick={() => alert('Demonstração: três filtros ativos')} />
+          <FilterButton count={2} disabled />
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Paginação</h2>
+        <p className="text-sm text-slate-600">
+          Dados ilustrativos: 24 produtos, seis por página.
+        </p>
+        <Pagination
+          page={demoPage}
+          pageSize={6}
+          totalItems={24}
+          itemLabel="produtos"
+          onPageChange={setDemoPage}
+        />
+        <h3 className="font-medium">Sem resultados</h3>
+        <Pagination page={1} pageSize={6} totalItems={0} onPageChange={() => {}} />
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Barra de progresso</h2>
+        <Card className="max-w-md">
+          <ProgressBar value={demoProgress} label="Conclusão do perfil" />
+          <label htmlFor="demo-progress" className="mt-4 block text-sm text-slate-600">
+            Ajustar percentual de demonstração
+          </label>
+          <input
+            id="demo-progress"
+            type="range"
+            min={0}
+            max={100}
+            value={demoProgress}
+            onChange={(event) => setDemoProgress(Number(event.target.value))}
+            className="mt-2 w-full accent-[#0C70F2]"
+          />
+        </Card>
+      </section>
     </main>
   )
 }
