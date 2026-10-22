@@ -18,11 +18,88 @@ import { SystemStatus } from '../shared/ui/SystemStatus'
 import { PeriodSelector } from '../shared/ui/PeriodSelector'
 import { NotificationButton } from '../shared/ui/NotificationButton'
 import { UserIdentity } from '../shared/ui/UserIdentity'
+import { Header } from './layouts/Header'
+import { Footer } from './layouts/Footer'
+import { ProductsHeader } from '../features/products/components/ProductsHeader'
+import { ProductCard } from '../features/products/components/ProductCard'
+import { ProductList } from '../features/products/components/ProductList'
+import type { ProductListItem } from '../features/products/components/ProductList'
+
+const demoListIcon = (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true">
+    <path d="m12 3 9 5v8l-9 5-9-5V8ZM3 8l9 5 9-5M12 13v8" />
+  </svg>
+)
+
+const demoProducts: ProductListItem[] = [
+  {
+    id: 'demo-platform',
+    name: 'Plataforma Web',
+    description: 'Portal do cliente e área logada',
+    icon: demoListIcon,
+    status: 'connected',
+    categories: ['Aplicação web'],
+    area: 'Comercial',
+    lastLog: { label: 'há 2 min (exemplo)', date: '22 de out. de 2026' },
+    environment: 'production',
+  },
+  {
+    id: 'demo-payments',
+    name: 'API de Pagamentos',
+    description: 'Processamento de cobranças e estornos',
+    icon: demoListIcon,
+    iconColor: 'green',
+    status: 'connected',
+    categories: ['API / Serviço'],
+    area: 'Financeiro',
+    lastLog: { label: 'há 5 min (exemplo)', date: '22 de out. de 2026' },
+    environment: 'production',
+  },
+  {
+    id: 'demo-mobile',
+    name: 'App Mobile',
+    description: 'Aplicativo Android e iOS',
+    icon: demoListIcon,
+    iconColor: 'purple',
+    status: 'waiting',
+    categories: ['Aplicativo'],
+    area: 'Comercial',
+    lastLog: null,
+    environment: 'staging',
+  },
+  {
+    id: 'demo-warehouse',
+    name: 'Data Warehouse',
+    description: 'Carga e consolidação de dados',
+    icon: demoListIcon,
+    status: 'none',
+    categories: ['Job / Batch'],
+    area: 'Dados',
+    lastLog: null,
+    environment: 'development',
+  },
+  {
+    id: 'demo-backoffice',
+    name: 'Backoffice Financeiro',
+    description: 'Conciliação e relatórios internos',
+    icon: demoListIcon,
+    status: 'error',
+    categories: ['Aplicação web'],
+    area: 'Financeiro',
+    lastLog: { label: 'há 3 dias (exemplo)', date: '19 de out. de 2026' },
+    environment: 'production',
+  },
+]
 
 export function App() {
   const [demoPage, setDemoPage] = useState(1)
   const [demoProgress, setDemoProgress] = useState(85)
   const [demoNavigation, setDemoNavigation] = useState('occurrences')
+  const [demoProductSearch, setDemoProductSearch] = useState('')
+  const [demoProductPage, setDemoProductPage] = useState(1)
+  const productsPerPage = 2
+  const firstProductIndex = (demoProductPage - 1) * productsPerPage
+  const visibleProducts = demoProducts.slice(firstProductIndex, firstProductIndex + productsPerPage)
 
   return (
     <div className="flex min-h-screen">
@@ -32,7 +109,24 @@ export function App() {
         productName="API Gateway"
         onProductSelect={() => alert('Demonstração do seletor. A lista de produtos ainda será definida.')}
       />
-      <main className="mx-auto min-w-0 w-full max-w-3xl space-y-10 p-6">
+      <div className="flex min-w-0 flex-1 flex-col">
+      <Header
+        breadcrumbs={{
+          homeHref: '#components-top',
+          items: [{ label: 'Demonstração' }, { label: 'Componentes' }],
+        }}
+        systemStatus={{ label: 'Sistema operacional (exemplo)' }}
+        period={{
+          label: 'Últimas 24 horas',
+          onClick: () => alert('Demonstração: as opções de período ainda serão definidas.'),
+        }}
+        notifications={{
+          count: 1,
+          onClick: () => alert('Demonstração: o conteúdo das notificações ainda será definido.'),
+        }}
+        user={{ name: 'João Silva', role: 'Administrador' }}
+      />
+      <main className="mx-auto min-w-0 w-full max-w-3xl flex-1 space-y-10 p-6">
       <h1 id="components-top" className="text-2xl font-bold text-slate-900">
         Componentes LhamaLog
       </h1>
@@ -531,7 +625,70 @@ export function App() {
           <UserIdentity name="Ana" role="Desenvolvedora" />
         </div>
       </section>
+      <section className="space-y-4">
+        <p className="text-sm text-slate-600">
+          Demonstração dos componentes de Produtos, com dados ilustrativos.
+          A busca apenas recebe texto; filtros e cadastro ainda não têm fluxos definidos.
+        </p>
+        <ProductsHeader
+          headingLevel={2}
+          search={demoProductSearch}
+          onSearchChange={setDemoProductSearch}
+          filterCount={3}
+          onFilterClick={() => alert('Demonstração: o conteúdo dos filtros ainda será definido.')}
+          onCreateClick={() => alert('Demonstração: o formulário de cadastro ainda será definido.')}
+        />
+        <ProductCard
+          name="Plataforma Web"
+          description="Portal do cliente e área logada"
+          status="connected"
+          categories={['Aplicação web']}
+          area="Comercial"
+          lastLog={{ label: 'há 2 min (exemplo)', date: '22 de out. de 2026' }}
+          environment="production"
+          icon={
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <ellipse cx="12" cy="12" rx="4" ry="9" />
+              <path d="M3 12h18" />
+            </svg>
+          }
+        />
+        <ProductCard
+          name="App Mobile"
+          description="Aplicativo Android e iOS"
+          status="waiting"
+          categories={['Aplicativo']}
+          area="Comercial"
+          lastLog={null}
+          environment="staging"
+          iconColor="purple"
+          icon={
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+              <rect x="6" y="2" width="12" height="20" rx="1" />
+              <path d="M10 19h4" />
+            </svg>
+          }
+        />
+      </section>
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Lista de produtos com paginação</h2>
+        <p className="text-sm text-slate-600">
+          Cinco produtos ilustrativos, dois por página. A navegação troca os cartões exibidos,
+          sem consultar o backend ou aplicar a busca dos exemplos anteriores.
+        </p>
+        <ProductList products={visibleProducts} />
+        <Pagination
+          page={demoProductPage}
+          pageSize={productsPerPage}
+          totalItems={demoProducts.length}
+          itemLabel="produtos"
+          onPageChange={setDemoProductPage}
+        />
+      </section>
       </main>
+      <Footer links={[{ label: 'Voltar ao início', href: '#components-top' }]} />
+      </div>
     </div>
   )
 }

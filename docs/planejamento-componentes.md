@@ -38,17 +38,17 @@ Referências: login, navbar, header, Produtos, Empresa e Ocorrências fornecidos
 - [x] Implementar a apresentação do seletor de período.
 - [x] Implementar botão de notificações com contador.
 - [x] Implementar identificação do usuário com avatar, nome e função.
-- [ ] Implementar Header compondo os elementos compartilhados.
+- [x] Implementar Header compondo os elementos compartilhados.
 - [ ] Implementar AppLayout com Navbar, Header e área de conteúdo responsiva.
-- [ ] Implementar Footer com copyright e links.
+- [x] Implementar Footer com copyright e links.
 
 ## 4 Produtos
 
-- [ ] Implementar cabeçalho da tela de Produtos com busca, filtros e botão Cadastrar produto.
-- [ ] Implementar ProductCard com ícone, nome, descrição e status de integração.
-- [ ] Implementar categorias, área, último log e ambiente no ProductCard.
-- [ ] Implementar lista de produtos reutilizando ProductCard.
-- [ ] Implementar paginação da lista de produtos.
+- [x] Implementar cabeçalho da tela de Produtos com busca, filtros e botão Cadastrar produto.
+- [x] Implementar ProductCard com ícone, nome, descrição e status de integração.
+- [x] Implementar categorias, área, último log e ambiente no ProductCard.
+- [x] Implementar lista de produtos reutilizando ProductCard.
+- [x] Implementar paginação da lista de produtos.
 - [ ] Implementar painel Resumo dos produtos.
 - [ ] Implementar painel Produtos por ambiente.
 - [ ] Implementar ranking Logs por produto.
