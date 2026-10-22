@@ -1,6 +1,22 @@
 # LhamaLog Web
 
-Inicialização do frontend para a [LLT-236](https://logviewer2026.atlassian.net/browse/LLT-236), usando TypeScript, React e Tailwind CSS. O Vite inicia o servidor de desenvolvimento, processa os estilos e gera o build.
+Frontend do LhamaLog usando TypeScript, React e Tailwind CSS. A base foi iniciada na [LLT-236](https://logviewer2026.atlassian.net/browse/LLT-236); o desenvolvimento atual inclui componentes reutilizáveis e a composição visual de Produtos, relacionados ao planejamento da LLT-237. O Vite inicia o servidor de desenvolvimento, processa os estilos e gera o build.
+
+## Estado atual
+
+A aplicação abre uma página de demonstração chamada **Componentes LhamaLog**, com exemplos dos componentes e dados ilustrativos. Estão implementados:
+
+- Campos, botões, checkbox, badges para status e tags, avatar, busca, cartões, paginação e barra de progresso.
+- Navbar com recolhimento no desktop e menu em telas pequenas, Header e Footer compostos pelo AppLayout.
+- Cartões e lista de produtos, painéis de resumo, ambientes e logs, indicadores e composição responsiva de Produtos.
+- Componentes compartilhados de métricas, ranking, minigráficos e barras de distribuição.
+- Estados de carregamento, lista vazia, busca sem resultados e falha com ação de tentar novamente.
+
+A seleção de itens na Navbar apenas troca o destaque; ainda não há navegação entre páginas. As buscas recebem texto, mas não filtram os produtos. Filtros, cadastro, seletores de produto/período e notificações mostram avisos de demonstração. A paginação troca os produtos locais exibidos. A recuperação de falha usa um temporizador local, sem requisição ao backend.
+
+Ocorrências e Empresa ainda não foram implementadas. Autenticação, integração com Clerk, acesso ao backend, formulários e regras de negócio permanecem pendentes de suas respectivas etapas e definições. A implementação visual não representa o aceite das tarefas pela equipe.
+
+O detalhamento das entregas e das definições pendentes está em [docs/planejamento-componentes.md](docs/planejamento-componentes.md). As referências visuais em SVG ficam em [docs/referencias](docs/referencias).
 
 ## Pré-requisitos
 
@@ -19,7 +35,7 @@ npm ci
 npm run dev
 ```
 
-Abra http://localhost:5173. A página deve mostrar “LhamaLog” e “Aplicação iniciada.”. Para parar o servidor, use `Ctrl+C`. A porta é fixa: se estiver ocupada, o servidor informa o erro em vez de escolher outra porta.
+Abra [http://localhost:5173](http://localhost:5173). A página deve mostrar **Componentes LhamaLog**, com Navbar, Header e exemplos de interface. Para parar o servidor, use `Ctrl+C`. A porta é fixa: se estiver ocupada, o servidor informa o erro em vez de escolher outra porta.
 
 `npm run build` verifica os tipos e gera os arquivos em `dist`. `npm run preview` permite conferir esse build localmente.
 
@@ -51,7 +67,7 @@ Para acompanhar os logs:
 docker compose -f infra/local/compose.yaml logs -f
 ```
 
-Abra http://localhost:5173. A página deve mostrar “LhamaLog” e “Aplicação iniciada.”. A porta 5173 da máquina aponta para a porta 5173 do contêiner. Execute localmente, pelo Docker ou pelo preview, um de cada vez, pois todos usam a mesma porta.
+Abra [http://localhost:5173](http://localhost:5173). A página deve mostrar a mesma demonstração **Componentes LhamaLog** da execução local. A porta 5173 da máquina aponta para a porta 5173 do contêiner. Execute localmente, pelo Docker ou pelo preview, um de cada vez, pois todos usam a mesma porta.
 
 Use `Ctrl+C` para sair da visualização dos logs; o ambiente continua funcionando. Para parar e remover os contêineres e a rede deste projeto:
 
@@ -133,41 +149,50 @@ Ao interromper `make infra-logs` com `Ctrl+C`, o Make pode exibir `Error 130`, i
 - `index.html`: contém o elemento onde o React é montado e carrega `src/main.tsx`.
 - `src/main.tsx`: inicia o React e renderiza `App`.
 - `src/styles.css`: importa o Tailwind; é carregado pelo `main.tsx`.
-- `src/app/App.tsx`: componente inicial mínimo, sem funcionalidades de negócio.
+- `src/app/App.tsx`: compõe a página de demonstração, os dados ilustrativos e os estados locais dos exemplos.
+- `src/app/layouts/AppLayout.tsx`: reúne Navbar, Header, área de conteúdo e Footer; controla o recolhimento e a abertura do menu móvel.
 - `package.json` e `package-lock.json`: dependências, comandos e versões de instalação.
 - `tsconfig.json` e `vite.config.ts`: configuração do TypeScript e do Vite.
 
-O Tailwind está integrado ao Vite pelo plugin `@tailwindcss/vite`, conforme a [documentação oficial](https://tailwindcss.com/docs/installation/using-vite). As classes `p-6`, `text-2xl` e `font-bold` no componente inicial permitem conferir a configuração sem criar telas. No Docker, as dependências são instaladas pelo mesmo `npm ci`; depois de mudanças nas dependências, reconstrua a imagem antes de iniciar o contêiner.
+O Tailwind está integrado ao Vite pelo plugin `@tailwindcss/vite` e é importado em `src/styles.css`. Os componentes usam classes utilitárias para aparência, estados e responsividade. No Docker, as dependências são instaladas pelo mesmo `npm ci`; depois de mudanças nas dependências, reconstrua a imagem antes de iniciar o contêiner.
 
-## Estrutura prevista
+## Estrutura atual
 
 ```text
+docs/
+  planejamento-componentes.md
+  referencias/
+infra/
+  local/
+    Dockerfile
+    compose.yaml
 src/
   main.tsx
   styles.css
   app/
     App.tsx
     layouts/
-    providers/
-    routes/
+      AppLayout.tsx
+      Navbar.tsx
+      Header.tsx
+      Footer.tsx
   features/
+    products/
+      components/
   shared/
+    assets/
     ui/
-    hooks/
-    services/
-    types/
 ```
 
 ## Responsabilidades
 
 - `app/layouts`: estrutura visual compartilhada entre páginas.
-- `app/providers`: composição dos provedores da aplicação.
-- `app/routes`: configuração da navegação.
 - `features`: funcionalidades organizadas por domínio; componentes, hooks, serviços e tipos específicos ficam junto da funcionalidade que os utiliza.
 - `shared/ui`: componentes visuais reutilizáveis entre funcionalidades.
-- `shared/hooks`: hooks genéricos compartilhados.
-- `shared/services`: serviços e integrações de uso comum.
-- `shared/types`: tipos compartilhados.
+- `shared/assets`: recursos visuais compartilhados, como o logo.
+- `docs/referencias`: referências visuais usadas para implementar as interfaces em React.
+
+`app/providers`, `app/routes`, `shared/hooks`, `shared/services` e `shared/types` são diretórios previstos para quando houver código que precise deles. Podem existir vazios localmente, mas não fazem parte da estrutura implementada.
 
 ## Organização
 
@@ -175,7 +200,24 @@ A organização é por funcionalidade, separando apresentação, lógica e acess
 
 As subdivisões de cada funcionalidade serão criadas quando necessárias. Não há exigência de classes ou de um ViewModel para cada componente.
 
-Somente a inicialização mínima está implementada. As pastas vazias da estrutura prevista podem existir localmente, mas não são registradas pelo Git; elas aparecerão no repositório quando receberem arquivos necessários. Os `.gitkeep` foram removidos conforme a revisão.
+Os componentes usam exportações nomeadas e importações relativas, sem extensão `.tsx`. Exemplo:
 
-Páginas de negócio e autenticação não fazem parte desta etapa.
+```tsx
+import { Button } from '../shared/ui/Button'
+```
+
+`shared/ui` recebe dados e eventos; regras de negócio e acesso a dados pertencem às funcionalidades. Os dados ilustrativos e as interações locais atuais ficam em `App.tsx`.
+
+## Conferência manual
+
+Depois de iniciar a aplicação:
+
+1. Confira os exemplos de campos, botões e indicadores, incluindo foco pelo teclado e controles desabilitados.
+2. No desktop, use o botão de três linhas para recolher e expandir a Navbar. O logo leva ao início da página.
+3. Em uma janela menor que 768 px, use **Abrir menu**. Selecionar um item fecha o menu; Escape também fecha quando o foco está dentro dele.
+4. Na composição de Produtos, troque as páginas e redimensione a janela para conferir o empilhamento dos painéis.
+5. Em **Estados compartilhados**, confira carregamento, lista vazia, busca sem resultados e falha. **Tentar novamente** exibe dados ilustrativos após 1,2 segundo.
+6. Execute `npm run build` para verificar os tipos e gerar o build.
+
+O build não substitui a conferência visual e de comportamento. Não há comando de testes automatizados configurado em `package.json` neste momento.
 
