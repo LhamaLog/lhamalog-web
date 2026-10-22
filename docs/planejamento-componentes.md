@@ -49,8 +49,8 @@ Referências: login, navbar, header, Produtos, Empresa e Ocorrências fornecidos
 - [x] Implementar categorias, área, último log e ambiente no ProductCard.
 - [x] Implementar lista de produtos reutilizando ProductCard.
 - [x] Implementar paginação da lista de produtos.
-- [ ] Implementar painel Resumo dos produtos.
-- [ ] Implementar painel Produtos por ambiente.
+- [x] Implementar painel Resumo dos produtos.
+- [x] Implementar painel Produtos por ambiente.
 - [ ] Implementar ranking Logs por produto.
 - [ ] Implementar indicadores Integrações ativas e Logs recebidos hoje.
 - [ ] Implementar composição responsiva da tela de Produtos.
@@ -86,10 +86,10 @@ Referências: login, navbar, header, Produtos, Empresa e Ocorrências fornecidos
 
 Criar os componentes desta seção quando forem necessários para os painéis das telas acima, sem duplicar a implementação.
 
-- [ ] Implementar MetricCard com título, valor, unidade, ícone e variação opcional.
+- [x] Implementar MetricCard com título, valor, unidade, ícone e variação opcional.
 - [ ] Implementar RankingList com posições, barras e valores.
 - [ ] Implementar Sparkline para os minigráficos dos indicadores.
-- [ ] Implementar barras de distribuição com rótulos e valores.
+- [x] Implementar barras de distribuição com rótulos e valores.
 - [ ] Implementar estado de carregamento de listas e painéis.
 - [ ] Implementar estado vazio e sem resultados.
 - [ ] Implementar mensagem de falha com ação de tentar novamente, quando houver operação de dados.

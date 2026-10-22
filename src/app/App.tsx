@@ -24,6 +24,10 @@ import { ProductsHeader } from '../features/products/components/ProductsHeader'
 import { ProductCard } from '../features/products/components/ProductCard'
 import { ProductList } from '../features/products/components/ProductList'
 import type { ProductListItem } from '../features/products/components/ProductList'
+import { MetricCard } from '../shared/ui/MetricCard'
+import { ProductsSummary } from '../features/products/components/ProductsSummary'
+import { DistributionBars } from '../shared/ui/DistributionBars'
+import { ProductsByEnvironment } from '../features/products/components/ProductsByEnvironment'
 
 const demoListIcon = (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true">
@@ -685,6 +689,66 @@ export function App() {
           itemLabel="produtos"
           onPageChange={setDemoProductPage}
         />
+      </section>
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Cartão de métrica</h2>
+        <p className="text-sm text-slate-600">
+          Valores ilustrativos para demonstrar título, unidade, ícone e variação opcional.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <MetricCard
+            title="Exemplo com unidade e variação"
+            value={85}
+            unit="%"
+            icon={demoListIcon}
+            variation="↑ 8% em relação ao período anterior (exemplo)"
+            tone="green"
+          />
+          <MetricCard title="Exemplo sem ícone ou variação" value={24} />
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Painel de resumo dos produtos</h2>
+        <p className="text-sm text-slate-600">
+          Dados ilustrativos independentes da lista anterior, sem cálculo de métricas ou consulta ao backend.
+          Os minigráficos serão adicionados na etapa de Sparkline.
+        </p>
+        <div className="max-w-md">
+          <ProductsSummary
+            periodLabel="Últimos 7 dias"
+            total={{ value: 24, variation: '↑ 4%' }}
+            connected={{ value: 17, variation: '↑ 12%' }}
+            waiting={{ value: 4, variation: '↓ 1' }}
+            withoutIntegration={{ value: 3, variation: 'Sem variação' }}
+          />
+        </div>
+      </section>
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Produtos por ambiente</h2>
+        <p className="text-sm text-slate-600">
+          Dados ilustrativos: 14 em produção, seis em homologação e quatro em desenvolvimento.
+          As barras comparam cada valor com o maior do painel.
+        </p>
+        <div className="max-w-md">
+          <ProductsByEnvironment production={14} staging={6} development={4} />
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Barras de distribuição com valores zero</h2>
+        <p className="text-sm text-slate-600">
+          Exemplo do componente reutilizável: as trilhas ficam sem preenchimento e os valores continuam visíveis.
+        </p>
+        <Card className="max-w-md">
+          <DistributionBars
+            items={[
+              { label: 'Produção', value: 0, color: 'blue' },
+              { label: 'Homologação', value: 0, color: 'amber' },
+              { label: 'Desenvolvimento', value: 0, color: 'navy' },
+            ]}
+          />
+        </Card>
       </section>
       </main>
       <Footer links={[{ label: 'Voltar ao início', href: '#components-top' }]} />
