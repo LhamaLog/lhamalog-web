@@ -12,14 +12,28 @@ import { PageHeader } from '../shared/ui/PageHeader'
 import { FilterButton } from '../shared/ui/FilterButton'
 import { Pagination } from '../shared/ui/Pagination'
 import { ProgressBar } from '../shared/ui/ProgressBar'
+import { Navbar } from './layouts/Navbar'
+import { Breadcrumbs } from '../shared/ui/Breadcrumbs'
+import { SystemStatus } from '../shared/ui/SystemStatus'
+import { PeriodSelector } from '../shared/ui/PeriodSelector'
+import { NotificationButton } from '../shared/ui/NotificationButton'
+import { UserIdentity } from '../shared/ui/UserIdentity'
 
 export function App() {
   const [demoPage, setDemoPage] = useState(1)
   const [demoProgress, setDemoProgress] = useState(85)
+  const [demoNavigation, setDemoNavigation] = useState('occurrences')
 
   return (
-    <main className="mx-auto max-w-3xl space-y-10 p-6">
-      <h1 className="text-2xl font-bold text-slate-900">
+    <div className="flex min-h-screen">
+      <Navbar
+        activeItem={demoNavigation}
+        onItemSelect={setDemoNavigation}
+        productName="API Gateway"
+        onProductSelect={() => alert('Demonstração do seletor. A lista de produtos ainda será definida.')}
+      />
+      <main className="mx-auto min-w-0 w-full max-w-3xl space-y-10 p-6">
+      <h1 id="components-top" className="text-2xl font-bold text-slate-900">
         Componentes LhamaLog
       </h1>
 
@@ -453,6 +467,71 @@ export function App() {
           />
         </Card>
       </section>
-    </main>
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Caminho da página</h2>
+        <p className="text-sm text-slate-600">
+          Exemplo: o ícone de início e o link Componentes levam ao topo desta demonstração.
+        </p>
+        <Breadcrumbs
+          homeHref="#components-top"
+          items={[
+            { label: 'Componentes', href: '#components-top' },
+            { label: 'Navegação' },
+            { label: 'Breadcrumbs' },
+          ]}
+        />
+      </section>
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Estado do sistema</h2>
+        <p className="text-sm text-slate-600">
+          Estados ilustrativos, sem consultar o backend.
+        </p>
+        <div className="flex flex-wrap items-center gap-6">
+          <SystemStatus label="Sistema operacional" />
+          <SystemStatus label="Exemplo de aviso" tone="warning" />
+          <SystemStatus label="Exemplo de indisponibilidade" tone="danger" />
+          <SystemStatus label="Estado desconhecido" tone="neutral" />
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Seletor de período</h2>
+        <p className="text-sm text-slate-600">
+          Apresentação do seletor; as opções e o funcionamento serão definidos depois.
+        </p>
+        <div className="flex flex-wrap items-center gap-4">
+          <PeriodSelector
+            label="Últimas 24 horas"
+            onClick={() => alert('Demonstração do seletor. As opções de período ainda serão definidas.')}
+          />
+          <PeriodSelector label="Últimas 24 horas" disabled />
+        </div>
+      </section>
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Notificações</h2>
+        <p className="text-sm text-slate-600">
+          Exemplos sem notificações, com uma, com mais de 99 e desabilitado.
+          O conteúdo das notificações ainda será definido.
+        </p>
+        <div className="flex flex-wrap items-center gap-6">
+          <NotificationButton onClick={() => alert('Demonstração: nenhuma notificação não lida.')} />
+          <NotificationButton count={1} onClick={() => alert('Demonstração: uma notificação não lida.')} />
+          <NotificationButton count={120} onClick={() => alert('Demonstração: 120 notificações não lidas.')} />
+          <NotificationButton count={2} disabled />
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Identificação do usuário</h2>
+        <p className="text-sm text-slate-600">
+          Dados ilustrativos, sem autenticação ou menu de usuário.
+        </p>
+        <div className="flex flex-wrap items-center gap-6">
+          <UserIdentity name="João Silva" role="Administrador" />
+          <UserIdentity name="Ana" role="Desenvolvedora" />
+        </div>
+      </section>
+      </main>
+    </div>
   )
 }

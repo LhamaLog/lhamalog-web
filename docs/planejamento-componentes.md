@@ -29,15 +29,15 @@ Referências: login, navbar, header, Produtos, Empresa e Ocorrências fornecidos
 
 ## 3 Navbar e header
 
-- [ ] Implementar Navbar lateral com logo e grupos de navegação.
-- [ ] Implementar itens de navegação com ícone, texto e indicação de página atual.
-- [ ] Implementar a apresentação do seletor de produto na Navbar.
+- [x] Implementar Navbar lateral com logo e grupos de navegação.
+- [x] Implementar itens de navegação com ícone, texto e indicação de página atual.
+- [x] Implementar a apresentação do seletor de produto na Navbar.
 - [ ] Implementar recolher e expandir a Navbar, após definir o estado recolhido.
-- [ ] Implementar Breadcrumbs com caminho da página.
-- [ ] Implementar indicador do estado do sistema.
-- [ ] Implementar a apresentação do seletor de período.
-- [ ] Implementar botão de notificações com contador.
-- [ ] Implementar identificação do usuário com avatar, nome e função.
+- [x] Implementar Breadcrumbs com caminho da página.
+- [x] Implementar indicador do estado do sistema.
+- [x] Implementar a apresentação do seletor de período.
+- [x] Implementar botão de notificações com contador.
+- [x] Implementar identificação do usuário com avatar, nome e função.
 - [ ] Implementar Header compondo os elementos compartilhados.
 - [ ] Implementar AppLayout com Navbar, Header e área de conteúdo responsiva.
 - [ ] Implementar Footer com copyright e links.
