@@ -1,5 +1,7 @@
 import { Input } from '../shared/ui/Input'
+import { PasswordInput } from '../shared/ui/PasswordInput'
 import { Button } from '../shared/ui/Button'
+import { Checkbox } from '../shared/ui/Checkbox'
 
 export function App() {
   return (
@@ -13,18 +15,22 @@ export function App() {
           autoComplete="email"
         />
 
-        <Input
+        <PasswordInput
           id="password"
           label="Senha"
-          type="password"
           placeholder="Sua senha"
           autoComplete="current-password"
+        />
+        
+        <Checkbox
+          id="remember"
+          label="Lembrar de mim"
         />
 
         <Button onClick={() => alert('Botão funcionando!')}>
           Entrar
         </Button>
-
+        
       </div>
     </main>
   )
