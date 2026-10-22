@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Card } from './Card'
+import { Sparkline } from './Sparkline'
 
 type MetricCardProps = {
   title: string
@@ -7,6 +8,7 @@ type MetricCardProps = {
   unit?: string
   icon?: ReactNode
   variation?: string
+  trend?: number[]
   tone?: 'blue' | 'green' | 'amber' | 'neutral'
 }
 
@@ -17,7 +19,7 @@ const tones = {
   neutral: { background: 'bg-slate-100!', title: 'text-slate-600', icon: 'bg-slate-600' },
 }
 
-export function MetricCard({ title, value, unit, icon, variation, tone = 'blue' }: MetricCardProps) {
+export function MetricCard({ title, value, unit, icon, variation, trend, tone = 'blue' }: MetricCardProps) {
   const colors = tones[tone]
 
   return (
@@ -27,11 +29,18 @@ export function MetricCard({ title, value, unit, icon, variation, tone = 'blue' 
           {icon}
         </span>
       )}
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <p className={`break-words text-xs font-bold ${colors.title}`}>{title}</p>
-        <p className="mt-1 break-words text-2xl font-bold text-[#083B7A]">
-          {value}{unit && <span className="ml-1 text-lg">{unit}</span>}
-        </p>
+        <div className="mt-1 flex flex-wrap items-end justify-between gap-2">
+          <p className="break-words text-2xl font-bold text-[#083B7A]">
+            {value}{unit && <span className="ml-1 text-lg">{unit}</span>}
+          </p>
+          {trend && (
+            <span className={colors.title}>
+              <Sparkline values={trend} label={`Histórico de ${title}: ${trend.filter(Number.isFinite).join(', ')}`} />
+            </span>
+          )}
+        </div>
         {variation && <p className="mt-1 break-words text-[11px] text-slate-600">{variation}</p>}
       </div>
     </Card>

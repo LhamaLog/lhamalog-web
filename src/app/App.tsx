@@ -28,6 +28,9 @@ import { MetricCard } from '../shared/ui/MetricCard'
 import { ProductsSummary } from '../features/products/components/ProductsSummary'
 import { DistributionBars } from '../shared/ui/DistributionBars'
 import { ProductsByEnvironment } from '../features/products/components/ProductsByEnvironment'
+import { LogsByProduct } from '../features/products/components/LogsByProduct'
+import { ProductsView } from '../features/products/components/ProductsView'
+import { Sparkline } from '../shared/ui/Sparkline'
 
 const demoListIcon = (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true">
@@ -95,12 +98,22 @@ const demoProducts: ProductListItem[] = [
   },
 ]
 
+const demoLogRanking = [
+  { id: 'demo-platform', name: 'Plataforma Web', logs: 9800, formattedValue: '9,8 mil' },
+  { id: 'demo-payments', name: 'API de Pagamentos', logs: 12400, formattedValue: '12,4 mil' },
+  { id: 'demo-mobile', name: 'App Mobile', logs: 5100, formattedValue: '5,1 mil' },
+  { id: 'demo-backoffice', name: 'Backoffice Financeiro', logs: 3200, formattedValue: '3,2 mil' },
+  { id: 'demo-warehouse', name: 'Data Warehouse', logs: 0, formattedValue: '0' },
+]
+
 export function App() {
   const [demoPage, setDemoPage] = useState(1)
   const [demoProgress, setDemoProgress] = useState(85)
   const [demoNavigation, setDemoNavigation] = useState('occurrences')
   const [demoProductSearch, setDemoProductSearch] = useState('')
   const [demoProductPage, setDemoProductPage] = useState(1)
+  const [demoViewPage, setDemoViewPage] = useState(1)
+  const [demoViewSearch, setDemoViewSearch] = useState('')
   const productsPerPage = 2
   const firstProductIndex = (demoProductPage - 1) * productsPerPage
   const visibleProducts = demoProducts.slice(firstProductIndex, firstProductIndex + productsPerPage)
@@ -130,7 +143,7 @@ export function App() {
         }}
         user={{ name: 'João Silva', role: 'Administrador' }}
       />
-      <main className="mx-auto min-w-0 w-full max-w-3xl flex-1 space-y-10 p-6">
+      <main className="mx-auto min-w-0 w-full max-w-7xl flex-1 space-y-10 p-6">
       <h1 id="components-top" className="text-2xl font-bold text-slate-900">
         Componentes LhamaLog
       </h1>
@@ -712,14 +725,14 @@ export function App() {
         <h2 className="text-lg font-semibold">Painel de resumo dos produtos</h2>
         <p className="text-sm text-slate-600">
           Dados ilustrativos independentes da lista anterior, sem cálculo de métricas ou consulta ao backend.
-          Os minigráficos serão adicionados na etapa de Sparkline.
+          Os minigráficos mostram séries ilustrativas recebidas pelo componente.
         </p>
         <div className="max-w-md">
           <ProductsSummary
             periodLabel="Últimos 7 dias"
-            total={{ value: 24, variation: '↑ 4%' }}
-            connected={{ value: 17, variation: '↑ 12%' }}
-            waiting={{ value: 4, variation: '↓ 1' }}
+            total={{ value: 24, variation: '↑ 4%', trend: [16, 17, 17, 19, 20, 22, 24] }}
+            connected={{ value: 17, variation: '↑ 12%', trend: [10, 12, 11, 14, 13, 15, 17] }}
+            waiting={{ value: 4, variation: '↓ 1', trend: [8, 7, 7, 6, 5, 5, 4] }}
             withoutIntegration={{ value: 3, variation: 'Sem variação' }}
           />
         </div>
@@ -749,6 +762,67 @@ export function App() {
             ]}
           />
         </Card>
+      </section>
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Ranking de logs por produto</h2>
+        <p className="text-sm text-slate-600">
+          Dados ilustrativos ordenados do maior volume para o menor. O produto com zero mantém sua posição e o valor visível.
+        </p>
+        <div className="max-w-md">
+          <LogsByProduct products={demoLogRanking} periodLabel="Últimos 7 dias" />
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Minigráficos de tendência</h2>
+        <p className="text-sm text-slate-600">
+          Séries ilustrativas: variável, constante e com um único ponto. Uma série vazia não desenha gráfico.
+        </p>
+        <div className="flex flex-wrap gap-6 text-[#0C70F2]">
+          <Sparkline values={[2, 4, 3, 7, 8, 6, 10]} label="Exemplo variável: 2, 4, 3, 7, 8, 6, 10" />
+          <Sparkline values={[5, 5, 5]} label="Exemplo constante: 5, 5, 5" />
+          <Sparkline values={[5]} label="Exemplo com um ponto: 5" />
+          <Sparkline values={[]} label="Exemplo vazio" />
+        </div>
+      </section>
+
+      <section id="products-view-demo" className="space-y-4">
+        <h2 className="text-lg font-semibold">Composição de Produtos</h2>
+        <p className="text-sm text-slate-600">
+          Demonstração com cinco produtos e três por página. A busca apenas recebe texto;
+          filtros e cadastro mostram avisos. Todos os indicadores e históricos são ilustrativos.
+        </p>
+        <ProductsView
+          header={{
+            headingLevel: 2,
+            search: demoViewSearch,
+            onSearchChange: setDemoViewSearch,
+            filterCount: 0,
+            onFilterClick: () => alert('Demonstração: o conteúdo dos filtros ainda será definido.'),
+            onCreateClick: () => alert('Demonstração: o formulário de cadastro ainda será definido.'),
+          }}
+          list={{ products: demoProducts.slice((demoViewPage - 1) * 3, demoViewPage * 3) }}
+          pagination={{
+            page: demoViewPage,
+            pageSize: 3,
+            totalItems: demoProducts.length,
+            itemLabel: 'produtos',
+            onPageChange: setDemoViewPage,
+          }}
+          summary={{
+            periodLabel: 'Últimos 7 dias',
+            total: { value: 5, variation: '↑ 1', trend: [2, 3, 3, 4, 4, 5, 5] },
+            connected: { value: 2, trend: [1, 1, 2, 2, 2, 2, 2] },
+            waiting: { value: 1, trend: [3, 2, 2, 2, 1, 1, 1] },
+            withoutIntegration: { value: 1, variation: 'Sem variação' },
+          }}
+          environments={{ production: 3, staging: 1, development: 1 }}
+          logs={{ products: demoLogRanking, periodLabel: 'Últimos 7 dias' }}
+          indicators={{
+            activeIntegrations: { value: 40, unit: '%', variation: '↑ 8% vs. semana anterior (exemplo)' },
+            logsToday: { value: '8,2', unit: 'mil', variation: '↑ 14% vs. ontem (exemplo)' },
+          }}
+        />
       </section>
       </main>
       <Footer links={[{ label: 'Voltar ao início', href: '#components-top' }]} />

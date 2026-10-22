@@ -4,6 +4,7 @@ import { MetricCard } from '../../../shared/ui/MetricCard'
 type SummaryMetric = {
   value: number
   variation?: string
+  trend?: number[]
 }
 
 type ProductsSummaryProps = {
@@ -38,6 +39,7 @@ export function ProductsSummary({ periodLabel, ...values }: ProductsSummaryProps
             tone={metric.tone}
             value={values[metric.key].value}
             variation={values[metric.key].variation}
+            trend={values[metric.key].trend}
             icon={
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d={metric.path} />
