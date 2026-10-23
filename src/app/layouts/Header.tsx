@@ -1,9 +1,6 @@
 import type { ComponentProps } from 'react'
 import { Breadcrumbs } from '../../shared/ui/Breadcrumbs'
-import { SystemStatus } from '../../shared/ui/SystemStatus'
-import { PeriodSelector } from '../../shared/ui/PeriodSelector'
-import { NotificationButton } from '../../shared/ui/NotificationButton'
-import { UserIdentity } from '../../shared/ui/UserIdentity'
+import { SystemStatus, PeriodSelector, NotificationButton, UserIdentity } from './HeaderControls'
 
 type HeaderProps = {
   breadcrumbs: ComponentProps<typeof Breadcrumbs>

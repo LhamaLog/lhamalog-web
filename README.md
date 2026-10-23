@@ -175,6 +175,7 @@ src/
       AppLayout.tsx
       Navbar.tsx
       Header.tsx
+      HeaderControls.tsx
       Footer.tsx
   features/
     products/
@@ -187,6 +188,7 @@ src/
 ## Responsabilidades
 
 - `app/layouts`: estrutura visual compartilhada entre páginas.
+- `app/layouts/HeaderControls.tsx`: controles específicos do Header, reunindo estado do sistema, período, notificações e identificação do usuário.
 - `features`: funcionalidades organizadas por domínio; componentes, hooks, serviços e tipos específicos ficam junto da funcionalidade que os utiliza.
 - `shared/ui`: componentes visuais reutilizáveis entre funcionalidades.
 - `shared/assets`: recursos visuais compartilhados, como o logo.
