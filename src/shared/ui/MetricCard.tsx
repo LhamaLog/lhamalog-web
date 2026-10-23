@@ -9,10 +9,11 @@ type MetricCardProps = {
   icon?: ReactNode
   variation?: string
   trend?: number[]
-  tone?: 'blue' | 'green' | 'amber' | 'neutral'
+  tone?: 'blue' | 'green' | 'amber' | 'neutral' | 'red'
 }
 
 const tones = {
+  red: { background: 'bg-red-50!', title: 'text-red-600', icon: 'bg-red-600' },
   blue: { background: 'bg-blue-50!', title: 'text-[#0C70F2]', icon: 'bg-[#0C70F2]' },
   green: { background: 'bg-green-50!', title: 'text-green-700', icon: 'bg-green-500' },
   amber: { background: 'bg-amber-50!', title: 'text-amber-700', icon: 'bg-amber-500' },

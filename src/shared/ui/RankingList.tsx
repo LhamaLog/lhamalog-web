@@ -1,6 +1,8 @@
 type RankingListProps = {
-  items: { id: string; label: string; value: number; formattedValue?: string }[]
+  items: { id: string; label: string; value: number; formattedValue?: string; color?: 'blue' | 'red' | 'amber' | 'lightBlue' }[]
 }
+
+const barColors = { blue: 'bg-[#0C70F2]', red: 'bg-red-600', amber: 'bg-amber-500', lightBlue: 'bg-blue-400' }
 
 export function RankingList({ items }: RankingListProps) {
   const values = items.map((item) => ({
@@ -18,7 +20,7 @@ export function RankingList({ items }: RankingListProps) {
           </span>
           <span className="truncate text-slate-900" title={item.label}>{item.label}</span>
           <span aria-hidden="true" className="h-1.5 overflow-hidden rounded-full bg-slate-100">
-            <span className="block h-full rounded-full bg-[#0C70F2]" style={{ width: `${maximum > 0 ? (item.value / maximum) * 100 : 0}%` }} />
+            <span className={`block h-full rounded-full ${barColors[item.color ?? 'blue']}`} style={{ width: `${maximum > 0 ? (item.value / maximum) * 100 : 0}%` }} />
           </span>
           <span className="text-right font-bold tabular-nums text-[#083B7A]">
             {item.formattedValue ?? item.value.toLocaleString('pt-BR')}

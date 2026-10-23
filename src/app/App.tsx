@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { ComponentProps } from 'react'
 import { Input } from '../shared/ui/Input'
 import { PasswordInput } from '../shared/ui/PasswordInput'
 import { Checkbox } from '../shared/ui/Checkbox'
@@ -29,6 +30,10 @@ import { Sparkline } from '../shared/ui/Sparkline'
 import { LoadingState } from '../shared/ui/LoadingState'
 import { EmptyState } from '../shared/ui/EmptyState'
 import { ErrorState } from '../shared/ui/ErrorState'
+import { OccurrencesHeader } from '../features/occurrences/components/OccurrencesHeader'
+import { SeverityIndicator } from '../features/occurrences/components/SeverityIndicator'
+import { OccurrencesView } from '../features/occurrences/components/OccurrencesView'
+import type { OccurrenceItem } from '../features/occurrences/components/OccurrenceCard'
 
 const demoListIcon = (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true">
@@ -104,6 +109,87 @@ const demoLogRanking = [
   { id: 'demo-warehouse', name: 'Data Warehouse', logs: 0, formattedValue: '0' },
 ]
 
+const occurrenceExamples: (Omit<OccurrenceItem, 'id' | 'dateTime' | 'dateLabel' | 'timeLabel'> & { time: string })[] = [
+  {
+    severity: 'error', title: 'Falha na autenticação de token', time: '14:12',
+    description: 'Token inválido para o usuário 8342. Verificar configuração do provider.',
+    tags: ['api-gateway', 'autenticação'], project: 'Todos os projetos',
+  },
+  {
+    severity: 'warning', title: 'Latência acima do esperado', time: '13:45',
+    description: 'Tempo de resposta médio acima de 2 segundos nos últimos 5 minutos.',
+    tags: ['payment-service', 'performance'], project: 'Aplicação Web',
+  },
+  {
+    severity: 'info', title: 'Deploy concluído com sucesso', time: '12:30',
+    description: 'Versão v1.4.3 implantada em produção.',
+    tags: ['auth-service', 'deploy'], project: 'Backoffice',
+  },
+  {
+    severity: 'error', title: 'Erro ao conectar com o banco', time: '11:18',
+    description: 'Connection timeout após 30 segundos. Verificar rede.',
+    tags: ['user-service', 'banco de dados'], project: 'Aplicação Web',
+  },
+  {
+    severity: 'warning', title: 'Fila com alto volume de mensagens', time: '10:02',
+    description: 'Mais de 10.000 mensagens na fila de processamento.',
+    tags: ['queue-worker', 'mensageria'], project: 'Processamento',
+  },
+  {
+    severity: 'info', title: 'Novo usuário registrado', time: '09:25',
+    description: 'Usuário de demonstração cadastrado com sucesso.',
+    tags: ['frontend', 'cadastro'], project: 'Aplicação Web',
+  },
+  {
+    severity: 'warning', title: 'Uso elevado de memória', time: '09:10',
+    description: 'Consumo de memória acima do limite de exemplo.',
+    tags: ['notification', 'memória'], project: 'Notificações',
+  },
+  {
+    severity: 'info', title: 'Sincronização finalizada', time: '08:40',
+    description: 'Dados de demonstração sincronizados.',
+    tags: ['storage', 'sincronização'], project: 'Processamento',
+  },
+]
+
+const demoOccurrences: OccurrenceItem[] = occurrenceExamples.map(({ time, ...example }, index) => ({
+  ...example,
+  id: `demo-occurrence-${index + 1}`,
+  dateTime: `2026-10-23T${time}:00-03:00`,
+  dateLabel: '23 de out. de 2026 (exemplo)',
+  timeLabel: `Dia de exemplo, ${time}`,
+}))
+
+const demoOccurrencePanels: ComponentProps<typeof OccurrencesView>['panels'] = {
+  periodLabel: 'Últimos 7 dias (exemplo)',
+  metrics: {
+    errors: { value: 48, variation: '↑ 12%', trend: [12, 18, 15, 26, 21, 35, 48] },
+    warnings: { value: 73, variation: '↑ 5%', trend: [42, 38, 53, 48, 64, 56, 73] },
+    information: { value: 284, variation: '↑ 8%', trend: [120, 150, 146, 195, 220, 250, 284] },
+    resolved: { value: 312, variation: '↑ 22%', trend: [150, 180, 168, 240, 215, 270, 312] },
+  },
+  activityColumns: Array.from({ length: 14 }, (_, index) => `Amostra ${index + 1}`),
+  activityCaption: 'Amostras fictícias por dia. Os intervalos reais ainda serão definidos.',
+  activity: [
+    { label: 'Domingo', values: [0, 1, 0, 3, 0, 0, 2, 0, 1, 2, 0, 2, 0, 0] },
+    { label: 'Segunda-feira', values: [1, 3, 3, 1, 2, 1, 4, 3, 0, 1, 2, 1, 2, 0] },
+    { label: 'Terça-feira', values: [2, 0, 4, 1, 2, 3, 1, 4, 1, 2, 4, 1, 2, 2] },
+    { label: 'Quarta-feira', values: [2, 1, 4, 1, 0, 2, 3, 4, 3, 2, 3, 3, 2, 4] },
+    { label: 'Quinta-feira', values: [2, 1, 2, 0, 3, 4, 3, 2, 3, 2, 1, 2, 4, 3] },
+    { label: 'Sexta-feira', values: [1, 2, 0, 3, 3, 0, 1, 4, 2, 1, 2, 3, 3, 1] },
+    { label: 'Sábado', values: [0, 1, 0, 3, 3, 0, 0, 3, 3, 1, 3, 2, 3, 1] },
+  ],
+  services: [
+    { id: 'api', label: 'api-gateway', value: 128, color: 'red' },
+    { id: 'payments', label: 'payment-service', value: 93, color: 'amber' },
+    { id: 'auth', label: 'auth-service', value: 67 },
+    { id: 'notification', label: 'notification', value: 52, color: 'lightBlue' },
+    { id: 'storage', label: 'storage', value: 38, color: 'lightBlue' },
+  ],
+  resolutionTime: { value: 28, unit: 'min', variation: '↑ 32% vs. período anterior (exemplo)' },
+  resolutionRate: { value: 86, unit: '%', variation: '↑ 12% vs. período anterior (exemplo)' },
+}
+
 export function App() {
   const [demoPage, setDemoPage] = useState(1)
   const [demoProgress, setDemoProgress] = useState(85)
@@ -112,6 +198,14 @@ export function App() {
   const [demoProductPage, setDemoProductPage] = useState(1)
   const [demoViewPage, setDemoViewPage] = useState(1)
   const [demoViewSearch, setDemoViewSearch] = useState('')
+  const [demoOccurrenceSearch, setDemoOccurrenceSearch] = useState('')
+  const [occurrenceSearch, setOccurrenceSearch] = useState('')
+  const [occurrencePage, setOccurrencePage] = useState(1)
+  const occurrencePageSize = 6
+  const occurrenceQuery = occurrenceSearch.trim().toLocaleLowerCase('pt-BR')
+  const filteredOccurrences = demoOccurrences.filter((item) =>
+    [item.title, item.description, item.project, ...item.tags].join(' ').toLocaleLowerCase('pt-BR').includes(occurrenceQuery),
+  )
   const [demoDataState, setDemoDataState] = useState<'loading' | 'empty' | 'no-results' | 'error' | 'success'>('error')
   useEffect(() => {
     if (demoDataState !== 'loading') return
@@ -891,6 +985,53 @@ export function App() {
             error="Informe um endereço de e-mail válido (exemplo)."
           />
         </div>
+      </section>
+      <section id="occurrences-header-demo" className="space-y-4">
+        <p className="text-sm text-slate-600">
+          Demonstração do cabeçalho de Ocorrências. A busca recebe texto, sem consultar dados;
+          o botão de filtros mostra apenas um aviso.
+        </p>
+        <OccurrencesHeader
+          headingLevel={2}
+          search={demoOccurrenceSearch}
+          onSearchChange={setDemoOccurrenceSearch}
+          filterCount={2}
+          onFilterClick={() => alert('Demonstração: as opções dos filtros de ocorrências ainda serão definidas.')}
+        />
+        <h3 className="font-semibold text-slate-900">Indicadores de severidade</h3>
+        <div className="flex flex-wrap items-center gap-3">
+          <SeverityIndicator severity="error" />
+          <SeverityIndicator severity="warning" />
+          <SeverityIndicator severity="info" />
+        </div>
+      </section>
+      <section id="occurrences-view-demo" className="space-y-4">
+        <h2 className="text-lg font-semibold">Composição de Ocorrências</h2>
+        <p className="text-sm text-slate-600">
+          Demonstração com busca local e oito ocorrências fictícias, seis por página.
+          Métricas e históricos são exemplos independentes da lista; filtros e detalhes mostram avisos.
+        </p>
+        <OccurrencesView
+          header={{
+            headingLevel: 2,
+            search: occurrenceSearch,
+            onSearchChange: (value) => { setOccurrenceSearch(value); setOccurrencePage(1) },
+            filterCount: 0,
+            onFilterClick: () => alert('Demonstração: as opções dos filtros ainda serão definidas.'),
+          }}
+          list={{
+            occurrences: filteredOccurrences.slice((occurrencePage - 1) * occurrencePageSize, occurrencePage * occurrencePageSize),
+            onOpen: () => alert('Demonstração: a tela de detalhes da ocorrência ainda será definida.'),
+          }}
+          pagination={{
+            page: occurrencePage,
+            pageSize: occurrencePageSize,
+            totalItems: filteredOccurrences.length,
+            itemLabel: 'ocorrências',
+            onPageChange: setOccurrencePage,
+          }}
+          panels={demoOccurrencePanels}
+        />
       </section>
     </AppLayout>
   )

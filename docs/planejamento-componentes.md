@@ -59,17 +59,19 @@ Comportamento adotado para a Navbar: no desktop, o botão de três linhas no top
 
 ## 5 Ocorrências
 
-- [ ] Implementar cabeçalho da tela de Ocorrências com busca e filtros.
-- [ ] Implementar SeverityIndicator com Erro, Alerta e Info.
-- [ ] Implementar OccurrenceCard com severidade, título, descrição e tags.
-- [ ] Implementar data, horário e projeto no OccurrenceCard.
-- [ ] Implementar lista de ocorrências reutilizando OccurrenceCard.
-- [ ] Implementar paginação da lista de ocorrências.
-- [ ] Implementar painel Métricas principais.
-- [ ] Implementar gráfico de intensidade Ocorrências por dia.
-- [ ] Implementar ranking Serviços mais impactados.
-- [ ] Implementar indicadores Tempo médio de resolução e Taxa de resolução.
-- [ ] Implementar composição responsiva da tela de Ocorrências.
+- [x] Implementar cabeçalho da tela de Ocorrências com busca e filtros.
+- [x] Implementar SeverityIndicator com Erro, Alerta e Info.
+- [x] Implementar OccurrenceCard com severidade, título, descrição e tags.
+- [x] Implementar data, horário e projeto no OccurrenceCard.
+- [x] Implementar lista de ocorrências reutilizando OccurrenceCard.
+- [x] Implementar paginação da lista de ocorrências.
+- [x] Implementar painel Métricas principais.
+- [x] Implementar gráfico de intensidade Ocorrências por dia.
+- [x] Implementar ranking Serviços mais impactados.
+- [x] Implementar indicadores Tempo médio de resolução e Taxa de resolução.
+- [x] Implementar composição responsiva da tela de Ocorrências.
+
+A composição usa ocorrências fictícias com busca local por título, descrição, projeto e tags e paginação de seis itens. Filtros e detalhes mostram avisos; não há consulta à API. Os painéis usam dados ilustrativos independentes da lista. Cada célula do gráfico recebe uma amostra fictícia e um rótulo; as cores comparam o volume com o maior valor do conjunto. Intervalos, fórmulas e significado dos dados reais ainda dependem de definição.
 
 ## 6 Empresa
 
@@ -110,11 +112,11 @@ Partes pequenas podem permanecer no componente que as utiliza. Não é necessár
 
 ## Ordem de trabalho
 
-As seções de componentes básicos, componentes reutilizáveis, Navbar e Header, Produtos e indicadores e estados compartilhados estão implementadas no contexto da demonstração local. As marcações representam as entregas visuais e os comportamentos demonstrados, sem concluir integrações ou fluxos de negócio ainda pendentes.
+As seções de componentes básicos, componentes reutilizáveis, Navbar e Header, Produtos, Ocorrências e indicadores e estados compartilhados estão implementadas no contexto da demonstração local. As marcações representam as entregas visuais e os comportamentos demonstrados, sem concluir integrações ou fluxos de negócio ainda pendentes.
 
 O próximo passo é comparar a entrega atual com a descrição e os critérios de aceite da LLT-237. Esses critérios ainda não estão registrados neste documento; a conclusão da tarefa depende dessa conferência e da revisão da equipe.
 
-Ocorrências e Empresa permanecem como planejamento. Sua implementação deve ter o escopo confirmado antes de iniciar. Quando houver continuidade, trabalhar em pequenas entregas de aproximadamente até 300 linhas alteradas por rodada, preservando os exemplos existentes e aguardando o retorno do usuário antes da próxima etapa.
+Empresa permanece como planejamento. Sua implementação deve ter o escopo confirmado antes de iniciar. Quando houver continuidade, trabalhar em pequenas entregas de aproximadamente até 300 linhas alteradas por rodada, preservando os exemplos existentes e aguardando o retorno do usuário antes da próxima etapa.
 
 ## Regras de implementação
 

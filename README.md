@@ -9,12 +9,13 @@ A aplicação abre uma página de demonstração chamada **Componentes LhamaLog*
 - Campos, botões, checkbox, badges para status e tags, avatar, busca, cartões, paginação e barra de progresso.
 - Navbar com recolhimento no desktop e menu em telas pequenas, Header e Footer compostos pelo AppLayout.
 - Cartões e lista de produtos, painéis de resumo, ambientes e logs, indicadores e composição responsiva de Produtos.
+- Cartões e lista de ocorrências com severidade, tags, data e projeto; busca local, paginação, métricas, intensidade, ranking e composição responsiva de Ocorrências.
 - Componentes compartilhados de métricas, ranking, minigráficos e barras de distribuição.
 - Estados de carregamento, lista vazia, busca sem resultados e falha com ação de tentar novamente.
 
-A seleção de itens na Navbar apenas troca o destaque; ainda não há navegação entre páginas. As buscas recebem texto, mas não filtram os produtos. Filtros, cadastro, seletores de produto/período e notificações mostram avisos de demonstração. A paginação troca os produtos locais exibidos. A recuperação de falha usa um temporizador local, sem requisição ao backend.
+A seleção de itens na Navbar apenas troca o destaque; ainda não há navegação entre páginas. As buscas de Produtos recebem texto, mas não filtram os produtos. Na composição de Ocorrências, a busca filtra os exemplos locais por título, descrição, projeto e tags. Filtros, cadastro, detalhes, seletores de produto/período e notificações mostram avisos de demonstração. A paginação troca os itens locais exibidos. A recuperação de falha usa um temporizador local, sem requisição ao backend.
 
-Ocorrências e Empresa ainda não foram implementadas. Autenticação, integração com Clerk, acesso ao backend, formulários e regras de negócio permanecem pendentes de suas respectivas etapas e definições. A implementação visual não representa o aceite das tarefas pela equipe.
+A composição visual de Ocorrências está implementada com dados ilustrativos. O gráfico de intensidade usa amostras fictícias; seus intervalos reais e as fórmulas das métricas ainda dependem de definição. A tela de Empresa está pendente. Autenticação, integração com Clerk, acesso ao backend, formulários e regras de negócio permanecem pendentes de suas respectivas etapas e definições. A implementação visual não representa o aceite das tarefas pela equipe.
 
 O detalhamento das entregas e das definições pendentes está em [docs/planejamento-componentes.md](docs/planejamento-componentes.md). As referências visuais em SVG ficam em [docs/referencias](docs/referencias).
 
@@ -180,6 +181,8 @@ src/
   features/
     products/
       components/
+    occurrences/
+      components/
   shared/
     assets/
     ui/
@@ -217,7 +220,7 @@ Depois de iniciar a aplicação:
 1. Confira os exemplos de campos, botões e indicadores, incluindo foco pelo teclado e controles desabilitados.
 2. No desktop, use o botão de três linhas para recolher e expandir a Navbar. O logo leva ao início da página.
 3. Em uma janela menor que 768 px, use **Abrir menu**. Selecionar um item fecha o menu; Escape também fecha quando o foco está dentro dele.
-4. Na composição de Produtos, troque as páginas e redimensione a janela para conferir o empilhamento dos painéis.
+4. Nas composições de Produtos e Ocorrências, troque as páginas e redimensione a janela para conferir o empilhamento dos painéis. Em Ocorrências, busque por `deploy` e depois por um termo inexistente para conferir a busca local e o estado sem resultados.
 5. Em **Estados compartilhados**, confira carregamento, lista vazia, busca sem resultados e falha. **Tentar novamente** exibe dados ilustrativos após 1,2 segundo.
 6. Execute `npm run build` para verificar os tipos e gerar o build.
 
