@@ -13,10 +13,10 @@ Referências: login, navbar, header, Produtos, Empresa e Ocorrências fornecidos
 
 ## 2 Componentes reutilizáveis
 
-- [ ] Implementar variantes do Button: primário, contorno e suave.
-- [ ] Implementar tamanhos e opção de largura total no Button.
-- [ ] Implementar IconButton para ações que usam somente ícone.
-- [ ] Implementar Badge para status e indicadores coloridos.
+- [x] Implementar variantes do Button: primário, contorno e suave.
+- [x] Implementar tamanhos e opção de largura total no Button.
+- [x] Implementar IconButton para ações que usam somente ícone.
+- [x] Implementar Badge para status e indicadores coloridos.
 - [x] Implementar Tag para categorias e etiquetas, reaproveitando Badge se suficiente.
 - [x] Implementar Avatar com iniciais.
 - [x] Implementar suporte a ícone inicial no Input.
@@ -110,7 +110,11 @@ Partes pequenas podem permanecer no componente que as utiliza. Não é necessár
 
 ## Ordem de trabalho
 
-A base da seção 1 está concluída. A próxima entrega é **implementar as variantes do Button**. Depois seguimos pelos componentes reutilizáveis necessários para Navbar e Header. As telas serão compostas com esses componentes, uma parte por vez. Indicadores comuns devem ser criados antes dos painéis que os utilizam.
+As seções de componentes básicos, componentes reutilizáveis, Navbar e Header, Produtos e indicadores e estados compartilhados estão implementadas no contexto da demonstração local. As marcações representam as entregas visuais e os comportamentos demonstrados, sem concluir integrações ou fluxos de negócio ainda pendentes.
+
+O próximo passo é comparar a entrega atual com a descrição e os critérios de aceite da LLT-237. Esses critérios ainda não estão registrados neste documento; a conclusão da tarefa depende dessa conferência e da revisão da equipe.
+
+Ocorrências e Empresa permanecem como planejamento. Sua implementação deve ter o escopo confirmado antes de iniciar. Quando houver continuidade, trabalhar em pequenas entregas de aproximadamente até 300 linhas alteradas por rodada, preservando os exemplos existentes e aguardando o retorno do usuário antes da próxima etapa.
 
 ## Regras de implementação
 

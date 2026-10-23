@@ -870,6 +870,28 @@ export function App() {
           )}
         </div>
       </section>
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Campo com orientação e erro</h2>
+        <p className="text-sm text-slate-600">
+          Exemplo de uma orientação e uma mensagem de erro associadas ao mesmo campo.
+          O erro é ilustrativo; este exemplo não realiza validação.
+        </p>
+        <div className="max-w-96 space-y-2">
+          <p id="review-email-help" className="text-sm text-slate-600">
+            Utilize seu e-mail profissional.
+          </p>
+          <Input
+            id="review-email"
+            label="E-mail (exemplo)"
+            className="tracking-wide"
+            type="email"
+            placeholder="seu@empresa.com"
+            autoComplete="email"
+            aria-describedby="review-email-help"
+            error="Informe um endereço de e-mail válido (exemplo)."
+          />
+        </div>
+      </section>
     </AppLayout>
   )
 }

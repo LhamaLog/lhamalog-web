@@ -20,7 +20,7 @@ const variants = {
 const sizes = {
   small: 'h-9 px-3 text-sm',
   normal: 'h-12 px-4 text-base',
-  icon: 'h-10 w-10 p-0',
+  icon: 'h-10 p-0',
 }
 
 export function Button({
@@ -46,7 +46,7 @@ export function Button({
         disabled:cursor-not-allowed disabled:opacity-50
         ${variants[variant]}
         ${sizes[size]}
-        ${fullWidth ? 'w-full' : 'w-auto'}
+        ${fullWidth ? 'w-full' : size === 'icon' ? 'w-10' : 'w-auto'}
         ${className}
       `}
     >

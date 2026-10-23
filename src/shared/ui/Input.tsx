@@ -19,6 +19,7 @@ export function Input({
   endAction,
   compact = false,
   hideLabel = false,
+  className = '',
   ...props
 }: InputProps) {
   return (
@@ -35,9 +36,11 @@ export function Input({
           {...props}
           id={id}
           type={type}
-          aria-invalid={error ? true : undefined}
+          aria-invalid={error ? true : props['aria-invalid']}
           aria-describedby={
-            error ? `${id}-error` : props['aria-describedby']
+            [props['aria-describedby'], error ? `${id}-error` : undefined]
+              .filter(Boolean)
+              .join(' ') || undefined
           }
           className={`
             w-full border px-4 text-slate-900
@@ -52,6 +55,7 @@ export function Input({
                 ? 'border-red-600 focus:border-red-600 focus:ring-red-600/20'
                 : 'border-slate-200 focus:border-[#0C70F2] focus:ring-[#0C70F2]/20'
             }
+            ${className}
           `}
         />
 
