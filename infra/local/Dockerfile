@@ -1,4 +1,5 @@
-FROM node:24-bookworm-slim
+ARG NODE_VERSION
+FROM node:${NODE_VERSION}-bookworm-slim
 
 WORKDIR /home/node/app
 RUN chown node:node /home/node/app

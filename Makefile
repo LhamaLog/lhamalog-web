@@ -6,13 +6,15 @@ endif
 
 COMPOSE := docker compose -f infra/local/compose.yaml
 
-.PHONY: run build infra-up infra-down infra-ps infra-logs infra-config
+.PHONY: run build up infra-up infra-down infra-ps infra-logs infra-config
 
 run:
 	$(NPM) run dev
 
 build:
 	$(NPM) run build
+
+up: infra-up
 
 infra-up:
 	$(COMPOSE) up -d --build

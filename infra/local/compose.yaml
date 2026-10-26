@@ -5,6 +5,8 @@ services:
     build:
       context: ../..
       dockerfile: infra/local/Dockerfile
+      args:
+        NODE_VERSION: "26.12.1"
     ports:
       - "127.0.0.1:5173:5173"
     init: true

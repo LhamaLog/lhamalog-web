@@ -24,13 +24,13 @@ O detalhamento das entregas e das definições pendentes está em [docs/planejam
 
 ## Pré-requisitos
 
-- Node.js 24.14 ou superior, com npm, para execução e build locais.
+- Node.js 26.12.1, com npm, para execução e build locais.
 - Docker Desktop com contêineres Linux, para execução pelo Docker.
 - GNU Make (opcional), para utilizar os atalhos do Makefile. Os comandos diretos continuam disponíveis sem ele.
 
 ## Executar localmente
 
-Instale o [Node.js](https://nodejs.org/en/download), versão 24.14 ou superior. O npm acompanha a instalação. A versão de referência está em `.node-version`.
+Instale o [Node.js](https://nodejs.org/en/download), versão 26.12.1. O npm acompanha a instalação. A versão de referência está em `.node-version` e também está declarada em `package.json`.
 
 Na pasta do projeto:
 
@@ -53,11 +53,15 @@ infra/local/
   compose.yaml
 ```
 
-Execute os comandos na raiz do repositório. Com GNU Make instalado, use `make infra-up`, `make infra-ps`, `make infra-logs` e `make infra-down`; os equivalentes diretos estão abaixo e na tabela de comandos.
+Execute os comandos na raiz do repositório. Com GNU Make instalado, use `make up` (ou `make infra-up`), `make infra-ps`, `make infra-logs` e `make infra-down`; os equivalentes diretos estão abaixo e na tabela de comandos.
 
 Instale e inicie o [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/), usando contêineres Linux. No Windows, siga os requisitos de WSL 2 da instalação. Confirme com `docker version`: as informações de Client e Server devem aparecer.
 
-Para esta opção, não é necessário instalar Node.js ou executar `npm ci` na máquina: a imagem fornece Node.js 24 e instala as dependências dentro do contêiner.
+Para esta opção, não é necessário instalar Node.js ou executar `npm ci` na máquina: a imagem fornece Node.js 26.12.1 e instala as dependências dentro do contêiner.
+
+Com o Docker Desktop iniciado, basta executar `make up`. Esse comando constrói a imagem, executando `npm ci` no Dockerfile, e inicia o frontend em segundo plano. As dependências vêm do `package-lock.json`; a etapa de instalação pode reutilizar o cache quando os arquivos de dependências não mudaram. Não é necessário executar `npm install` manualmente.
+
+A versão exata do Node fica em `build.args.NODE_VERSION` no `infra/local/compose.yaml`, sem usar `latest`. O Dockerfile recebe esse argumento para selecionar a imagem oficial `node:<versão>-bookworm-slim`, sem definir uma versão padrão. O npm é o incluído nessa imagem. Ao atualizar o Node, mantenha `.node-version` e a declaração `engines.node` de `package.json` e `package-lock.json` alinhados com o YAML.
 
 Na pasta do projeto, construa a imagem e inicie o ambiente em segundo plano:
 
@@ -138,7 +142,7 @@ Esses comandos são alternativas independentes: execute a ação desejada, não 
 | --- | --- | --- |
 | Rodar localmente | `npm run dev` | `make run` |
 | Gerar o build local | `npm run build` | `make build` |
-| Subir o frontend pelo Docker | `docker compose -f infra/local/compose.yaml up -d --build` | `make infra-up` |
+| Subir o frontend pelo Docker | `docker compose -f infra/local/compose.yaml up -d --build` | `make up` ou `make infra-up` |
 | Parar o ambiente Docker | `docker compose -f infra/local/compose.yaml down` | `make infra-down` |
 | Status dos contêineres | `docker compose -f infra/local/compose.yaml ps` | `make infra-ps` |
 | Acompanhar os logs | `docker compose -f infra/local/compose.yaml logs -f` | `make infra-logs` |
