@@ -37,6 +37,9 @@ import type { OccurrenceItem } from '../features/occurrences/components/Occurren
 import { CompanySummary } from '../features/company/components/CompanySummary'
 import { CompanyDataCard, CompanyContextCard, CompanyPreferencesCard } from '../features/company/components/CompanyInfoCards'
 import { CompanyAddressCard } from '../features/company/components/CompanyAddressCard'
+import { CompanyGovernance } from '../features/company/components/CompanyGovernance'
+import { CompanyView } from '../features/company/components/CompanyView'
+import { Footer } from './layouts/Footer'
 import companySymbol from '../shared/assets/lhamalog-symbol.svg'
 
 const demoListIcon = (
@@ -1117,6 +1120,62 @@ export function App() {
             onAdjust={() => alert('Demonstração: o formulário de preferências da empresa ainda será definido.')}
           />
         </div>
+      </section>
+      <section id="company-governance-demo" className="space-y-4">
+        <h2 className="text-lg font-semibold">Governança da Empresa</h2>
+        <p className="text-sm text-slate-600">
+          Demonstração visual das ações de governança. Os botões mostram avisos;
+          a exportação de PDF e a sincronização ainda não estão implementadas.
+        </p>
+        <CompanyGovernance
+          description="Centralize a documentação e a sincronização das informações da empresa."
+          onExport={() => alert('Demonstração: a exportação do dossiê em PDF ainda será definida.')}
+          onSync={() => alert('Demonstração: a sincronização das áreas da empresa ainda será definida.')}
+        />
+      </section>
+      <section id="company-view-demo" className="space-y-4">
+        <h2 className="text-lg font-semibold">Composição de Empresa</h2>
+        <p className="text-sm text-slate-600">
+          Tela com dados fictícios. Os links internos levam aos blocos abaixo;
+          editar, exportar e sincronizar continuam como ações demonstrativas.
+        </p>
+        <CompanyView
+          id="company-overview"
+          headingLevel={2}
+          summary={{
+            name: 'LhamaLog Tecnologia LTDA', logoSrc: companySymbol, verified: true,
+            cnpj: '12.345.678/0001-90', stateRegistration: '123.456.789.012',
+            context: 'Matriz Operacional', completion: 85,
+            completionDescription: 'Conclua os dados pendentes para chegar a 100%.',
+          }}
+          data={{
+            legalName: 'LhamaLog Tecnologia LTDA', tradeName: 'LhamaLog',
+            cnpj: '12.345.678/0001-90', identityLabel: 'Logo atualizada', statusLabel: 'Completo',
+            onManage: () => alert('Demonstração: o formulário dos dados da empresa ainda será definido.'),
+          }}
+          context={{
+            segment: 'Tecnologia / SaaS', environments: ['Produção', 'Homologação', 'Desenvolvimento'],
+            criticalWindows: 'Horário comercial e deploys', monitoredSystems: '5 nós conectados', statusLabel: 'Ativo',
+            onEdit: () => alert('Demonstração: o formulário de contexto de atuação ainda será definido.'),
+          }}
+          address={{
+            street: 'Avenida Brasil, 1234 – Sala 502', district: 'Centro', postalCode: '87000-000',
+            city: 'Maringá', state: 'PR', referencePoint: 'Em frente à praça central, Edifício Business Tower', statusLabel: 'Confirmado',
+            onUpdate: () => alert('Demonstração: o formulário de atualização do endereço ainda será definido.'),
+          }}
+          preferences={{
+            currency: 'Real (BRL)', timeZone: '(UTC-03:00) Brasília', language: 'Português (Brasil)',
+            dataRange: 'Últimas 24 horas', aiAnalysis: 'Detalhamento alto • Criticidade',
+            notifications: 'Críticas imediatas • Falhas recorrentes', security: '2FA para gestores • Dados mascarados', statusLabel: 'Otimizado',
+            onAdjust: () => alert('Demonstração: o formulário de preferências da empresa ainda será definido.'),
+          }}
+          governance={{
+            description: 'Centralize a documentação e a sincronização das informações da empresa.',
+            onExport: () => alert('Demonstração: a exportação do dossiê em PDF ainda será definida.'),
+            onSync: () => alert('Demonstração: a sincronização das áreas da empresa ainda será definida.'),
+          }}
+          footer={<Footer links={[{ label: 'Voltar ao início', href: '#components-top' }]} />}
+        />
       </section>
     </AppLayout>
   )

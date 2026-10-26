@@ -12,11 +12,13 @@ A aplicação abre uma página de demonstração chamada **Componentes LhamaLog*
 - Cartões e lista de ocorrências com severidade, tags, data e projeto; busca local, paginação, métricas, intensidade, ranking e composição responsiva de Ocorrências.
 - Cabeçalho de Empresa, resumo cadastral com logo e verificação, conclusão do perfil e cartões de dados, contexto de atuação, endereço e preferências, com dados fictícios e ações de edição demonstrativas. O mapa do endereço é ilustrativo, sem geolocalização; as preferências não aplicam configurações ao sistema.
 - Componentes compartilhados de métricas, ranking, minigráficos e barras de distribuição.
+- Bloco de governança de Empresa com ações demonstrativas de exportação de PDF e sincronização, sem executar essas operações.
+- Composição responsiva de Empresa com navegação por links internos para os cartões e rodapé.
 - Estados de carregamento, lista vazia, busca sem resultados e falha com ação de tentar novamente.
 
 A seleção de itens na Navbar apenas troca o destaque; ainda não há navegação entre páginas. As buscas de Produtos recebem texto, mas não filtram os produtos. Na composição de Ocorrências, a busca filtra os exemplos locais por título, descrição, projeto e tags. Filtros, cadastro, detalhes, seletores de produto/período e notificações mostram avisos de demonstração. A paginação troca os itens locais exibidos. A recuperação de falha usa um temporizador local, sem requisição ao backend.
 
-A composição visual de Ocorrências está implementada com dados ilustrativos. O gráfico de intensidade usa amostras fictícias; seus intervalos reais e as fórmulas das métricas ainda dependem de definição. Empresa está em implementação visual; sua navegação interna, governança e composição final estão pendentes. Autenticação, integração com Clerk, acesso ao backend, formulários e regras de negócio permanecem pendentes de suas respectivas etapas e definições. A implementação visual não representa o aceite das tarefas pela equipe.
+As composições visuais de Ocorrências e Empresa estão implementadas com dados ilustrativos. O gráfico de intensidade usa amostras fictícias; seus intervalos reais e as fórmulas das métricas ainda dependem de definição. Em Empresa, a navegação interna mantém os cartões visíveis e leva ao bloco selecionado, com foco e destaque do destino. Autenticação, integração com Clerk, acesso ao backend, formulários e regras de negócio permanecem pendentes de suas respectivas etapas e definições. A implementação visual não representa o aceite das tarefas pela equipe.
 
 O detalhamento das entregas e das definições pendentes está em [docs/planejamento-componentes.md](docs/planejamento-componentes.md). As referências visuais em SVG ficam em [docs/referencias](docs/referencias).
 
@@ -226,6 +228,7 @@ Depois de iniciar a aplicação:
 4. Nas composições de Produtos e Ocorrências, troque as páginas e redimensione a janela para conferir o empilhamento dos painéis. Em Ocorrências, busque por `deploy` e depois por um termo inexistente para conferir a busca local e o estado sem resultados.
 5. Em **Estados compartilhados**, confira carregamento, lista vazia, busca sem resultados e falha. **Tentar novamente** exibe dados ilustrativos após 1,2 segundo.
 6. Execute `npm run build` para verificar os tipos e gerar o build.
+7. Em **Composição de Empresa**, use os links internos por clique ou teclado. Confira o bloco de destino, o destaque ao voltar pelo navegador e o empilhamento dos cartões no celular. As seis ações dos cartões e da governança mostram apenas avisos.
 
 O build não substitui a conferência visual e de comportamento. Não há comando de testes automatizados configurado em `package.json` neste momento.
 

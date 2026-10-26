@@ -76,15 +76,17 @@ A composição usa ocorrências fictícias com busca local por título, descriç
 ## 6 Empresa
 
 - [x] Implementar cabeçalho da tela de Configurações da Empresa.
-- [ ] Implementar navegação entre Empresa, Dados da Empresa, Contexto de Atuação, Endereço e Preferências, conforme o comportamento definido.
+- [x] Implementar navegação entre Empresa, Dados da Empresa, Contexto de Atuação, Endereço e Preferências, conforme o comportamento definido.
 - [x] Implementar CompanySummary com logo, nome, verificação, CNPJ e inscrição estadual.
 - [x] Implementar indicador de conclusão do perfil.
 - [x] Implementar CompanyDataCard com resumo cadastral e ação Gerenciar Dados.
 - [x] Implementar CompanyContextCard com resumo operacional e ação Editar Contexto.
 - [x] Implementar CompanyAddressCard com mapa ilustrado, endereço e ação Atualizar Endereço.
 - [x] Implementar CompanyPreferencesCard com resumo das preferências e ação Ajustar Preferências.
-- [ ] Implementar bloco de governança com apresentação das ações de exportação e sincronização.
-- [ ] Implementar composição responsiva da tela de Empresa com rodapé.
+- [x] Implementar bloco de governança com apresentação das ações de exportação e sincronização.
+- [x] Implementar composição responsiva da tela de Empresa com rodapé.
+
+A navegação interna usa links para os blocos da mesma tela, mantendo os cartões visíveis. Selecionar um link move o foco para o bloco e destaca o destino; voltar, avançar e recarregar preservam o destaque pelo endereço. A composição usa duas colunas quando há espaço e empilha os cartões em áreas menores. O rodapé é fornecido pelo App, reutilizando Footer; os destinos de privacidade, termos e suporte ainda dependem de definição.
 
 ## 7 Indicadores e estados compartilhados
 
@@ -112,11 +114,11 @@ Partes pequenas podem permanecer no componente que as utiliza. Não é necessár
 
 ## Ordem de trabalho
 
-As seções de componentes básicos, componentes reutilizáveis, Navbar e Header, Produtos, Ocorrências e indicadores e estados compartilhados estão implementadas no contexto da demonstração local. As marcações representam as entregas visuais e os comportamentos demonstrados, sem concluir integrações ou fluxos de negócio ainda pendentes.
+As seções de componentes básicos, componentes reutilizáveis, Navbar e Header, Produtos, Ocorrências, Empresa e indicadores e estados compartilhados estão implementadas no contexto da demonstração local. As marcações representam as entregas visuais e os comportamentos demonstrados, sem concluir integrações ou fluxos de negócio ainda pendentes.
 
 O próximo passo é comparar a entrega atual com a descrição e os critérios de aceite da LLT-237. Esses critérios ainda não estão registrados neste documento; a conclusão da tarefa depende dessa conferência e da revisão da equipe.
 
-Empresa está em implementação visual, com cabeçalho, resumo cadastral, conclusão do perfil e cartões de dados, contexto, endereço e preferências demonstrados com dados fictícios. O mapa do endereço é uma ilustração em SVG, sem geolocalização. As preferências são apenas um resumo visual, sem aplicar configurações. As ações de edição mostram avisos, sem formulários. A navegação interna, governança e composição final permanecem pendentes. Quando houver continuidade, trabalhar em pequenas entregas de aproximadamente até 300 linhas alteradas por rodada, preservando os exemplos existentes e aguardando o retorno do usuário antes da próxima etapa.
+Empresa tem composição visual responsiva com navegação interna, cabeçalho, resumo cadastral, conclusão do perfil, cartões de dados, contexto, endereço e preferências, governança e rodapé. Os dados são fictícios. O mapa do endereço é uma ilustração em SVG, sem geolocalização. As preferências são apenas um resumo visual, sem aplicar configurações. As ações de edição mostram avisos, sem formulários. O bloco de governança apresenta as ações de exportação de PDF e sincronização com avisos demonstrativos, sem executar essas operações. Quando houver continuidade, trabalhar em pequenas entregas de aproximadamente até 300 linhas alteradas por rodada, preservando os exemplos existentes e aguardando o retorno do usuário antes da próxima etapa.
 
 ## Regras de implementação
 
