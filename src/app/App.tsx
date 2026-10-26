@@ -34,6 +34,9 @@ import { OccurrencesHeader } from '../features/occurrences/components/Occurrence
 import { SeverityIndicator } from '../features/occurrences/components/SeverityIndicator'
 import { OccurrencesView } from '../features/occurrences/components/OccurrencesView'
 import type { OccurrenceItem } from '../features/occurrences/components/OccurrenceCard'
+import { CompanySummary } from '../features/company/components/CompanySummary'
+import { CompanyDataCard, CompanyContextCard } from '../features/company/components/CompanyInfoCards'
+import companySymbol from '../shared/assets/lhamalog-symbol.svg'
 
 const demoListIcon = (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true">
@@ -1032,6 +1035,48 @@ export function App() {
           }}
           panels={demoOccurrencePanels}
         />
+      </section>
+      <section id="company-summary-demo" className="space-y-4">
+        <p className="text-sm text-slate-600">
+          Demonstração inicial de Empresa com dados fictícios. A verificação e a conclusão
+          do perfil são valores recebidos pelo componente, sem validação ou cálculo cadastral.
+        </p>
+        <PageHeader title="Configurações da Empresa" headingLevel={2} />
+        <CompanySummary
+          name="LhamaLog Tecnologia LTDA"
+          logoSrc={companySymbol}
+          verified
+          context="Matriz Operacional"
+          cnpj="12.345.678/0001-90"
+          stateRegistration="123.456.789.012"
+          completion={85}
+          completionDescription="Conclua os dados pendentes para chegar a 100%."
+        />
+      </section>
+      <section id="company-info-demo" className="space-y-4">
+        <h2 className="text-lg font-semibold">Cartões de Empresa</h2>
+        <p className="text-sm text-slate-600">
+          Resumos com dados fictícios e status ilustrativos. Os botões apenas demonstram as ações;
+          os formulários ainda serão definidos.
+        </p>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <CompanyDataCard
+            legalName="LhamaLog Tecnologia LTDA"
+            tradeName="LhamaLog"
+            cnpj="12.345.678/0001-90"
+            identityLabel="Logo atualizada"
+            statusLabel="Completo"
+            onManage={() => alert('Demonstração: o formulário dos dados da empresa ainda será definido.')}
+          />
+          <CompanyContextCard
+            segment="Tecnologia / SaaS"
+            environments={['Produção', 'Homologação', 'Desenvolvimento']}
+            criticalWindows="Horário comercial e deploys"
+            monitoredSystems="5 nós conectados"
+            statusLabel="Ativo"
+            onEdit={() => alert('Demonstração: o formulário de contexto de atuação ainda será definido.')}
+          />
+        </div>
       </section>
     </AppLayout>
   )
