@@ -81,8 +81,8 @@ A composição usa ocorrências fictícias com busca local por título, descriç
 - [x] Implementar indicador de conclusão do perfil.
 - [x] Implementar CompanyDataCard com resumo cadastral e ação Gerenciar Dados.
 - [x] Implementar CompanyContextCard com resumo operacional e ação Editar Contexto.
-- [ ] Implementar CompanyAddressCard com mapa ilustrado, endereço e ação Atualizar Endereço.
-- [ ] Implementar CompanyPreferencesCard com resumo das preferências e ação Ajustar Preferências.
+- [x] Implementar CompanyAddressCard com mapa ilustrado, endereço e ação Atualizar Endereço.
+- [x] Implementar CompanyPreferencesCard com resumo das preferências e ação Ajustar Preferências.
 - [ ] Implementar bloco de governança com apresentação das ações de exportação e sincronização.
 - [ ] Implementar composição responsiva da tela de Empresa com rodapé.
 
@@ -116,7 +116,7 @@ As seções de componentes básicos, componentes reutilizáveis, Navbar e Header
 
 O próximo passo é comparar a entrega atual com a descrição e os critérios de aceite da LLT-237. Esses critérios ainda não estão registrados neste documento; a conclusão da tarefa depende dessa conferência e da revisão da equipe.
 
-Empresa está em implementação visual, com cabeçalho, resumo cadastral, conclusão do perfil e cartões de dados e contexto demonstrados com dados fictícios. As ações de edição mostram avisos, sem formulários. A navegação interna, endereço, preferências, governança e composição final permanecem pendentes. Quando houver continuidade, trabalhar em pequenas entregas de aproximadamente até 300 linhas alteradas por rodada, preservando os exemplos existentes e aguardando o retorno do usuário antes da próxima etapa.
+Empresa está em implementação visual, com cabeçalho, resumo cadastral, conclusão do perfil e cartões de dados, contexto, endereço e preferências demonstrados com dados fictícios. O mapa do endereço é uma ilustração em SVG, sem geolocalização. As preferências são apenas um resumo visual, sem aplicar configurações. As ações de edição mostram avisos, sem formulários. A navegação interna, governança e composição final permanecem pendentes. Quando houver continuidade, trabalhar em pequenas entregas de aproximadamente até 300 linhas alteradas por rodada, preservando os exemplos existentes e aguardando o retorno do usuário antes da próxima etapa.
 
 ## Regras de implementação
 

@@ -35,7 +35,8 @@ import { SeverityIndicator } from '../features/occurrences/components/SeverityIn
 import { OccurrencesView } from '../features/occurrences/components/OccurrencesView'
 import type { OccurrenceItem } from '../features/occurrences/components/OccurrenceCard'
 import { CompanySummary } from '../features/company/components/CompanySummary'
-import { CompanyDataCard, CompanyContextCard } from '../features/company/components/CompanyInfoCards'
+import { CompanyDataCard, CompanyContextCard, CompanyPreferencesCard } from '../features/company/components/CompanyInfoCards'
+import { CompanyAddressCard } from '../features/company/components/CompanyAddressCard'
 import companySymbol from '../shared/assets/lhamalog-symbol.svg'
 
 const demoListIcon = (
@@ -1075,6 +1076,45 @@ export function App() {
             monitoredSystems="5 nós conectados"
             statusLabel="Ativo"
             onEdit={() => alert('Demonstração: o formulário de contexto de atuação ainda será definido.')}
+          />
+        </div>
+      </section>
+      <section id="company-address-demo" className="space-y-4">
+        <h2 className="text-lg font-semibold">Endereço da Empresa</h2>
+        <p className="text-sm text-slate-600">
+          Endereço fictício com mapa ilustrativo, sem geolocalização. O botão mostra um aviso;
+          o formulário de atualização ainda será definido.
+        </p>
+        <div className="max-w-3xl">
+          <CompanyAddressCard
+            street="Avenida Brasil, 1234 – Sala 502"
+            district="Centro"
+            postalCode="87000-000"
+            city="Maringá"
+            state="PR"
+            referencePoint="Em frente à praça central, Edifício Business Tower"
+            statusLabel="Confirmado"
+            onUpdate={() => alert('Demonstração: o formulário de atualização do endereço ainda será definido.')}
+          />
+        </div>
+      </section>
+      <section id="company-preferences-demo" className="space-y-4">
+        <h2 className="text-lg font-semibold">Preferências da Empresa</h2>
+        <p className="text-sm text-slate-600">
+          Resumo com valores ilustrativos. Não aplica configurações de IA, notificações ou segurança;
+          o botão demonstra a ação de ajuste, sem formulário.
+        </p>
+        <div className="max-w-3xl">
+          <CompanyPreferencesCard
+            currency="Real (BRL)"
+            timeZone="(UTC-03:00) Brasília"
+            language="Português (Brasil)"
+            dataRange="Últimas 24 horas"
+            aiAnalysis="Detalhamento alto • Criticidade"
+            notifications="Críticas imediatas • Falhas recorrentes"
+            security="2FA para gestores • Dados mascarados"
+            statusLabel="Otimizado"
+            onAdjust={() => alert('Demonstração: o formulário de preferências da empresa ainda será definido.')}
           />
         </div>
       </section>

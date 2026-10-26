@@ -10,13 +10,13 @@ A aplicação abre uma página de demonstração chamada **Componentes LhamaLog*
 - Navbar com recolhimento no desktop e menu em telas pequenas, Header e Footer compostos pelo AppLayout.
 - Cartões e lista de produtos, painéis de resumo, ambientes e logs, indicadores e composição responsiva de Produtos.
 - Cartões e lista de ocorrências com severidade, tags, data e projeto; busca local, paginação, métricas, intensidade, ranking e composição responsiva de Ocorrências.
-- Cabeçalho de Empresa, resumo cadastral com logo e verificação, conclusão do perfil e cartões de dados e contexto de atuação, com dados fictícios e ações de edição demonstrativas.
+- Cabeçalho de Empresa, resumo cadastral com logo e verificação, conclusão do perfil e cartões de dados, contexto de atuação, endereço e preferências, com dados fictícios e ações de edição demonstrativas. O mapa do endereço é ilustrativo, sem geolocalização; as preferências não aplicam configurações ao sistema.
 - Componentes compartilhados de métricas, ranking, minigráficos e barras de distribuição.
 - Estados de carregamento, lista vazia, busca sem resultados e falha com ação de tentar novamente.
 
 A seleção de itens na Navbar apenas troca o destaque; ainda não há navegação entre páginas. As buscas de Produtos recebem texto, mas não filtram os produtos. Na composição de Ocorrências, a busca filtra os exemplos locais por título, descrição, projeto e tags. Filtros, cadastro, detalhes, seletores de produto/período e notificações mostram avisos de demonstração. A paginação troca os itens locais exibidos. A recuperação de falha usa um temporizador local, sem requisição ao backend.
 
-A composição visual de Ocorrências está implementada com dados ilustrativos. O gráfico de intensidade usa amostras fictícias; seus intervalos reais e as fórmulas das métricas ainda dependem de definição. Empresa está em implementação visual; sua navegação interna e os demais cartões estão pendentes. Autenticação, integração com Clerk, acesso ao backend, formulários e regras de negócio permanecem pendentes de suas respectivas etapas e definições. A implementação visual não representa o aceite das tarefas pela equipe.
+A composição visual de Ocorrências está implementada com dados ilustrativos. O gráfico de intensidade usa amostras fictícias; seus intervalos reais e as fórmulas das métricas ainda dependem de definição. Empresa está em implementação visual; sua navegação interna, governança e composição final estão pendentes. Autenticação, integração com Clerk, acesso ao backend, formulários e regras de negócio permanecem pendentes de suas respectivas etapas e definições. A implementação visual não representa o aceite das tarefas pela equipe.
 
 O detalhamento das entregas e das definições pendentes está em [docs/planejamento-componentes.md](docs/planejamento-componentes.md). As referências visuais em SVG ficam em [docs/referencias](docs/referencias).
 

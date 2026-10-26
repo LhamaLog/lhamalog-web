@@ -95,3 +95,37 @@ export function CompanyContextCard({ segment, environments, criticalWindows, mon
     />
   )
 }
+
+type CompanyPreferencesCardProps = {
+  currency: string
+  timeZone: string
+  language: string
+  dataRange: string
+  aiAnalysis: string
+  notifications: string
+  security: string
+  statusLabel?: string
+  onAdjust: () => void
+}
+
+export function CompanyPreferencesCard({ currency, timeZone, language, dataRange, aiAnalysis, notifications, security, statusLabel, onAdjust }: CompanyPreferencesCardProps) {
+  return (
+    <CompanyInfoCard
+      title="Preferências e IA"
+      description="Automação e comportamento do sistema"
+      iconPath="M3 6h3m4 0h11M3 12h9m4 0h5M3 18h3m4 0h11M10 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM16 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM10 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"
+      statusLabel={statusLabel}
+      fields={[
+        { label: 'Moeda padrão:', value: currency },
+        { label: 'Fuso horário:', value: timeZone },
+        { label: 'Idioma:', value: language },
+        { label: 'Intervalo de dados:', value: dataRange },
+        { label: 'Análises da IA:', value: aiAnalysis },
+        { label: 'Notificações:', value: notifications },
+        { label: 'Segurança:', value: security },
+      ]}
+      actionLabel="Ajustar Preferências"
+      onAction={onAdjust}
+    />
+  )
+}
