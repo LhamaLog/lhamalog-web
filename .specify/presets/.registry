@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "presets": {
+    "lhamalog-local": {
+      "version": "1.0.0",
+      "source": "local",
+      "manifest_hash": "sha256:47e267f5308a0fea7d0a451afc8025e5e8e71b3cea70bc9b3355f7b64341badd",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {
+        "codex": [
+          "speckit.implement",
+          "speckit.taskstoissues"
+        ]
+      },
+      "registered_skills": {
+        "codex": [
+          "speckit-implement",
+          "speckit-taskstoissues"
+        ]
+      },
+      "installed_at": "2026-10-31T15:25:50.512345+00:00"
+    }
+  }
+}
