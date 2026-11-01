@@ -1,6 +1,7 @@
 import type { ComponentProps } from 'react'
 import { Breadcrumbs } from '../../shared/ui/Breadcrumbs'
 import { SystemStatus, PeriodSelector, NotificationButton, UserIdentity } from './HeaderControls'
+import { SignOutButton } from '../../features/auth/components/SignOutButton'
 
 type HeaderProps = {
   breadcrumbs: ComponentProps<typeof Breadcrumbs>
@@ -22,6 +23,7 @@ export function Header({ breadcrumbs, systemStatus, period, notifications, user 
         <PeriodSelector {...period} />
         <NotificationButton {...notifications} />
         <UserIdentity {...user} />
+        <SignOutButton />
       </div>
     </header>
   )

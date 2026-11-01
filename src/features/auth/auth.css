@@ -1,0 +1,241 @@
+/* =====================================================================
+   LhamaLog: estilos das telas de autenticação (feature auth).
+   Tokens do Figma (arquivo "LhamaLog", página Login).
+   IMPORTANTE: este CSS fica FORA de qualquer @layer. A Clerk usa a camada "clerk"
+   (cssLayerName em theme/appearance.ts, ordem declarada em src/styles.css), então
+   as regras daqui vencem as dela e as do Tailwind.
+   Tudo fica sob classes lh-: nada de :root, *, body ou seletores de elemento soltos,
+   para não alterar a demonstração nem a fonte do restante da aplicação.
+   ===================================================================== */
+
+/* Poppins só para as telas de autenticação, servida pelo próprio projeto (sem chamada externa). */
+@import '@fontsource/poppins/400.css';
+@import '@fontsource/poppins/500.css';
+@import '@fontsource/poppins/600.css';
+@import '@fontsource/poppins/700.css';
+@import '@fontsource/poppins/800.css';
+
+.lh-auth,
+.lh-fundo {
+  --lh-fonte: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --lh-azul: #0c70f2;
+  --lh-azul-escuro: #163466;
+  --lh-texto: #0f172a;
+  --lh-texto-2: #475569;
+  --lh-texto-3: #64748b;
+  --lh-suave: #94a3b8;
+  --lh-campo: #f8fafc;
+  --lh-borda: #e2e8f0;
+  --lh-info: #f1f5f9;
+  --lh-painel-texto: #7097c6;
+  --lh-raio: 12px;
+  color-scheme: light;
+  font-family: var(--lh-fonte);
+  line-height: 1.5;
+  color: var(--lh-texto);
+}
+
+/* ---------- Layout dividido das telas de autenticação ---------- */
+.lh-auth {
+  display: grid;
+  grid-template-columns: minmax(0, 57fr) minmax(0, 43fr); /* 820 x 620 no Figma (1440) */
+  min-height: 100vh;
+  /* O wallpaper cobre a tela inteira (painel + formulário). Sem o arquivo, o degradê continua valendo. */
+  background:
+    url('./assets/wallpaper.png') center / cover no-repeat,
+    linear-gradient(165deg, #0b2f8f 0%, #082a78 45%, #061a4d 100%);
+}
+
+.lh-auth-form {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+/* Card branco sobre o wallpaper: 384px de conteúdo (Figma) + 40px de respiro de cada lado. */
+.lh-auth-coluna {
+  width: 100%;
+  max-width: 464px;
+  padding: 40px;
+  background: #fff;
+  border: 1px solid rgba(112, 151, 198, 0.35);
+  border-radius: 24px;
+  box-shadow: 0 24px 60px rgba(6, 26, 77, 0.45);
+}
+
+/* Painel da marca (esquerda): transparente, mostra o wallpaper do .lh-auth */
+.lh-marca {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding-bottom: 35px;
+  color: #fff;
+}
+.lh-marca-topo { display: flex; align-items: center; min-height: 132px; /* mantém o layout mesmo sem o arquivo da logo */ }
+.lh-marca-logo { width: 132px; height: 132px; object-fit: cover; }
+.lh-marca-nome { font-weight: 700; font-size: 50px; line-height: normal; color: #fff; }
+.lh-marca-corpo { padding: 15px 48px 0 66px; }
+.lh-marca-titulo {
+  margin: 0;
+  max-width: 7em; /* quebra em 3 linhas como no Figma: "Logs que / impulsionam / decisões." */
+  font-weight: 700;
+  font-size: clamp(40px, 4.2vw, 60px);
+  line-height: 1.1667; /* 70px sobre 60px */
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(2, 12, 48, 0.45);
+}
+.lh-marca-destaque { display: block; color: var(--lh-azul); }
+.lh-beneficios { list-style: none; margin: 67px 0 0; padding: 0; display: grid; gap: 39px; }
+.lh-beneficio { display: flex; align-items: flex-start; gap: 16px; }
+.lh-beneficio-icone {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 32px;
+  background: var(--lh-azul-escuro);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.lh-beneficio-icone img { width: 30px; height: 30px; }
+.lh-beneficio-titulo { display: block; font-weight: 700; font-size: 20px; line-height: normal; }
+.lh-beneficio-texto { display: block; font-weight: 400; font-size: 16px; line-height: normal; max-width: 21rem; }
+.lh-marca-rodape {
+  margin: auto 0 0;
+  padding-left: 28px;
+  font-size: 16px;
+  color: var(--lh-painel-texto);
+}
+
+.lh-termos { margin: 1.5rem 0 0; font-size: 13px; line-height: 1.5; text-align: center; color: var(--lh-suave); }
+.lh-termos a { color: var(--lh-azul); text-decoration: underline; }
+
+.lh-aviso {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.9rem;
+  background: #fff4e0;
+  border: 1px solid #e0a63a;
+  border-radius: var(--lh-raio);
+  font-size: 14px;
+}
+
+/* Celular e telas estreitas: o painel vira uma faixa com a marca */
+@media (max-width: 960px) {
+  .lh-auth { grid-template-columns: minmax(0, 1fr); }
+  .lh-marca { min-height: 0; padding-bottom: 0; }
+  .lh-marca-topo { min-height: 88px; }
+  .lh-marca-logo { width: 72px; height: 72px; }
+  .lh-marca-nome { font-size: 32px; }
+  .lh-marca-corpo, .lh-marca-rodape { display: none; }
+  .lh-auth-form { align-items: flex-start; padding-top: 32px; }
+  .lh-auth-coluna { padding: 28px 20px; }
+}
+
+/* =====================================================================
+   Clerk: telas de autenticação (classes ligadas em theme/appearance.ts, authAppearance)
+   ===================================================================== */
+.lh-root { width: 100%; }
+.lh-cardbox { width: 100%; max-width: none; margin: 0; background: transparent; border: 0; box-shadow: none; }
+.lh-card { width: 100%; padding: 0; gap: 1.5rem; background: transparent; border: 0; box-shadow: none; }
+
+.lh-titulo { margin: 0; font-family: var(--lh-fonte); font-weight: 800; font-size: 40px; line-height: 1.15; color: var(--lh-texto); }
+.lh-subtitulo { font-family: var(--lh-fonte); font-weight: 400; font-size: 15px; line-height: 1.5; color: var(--lh-texto-2); }
+[data-etapa='inicio'] .lh-titulo { font-size: 48px; line-height: normal; }
+[data-etapa='inicio'] .lh-subtitulo { font-size: 18px; }
+
+.lh-label { font-family: var(--lh-fonte); font-weight: 600; font-size: 16px; color: var(--lh-texto); }
+
+.lh-input {
+  height: 56px;
+  padding: 0 16px;
+  font-family: var(--lh-fonte);
+  font-size: 15px;
+  color: var(--lh-texto);
+  background: var(--lh-campo);
+  border: 1px solid var(--lh-borda);
+  border-radius: var(--lh-raio);
+  box-shadow: none;
+}
+.lh-input::placeholder { color: var(--lh-texto-2); opacity: 1; }
+.lh-input:focus { outline: none; border-color: var(--lh-azul); box-shadow: 0 0 0 1px var(--lh-azul); }
+
+.lh-btn {
+  height: 48px;
+  font-family: var(--lh-fonte);
+  font-weight: 600;
+  font-size: 16px;
+  color: #fff;
+  background: var(--lh-azul);
+  border: 0;
+  border-radius: var(--lh-raio);
+  box-shadow: none;
+}
+.lh-btn:hover { background: #0a63d6; }
+.lh-btn:focus-visible { outline: 3px solid var(--lh-azul); outline-offset: 2px; }
+[data-etapa='interna'] .lh-btn { height: 52px; }
+
+.lh-btn-secundario {
+  height: 48px;
+  font-family: var(--lh-fonte);
+  font-weight: 600;
+  color: var(--lh-texto-2);
+  border-radius: var(--lh-raio);
+}
+
+.lh-btn-social {
+  height: 48px;
+  font-family: var(--lh-fonte);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--lh-texto);
+  background: #fff;
+  border: 1px solid var(--lh-borda);
+  border-radius: var(--lh-raio);
+  box-shadow: none;
+}
+.lh-btn-social:hover { background: var(--lh-campo); }
+
+.lh-link { font-family: var(--lh-fonte); font-weight: 600; font-size: 14px; color: var(--lh-azul); }
+
+.lh-otp {
+  height: 60px;
+  font-family: var(--lh-fonte);
+  font-weight: 600;
+  font-size: 22px;
+  color: var(--lh-texto);
+  background: var(--lh-campo);
+  border: 1px solid var(--lh-borda);
+  border-radius: var(--lh-raio);
+  box-shadow: none;
+}
+.lh-otp:focus { outline: none; background: #fff; border: 2px solid var(--lh-azul); }
+
+.lh-info { padding: 20px; background: var(--lh-info); border: 0; border-radius: var(--lh-raio); }
+.lh-alerta { border-radius: var(--lh-raio); }
+.lh-divisor { background: var(--lh-borda); }
+.lh-divisor-texto { font-family: var(--lh-fonte); font-size: 13px; color: var(--lh-suave); }
+.lh-clerk-rodape { background: transparent; }
+
+.lh-lista-item { border: 1px solid var(--lh-borda); border-radius: var(--lh-raio); }
+
+/* =====================================================================
+   Criar e escolher organização: card padrão da Clerk centralizado sobre o wallpaper
+   ===================================================================== */
+.lh-fundo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 48px 16px;
+  /* Sem o arquivo, o degradê continua valendo. */
+  background:
+    url('./assets/background.png') center / cover no-repeat,
+    linear-gradient(165deg, #0b2f8f 0%, #082a78 45%, #061a4d 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lh-auth *,
+  .lh-fundo * { transition: none !important; animation: none !important; }
+}

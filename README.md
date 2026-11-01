@@ -1,10 +1,13 @@
 # LhamaLog Web
 
-Frontend do LhamaLog usando TypeScript, React e Tailwind CSS. A base foi iniciada na [LLT-236](https://logviewer2026.atlassian.net/browse/LLT-236); o desenvolvimento atual inclui componentes reutilizáveis e a composição visual de Produtos, relacionados ao planejamento da LLT-237. O Vite inicia o servidor de desenvolvimento, processa os estilos e gera o build.
+Frontend do LhamaLog usando TypeScript, React e Tailwind CSS. A base foi iniciada na [LLT-236](https://logviewer2026.atlassian.net/browse/LLT-236); o desenvolvimento atual inclui componentes reutilizáveis e a composição visual de Produtos, relacionados ao planejamento da LLT-237, e o login e logout com Clerk da [LLT-162](https://logviewer2026.atlassian.net/browse/LLT-162). O Vite inicia o servidor de desenvolvimento, processa os estilos e gera o build.
 
 ## Estado atual
 
-A aplicação abre uma página de demonstração chamada **Componentes LhamaLog**, com exemplos dos componentes e dados ilustrativos. Estão implementados:
+A aplicação exige login. Sem sessão ativa, `/` redireciona para `/sign-in`; depois do login, `/` abre a página de demonstração chamada **Componentes LhamaLog**, com exemplos dos componentes e dados ilustrativos. Estão implementados:
+
+- Telas de autenticação com componentes da Clerk (ADR_023) e visual do LhamaLog: login, cadastro, etapas pós-login (escolher ou criar organização, configurar MFA e redefinir senha) e criação de organização. Sessão `pending` conta como deslogada (ADR_024, ADR_032).
+- Botão **Sair** no Header, ao lado da identificação do usuário. O nome e a função exibidos continuam fixos.
 
 - Campos, botões, checkbox, badges para status e tags, avatar, busca, cartões, paginação e barra de progresso.
 - Navbar com recolhimento no desktop e menu em telas pequenas, Header e Footer compostos pelo AppLayout.
@@ -18,7 +21,7 @@ A aplicação abre uma página de demonstração chamada **Componentes LhamaLog*
 
 A seleção de itens na Navbar apenas troca o destaque; ainda não há navegação entre páginas. As buscas de Produtos recebem texto, mas não filtram os produtos. Na composição de Ocorrências, a busca filtra os exemplos locais por título, descrição, projeto e tags. Filtros, cadastro, detalhes, seletores de produto/período e notificações mostram avisos de demonstração. A paginação troca os itens locais exibidos. A recuperação de falha usa um temporizador local, sem requisição ao backend.
 
-As composições visuais de Ocorrências e Empresa estão implementadas com dados ilustrativos. O gráfico de intensidade usa amostras fictícias; seus intervalos reais e as fórmulas das métricas ainda dependem de definição. Em Empresa, a navegação interna mantém os cartões visíveis e leva ao bloco selecionado, com foco e destaque do destino. Autenticação, integração com Clerk, acesso ao backend, formulários e regras de negócio permanecem pendentes de suas respectivas etapas e definições. A implementação visual não representa o aceite das tarefas pela equipe.
+As composições visuais de Ocorrências e Empresa estão implementadas com dados ilustrativos. O gráfico de intensidade usa amostras fictícias; seus intervalos reais e as fórmulas das métricas ainda dependem de definição. Em Empresa, a navegação interna mantém os cartões visíveis e leva ao bloco selecionado, com foco e destaque do destino. Acesso ao backend, formulários e regras de negócio permanecem pendentes de suas respectivas etapas e definições. A implementação visual não representa o aceite das tarefas pela equipe.
 
 O detalhamento das entregas e das definições pendentes está em [docs/planejamento-componentes.md](docs/planejamento-componentes.md). As referências visuais em SVG ficam em [docs/referencias](docs/referencias).
 
@@ -39,9 +42,37 @@ npm ci
 npm run dev
 ```
 
-Abra [http://localhost:5173](http://localhost:5173). A página deve mostrar **Componentes LhamaLog**, com Navbar, Header e exemplos de interface. Para parar o servidor, use `Ctrl+C`. A porta é fixa: se estiver ocupada, o servidor informa o erro em vez de escolher outra porta.
+Antes do `npm run dev`, crie o `.env.local` (veja [Variáveis de ambiente](#variáveis-de-ambiente)).
+
+Abra [http://localhost:5173](http://localhost:5173). Sem sessão, a página leva ao login; depois de entrar, deve mostrar **Componentes LhamaLog**, com Navbar, Header e exemplos de interface. Para parar o servidor, use `Ctrl+C`. A porta é fixa: se estiver ocupada, o servidor informa o erro em vez de escolher outra porta.
 
 `npm run build` verifica os tipos e gera os arquivos em `dist`. `npm run preview` permite conferir esse build localmente.
+
+## Variáveis de ambiente
+
+A aplicação precisa da chave **publicável** da instância da Clerk (Dashboard > API keys). Na raiz do projeto, copie o modelo e preencha:
+
+```powershell
+Copy-Item .env.example .env.local
+```
+
+```text
+VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
+```
+
+O `.env.local` é ignorado pelo Git. Reinicie o `npm run dev` depois de criá-lo; sem a chave, a página fica em branco e o console mostra o erro `Falta VITE_CLERK_PUBLISHABLE_KEY`. A `CLERK_SECRET_KEY` nunca entra no front (ADR_026). Pelo Docker, a chave ainda não é repassada ao contêiner.
+
+## Rotas
+
+| Caminho | Tela |
+| --- | --- |
+| `/` | Demonstração **Componentes LhamaLog**, somente com sessão ativa. |
+| `/sign-in/*` | Login. `?motivo=deslogado` mostra o aviso "Você foi deslogado" (ADR_032). |
+| `/sign-up/*` | Cadastro. |
+| `/organizacoes/nova/*` | Criação de organização, sem a tela de convites (ADR_114). |
+| `/tarefas/escolher-organizacao/*`, `/tarefas/configurar-mfa/*`, `/tarefas/redefinir-senha/*` | Etapas pós-login da Clerk (session tasks). |
+
+Outros caminhos redirecionam para `/`. O `/*` é necessário porque os componentes da Clerk usam sub-rotas, como `/sign-in/factor-one`.
 
 ## Ambiente local (infra/local)
 
@@ -155,8 +186,10 @@ Ao interromper `make infra-logs` com `Ctrl+C`, o Make pode exibir `Error 130`, i
 ## Entrada da aplicação
 
 - `index.html`: contém o elemento onde o React é montado e carrega `src/main.tsx`.
-- `src/main.tsx`: inicia o React e renderiza `App`.
-- `src/styles.css`: importa o Tailwind; é carregado pelo `main.tsx`.
+- `src/main.tsx`: inicia o React com o `BrowserRouter`, o `AuthProvider` e as rotas.
+- `src/styles.css`: declara a ordem das camadas CSS (incluindo a `clerk`) e importa o Tailwind; é carregado pelo `main.tsx`.
+- `src/app/providers/AuthProvider.tsx`: configura o `ClerkProvider` (chave publicável, aparência, textos em pt-BR, URLs de login e das etapas pós-login).
+- `src/app/routes/AppRoutes.tsx`: define as rotas e protege a demonstração.
 - `src/app/App.tsx`: compõe a página de demonstração, os dados ilustrativos e os estados locais dos exemplos.
 - `src/app/layouts/AppLayout.tsx`: reúne Navbar, Header, área de conteúdo e Footer; controla o recolhimento e a abertura do menu móvel.
 - `package.json` e `package-lock.json`: dependências, comandos e versões de instalação.
@@ -179,6 +212,10 @@ src/
   styles.css
   app/
     App.tsx
+    providers/
+      AuthProvider.tsx
+    routes/
+      AppRoutes.tsx
     layouts/
       AppLayout.tsx
       Navbar.tsx
@@ -192,6 +229,12 @@ src/
       components/
     company/
       components/
+    auth/
+      auth.css
+      assets/
+      components/
+      hooks/
+      theme/
   shared/
     assets/
     ui/
@@ -199,14 +242,17 @@ src/
 
 ## Responsabilidades
 
+- `app/providers`: provedores globais, como o da Clerk.
+- `app/routes`: definição das rotas da aplicação.
 - `app/layouts`: estrutura visual compartilhada entre páginas.
+- `features/auth`: telas e etapas de autenticação com Clerk, proteção de rota, botão Sair, tratamento de 401/403 (`useSessionErrorHandler`), aparência e textos da Clerk. O `auth.css` não usa Tailwind: as regras ficam sob classes `lh-`, e a fonte Poppins vale apenas nessas telas.
 - `app/layouts/HeaderControls.tsx`: controles específicos do Header, reunindo estado do sistema, período, notificações e identificação do usuário.
 - `features`: funcionalidades organizadas por domínio; componentes, hooks, serviços e tipos específicos ficam junto da funcionalidade que os utiliza.
 - `shared/ui`: componentes visuais reutilizáveis entre funcionalidades.
 - `shared/assets`: recursos visuais compartilhados, como o logo.
 - `docs/referencias`: referências visuais usadas para implementar as interfaces em React.
 
-`app/providers`, `app/routes`, `shared/hooks`, `shared/services` e `shared/types` são diretórios previstos para quando houver código que precise deles. Podem existir vazios localmente, mas não fazem parte da estrutura implementada.
+`shared/hooks`, `shared/services` e `shared/types` são diretórios previstos para quando houver código que precise deles. Podem existir vazios localmente, mas não fazem parte da estrutura implementada.
 
 ## Organização
 
@@ -233,6 +279,7 @@ Depois de iniciar a aplicação:
 5. Em **Estados compartilhados**, confira carregamento, lista vazia, busca sem resultados e falha. **Tentar novamente** exibe dados ilustrativos após 1,2 segundo.
 6. Execute `npm run build` para verificar os tipos e gerar o build.
 7. Em **Composição de Empresa**, use os links internos por clique ou teclado. Confira o bloco de destino, o destaque ao voltar pelo navegador e o empilhamento dos cartões no celular. As seis ações dos cartões e da governança mostram apenas avisos.
+8. Deslogado, abra `/` e confira o redirecionamento para `/sign-in`. Depois de entrar, use **Sair** no Header, por clique ou teclado, e confira a volta ao login.
 
 O build não substitui a conferência visual e de comportamento. Não há comando de testes automatizados configurado em `package.json` neste momento.
 
