@@ -1,0 +1,21 @@
+schema_version: "1.0"
+preset:
+  id: "lhamalog-local"
+  name: "LhamaLog local workflow"
+  version: "1.0.0"
+  description: "Preserve the project restrictions: no Git, no external issues, one selected task or phase at a time."
+  author: "LhamaLog"
+requires:
+  speckit_version: ">=1.2.5,<1.3.0"
+provides:
+  templates:
+    - type: "command"
+      name: "speckit.implement"
+      file: "commands/speckit.implement.md"
+      description: "Implement only the selected task or phase without Git."
+      replaces: "speckit.implement"
+    - type: "command"
+      name: "speckit.taskstoissues"
+      file: "commands/speckit.taskstoissues.md"
+      description: "Issue creation is disabled in this project."
+      replaces: "speckit.taskstoissues"
