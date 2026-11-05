@@ -148,3 +148,7 @@ Select, Textarea, Modal e outros controles entram no plano quando houver um uso 
 ## Instrução para usar com a IA
 
 > Leia este planejamento e os arquivos atuais do projeto. Trabalhe somente no item que eu indicar, explicando os arquivos envolvidos. Se eu pedir orientação, forneça o caminho e o conteúdo completo dos arquivos para eu implementar. Faça uma pequena entrega por vez, preserve o que já funciona e explique como testar. Marque apenas o item concluído depois da revisão. Não execute comandos Git nem avance para outra entrega sem meu retorno.
+
+## Integração Empresa e Produtos em 04/11/2026
+
+Implementação local separada da demonstração: `/empresa` e `/produtos`. Regras, testes e pendências estão em [specs/001-empresa-produtos](../specs/001-empresa-produtos/spec.md). As marcações antigas continuam representando os componentes demonstrativos. Campos opcionais de contexto e acesso por produto foram confirmados pelo usuário. Sem cotas de cadastro. O checklist de execução da feature registra a validação local e mantém a sessão Clerk real pendente.

@@ -2,9 +2,15 @@
 
 Frontend do LhamaLog usando TypeScript, React e Tailwind CSS. A base foi iniciada na [LLT-236](https://logviewer2026.atlassian.net/browse/LLT-236); o desenvolvimento atual inclui componentes reutilizáveis e a composição visual de Produtos, relacionados ao planejamento da LLT-237, e o login e logout com Clerk da [LLT-162](https://logviewer2026.atlassian.net/browse/LLT-162). O Vite inicia o servidor de desenvolvimento, processa os estilos e gera o build.
 
-## Estado atual
+## Empresa e Produtos integrados
 
-A aplicação exige login. Sem sessão ativa, `/` redireciona para `/sign-in`; depois do login, `/` abre a página de demonstração chamada **Componentes LhamaLog**, com exemplos dos componentes e dados ilustrativos. Estão implementados:
+As rotas `/empresa` e `/produtos` usam o Core e persistem dados. Há seleção/cadastro de empresa pela Clerk, formulário cadastral/endereço/contexto, cadastro/lista/busca de produtos e edição de contexto. Contextos são opcionais, produtos não têm cota, e acesso é restrito por empresa e vínculo ao produto. O criador recebe acesso automaticamente. Login/logout existentes foram preservados.
+
+[Spec](specs/001-empresa-produtos/spec.md) · [Plano](specs/001-empresa-produtos/plan.md) · [Tarefas](specs/001-empresa-produtos/tasks.md) · [Execução, configuração e testes](specs/001-empresa-produtos/quickstart.md). Configure também `VITE_API_URL=http://localhost:8080`. Validação: `npm test` e `npm run build`. Sessão real Clerk e verify completo com Docker permanecem pendentes.
+
+## Demonstração preservada
+
+A aplicação exige login. Sem sessão ativa, `/` redireciona para `/sign-in`; depois do login, `/` abre `/empresa`. A demonstração **Componentes LhamaLog**, com exemplos e dados ilustrativos, permanece em `/componentes`. Estão implementados:
 
 - Telas de autenticação com componentes da Clerk (ADR_023) e visual do LhamaLog: login, cadastro, etapas pós-login (escolher ou criar organização, configurar MFA e redefinir senha) e criação de organização. Sessão `pending` conta como deslogada (ADR_024, ADR_032).
 - Botão **Sair** no Header, ao lado da identificação do usuário. O nome e a função exibidos continuam fixos.
@@ -19,7 +25,7 @@ A aplicação exige login. Sem sessão ativa, `/` redireciona para `/sign-in`; d
 - Composição responsiva de Empresa com navegação por links internos para os cartões e rodapé.
 - Estados de carregamento, lista vazia, busca sem resultados e falha com ação de tentar novamente.
 
-A seleção de itens na Navbar apenas troca o destaque; ainda não há navegação entre páginas. As buscas de Produtos recebem texto, mas não filtram os produtos. Na composição de Ocorrências, a busca filtra os exemplos locais por título, descrição, projeto e tags. Filtros, cadastro, detalhes, seletores de produto/período e notificações mostram avisos de demonstração. A paginação troca os itens locais exibidos. A recuperação de falha usa um temporizador local, sem requisição ao backend.
+Na demonstração `/componentes`, a seleção de itens na Navbar apenas troca o destaque. Nas páginas integradas, Empresa e Produto navegam entre `/empresa` e `/produtos`. As buscas de Produtos recebem texto, mas não filtram os produtos. Na composição de Ocorrências, a busca filtra os exemplos locais por título, descrição, projeto e tags. Filtros, cadastro, detalhes, seletores de produto/período e notificações mostram avisos de demonstração. A paginação troca os itens locais exibidos. A recuperação de falha usa um temporizador local, sem requisição ao backend.
 
 As composições visuais de Ocorrências e Empresa estão implementadas com dados ilustrativos. O gráfico de intensidade usa amostras fictícias; seus intervalos reais e as fórmulas das métricas ainda dependem de definição. Em Empresa, a navegação interna mantém os cartões visíveis e leva ao bloco selecionado, com foco e destaque do destino. Acesso ao backend, formulários e regras de negócio permanecem pendentes de suas respectivas etapas e definições. A implementação visual não representa o aceite das tarefas pela equipe.
 
@@ -44,7 +50,7 @@ npm run dev
 
 Antes do `npm run dev`, crie o `.env.local` (veja [Variáveis de ambiente](#variáveis-de-ambiente)).
 
-Abra [http://localhost:5173](http://localhost:5173). Sem sessão, a página leva ao login; depois de entrar, deve mostrar **Componentes LhamaLog**, com Navbar, Header e exemplos de interface. Para parar o servidor, use `Ctrl+C`. A porta é fixa: se estiver ocupada, o servidor informa o erro em vez de escolher outra porta.
+Abra [http://localhost:5173](http://localhost:5173). Sem sessão, a página leva ao login; depois de entrar, abre Empresa, com seleção de organização e formulário integrado. Para parar o servidor, use `Ctrl+C`. A porta é fixa: se estiver ocupada, o servidor informa o erro em vez de escolher outra porta.
 
 `npm run build` verifica os tipos e gera os arquivos em `dist`. `npm run preview` permite conferir esse build localmente.
 
@@ -66,7 +72,10 @@ O `.env.local` é ignorado pelo Git. Reinicie o `npm run dev` depois de criá-lo
 
 | Caminho | Tela |
 | --- | --- |
-| `/` | Demonstração **Componentes LhamaLog**, somente com sessão ativa. |
+| `/` | Redireciona para `/empresa`. |
+| `/empresa` | Dados, endereço e contexto da empresa ativa, com sessão. |
+| `/produtos` | Cadastro, lista e contexto de produtos acessíveis, com sessão. |
+| `/componentes` | Demonstração visual preservada, com sessão. |
 | `/sign-in/*` | Login. `?motivo=deslogado` mostra o aviso "Você foi deslogado" (ADR_032). |
 | `/sign-up/*` | Cadastro. |
 | `/organizacoes/nova/*` | Criação de organização, sem a tela de convites (ADR_114). |
@@ -283,3 +292,7 @@ Depois de iniciar a aplicação:
 
 O build não substitui a conferência visual e de comportamento. Não há comando de testes automatizados configurado em `package.json` neste momento.
 
+
+## Ambiente integrado com o Core
+
+Execute o Compose infra/local/compose.app.yaml na pasta do Core, mantendo os dois repositórios lado a lado. Ele usa o Dockerfile deste Web, fornece VITE_API_URL e recebe a chave publicável Clerk pelo ambiente. Veja ../lhamalog_docs/planejamento/ambiente-local.md. Não inicie o Compose separado do Web simultaneamente (porta 5173).

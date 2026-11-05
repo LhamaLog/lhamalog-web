@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { App } from '../App'
+import { CompanyWorkspace } from '../layouts/CompanyWorkspace'
 import { ProtectedRoute } from '../../features/auth/components/ProtectedRoute'
 import { SignInPage } from '../../features/auth/components/SignInPage'
 import { SignUpPage } from '../../features/auth/components/SignUpPage'
@@ -14,7 +15,10 @@ export function AppRoutes() {
   return (
     <Routes>
       {/* Demonstração atual, só para sessão ativa */}
-      <Route path="/" element={<ProtectedRoute><App /></ProtectedRoute>} />
+      <Route path="/" element={<Navigate to="/empresa" replace />} />
+      <Route path="/componentes" element={<ProtectedRoute><App /></ProtectedRoute>} />
+      <Route path="/empresa" element={<ProtectedRoute><CompanyWorkspace /></ProtectedRoute>} />
+      <Route path="/produtos" element={<ProtectedRoute><CompanyWorkspace /></ProtectedRoute>} />
 
       {/* Telas de autenticação: layout dividido (painel da marca + card) */}
       <Route path="/sign-in/*" element={<SignInPage />} />
