@@ -5,6 +5,7 @@ type PageHeaderProps = {
   description?: string
   actions?: ReactNode
   headingLevel?: 1 | 2
+  icon?: ReactNode
 }
 
 export function PageHeader({
@@ -12,12 +13,15 @@ export function PageHeader({
   description,
   actions,
   headingLevel = 1,
+  icon,
 }: PageHeaderProps) {
   const Heading = headingLevel === 1 ? 'h1' : 'h2'
 
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-      <div className="min-w-0">
+      <div className="flex min-w-0 items-start gap-4">
+        {icon}
+        <div className="min-w-0">
         <Heading className="break-words text-3xl font-bold text-[#083B7A]">
           {title}
         </Heading>
@@ -27,6 +31,7 @@ export function PageHeader({
             {description}
           </p>
         )}
+        </div>
       </div>
 
       {actions && (

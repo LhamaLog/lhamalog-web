@@ -17,7 +17,7 @@ export function CompanyWorkspace() {
   return <AppLayout
     navbar={{ activeItem: products ? 'products' : 'company', productName: 'Produtos da empresa', homeHref: '/empresa', visibleItems: ['company', 'products'],
       onProductSelect: () => navigate('/produtos'), onItemSelect: item => navigate(item === 'products' ? '/produtos' : item === 'company' ? '/empresa' : '/componentes') }}
-    header={{ breadcrumbs: { items: [{ label: organization?.name ?? 'Selecione uma empresa' }, { label: products ? 'Produtos' : 'Empresa' }] },
+    header={{ breadcrumbs: { items: products ? [{ label: 'Produtos' }] : [{ label: 'Configurações', href: '/empresa' }, { label: 'Empresa' }] },
       user: { name: user?.fullName ?? user?.primaryEmailAddress?.emailAddress ?? 'Usuário', role: organization?.name ?? '' } }}>
     <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4">
       <div className="space-y-1"><p className="text-sm font-semibold text-[#083B7A]">Empresa selecionada</p>
