@@ -7,7 +7,7 @@ export type Company = {
   address: { street: string; number: string; complement: string; district: string; city: string; state: string; country: string; postalCode: string }
 }
 
-export type CompanyTab = 'data' | 'context' | 'contacts' | 'address' | 'documents' | 'preferences'
+export type CompanyTab = 'overview' | 'data' | 'context' | 'address' | 'preferences'
 
 export type CompanyContactDraft = {
   id: string

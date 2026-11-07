@@ -4,11 +4,10 @@ import { Toggle } from '../../../shared/ui/Toggle'
 import type { CompanyTab } from '../types'
 
 export const companyTabs: { id: CompanyTab; label: string }[] = [
+  { id: 'overview', label: 'Empresa' },
   { id: 'data', label: 'Dados da Empresa' },
   { id: 'context', label: 'Contexto de Atuação' },
-  { id: 'contacts', label: 'Contatos' },
   { id: 'address', label: 'Endereço' },
-  { id: 'documents', label: 'Documentos' },
   { id: 'preferences', label: 'Preferências' },
 ]
 

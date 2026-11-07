@@ -8,10 +8,11 @@ type AppLayoutProps = {
   navbar: Omit<ComponentProps<typeof Navbar>, 'collapsed' | 'onToggleCollapse'>
   header: ComponentProps<typeof Header>
   footer?: ComponentProps<typeof Footer>
+  contentClassName?: string
   children: ReactNode
 }
 
-export function AppLayout({ navbar, header, footer, children }: AppLayoutProps) {
+export function AppLayout({ navbar, header, footer, contentClassName = '', children }: AppLayoutProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const mobileMenuId = useId()
@@ -66,7 +67,7 @@ export function AppLayout({ navbar, header, footer, children }: AppLayoutProps) 
         </div>
 
         <Header {...header} />
-        <main className="mx-auto min-w-0 w-full max-w-7xl flex-1 space-y-10 p-4 sm:p-6">
+        <main className={`mx-auto min-w-0 w-full max-w-7xl flex-1 space-y-6 p-4 sm:p-6 ${contentClassName}`}>
           {children}
         </main>
         <Footer {...footer} />

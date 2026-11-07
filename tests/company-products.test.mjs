@@ -4,35 +4,38 @@ import assert from 'node:assert/strict'
 
 register(new URL('./resolve-ts.mjs', import.meta.url))
 
-test('company save stays optional for partial addresses and blocks empty identity', async () => {
-  const { companyFieldErrors, tabForCompanyField } = await import('../src/features/company/validation.ts')
-  const company = {
-    id: 'company',
-    clerkOrgId: 'org',
-    version: 1,
-    data: { legalName: 'LhamaLog Tecnologia LTDA', tradeName: 'LhamaLog', document: '12.345.678/0001-90', registrationDate: null, size: '' },
-    context: { sector: 'Tecnologia da Informação', mission: '', targetAudience: '', differentiators: '', language: '' },
-    address: { street: '', number: '', complement: '', district: '', city: 'Maringá', state: '', country: '', postalCode: '' },
-  }
-  assert.deepEqual(companyFieldErrors(company), {})
-  assert.deepEqual(companyFieldErrors({ ...company, data: { ...company.data, legalName: ' ' }, context: { ...company.context, sector: '' } }), {
-    'data.legalName': 'Informe a razão social.',
-    'context.sector': 'Informe o ramo de atuação.',
-  })
-  assert.equal(tabForCompanyField('context.sector'), 'data')
-  assert.equal(tabForCompanyField('context.differentiators'), 'context')
-  assert.equal(tabForCompanyField('address.city'), 'address')
-  assert.equal(tabForCompanyField('data.registrationDate'), 'documents')
-})
-
-test('company profile keeps known fields and falls back when stored selects are blank', async () => {
-  const { normalizeCompanyProfile } = await import('../src/features/company/profile.ts')
-  const profile = normalizeCompanyProfile({ timeZone: '', currency: 'Euro (EUR)', monitoredSystems: ['API', 3], contacts: [{ id: '1', name: 'Ana' }] })
-  assert.equal(profile.timeZone, '(UTC-03:00) Brasília')
-  assert.equal(profile.currency, 'Euro (EUR)')
-  assert.deepEqual(profile.monitoredSystems, ['API'])
-  assert.equal(profile.contacts[0].name, 'Ana')
-  assert.equal(profile.contacts[0].email, '')
+test('filled values are checked and an incomplete company can still be saved', async () => {
+  const { emptyCompanySettings } = await import('../src/features/company/model.ts')
+  const { cnpj, companyFieldErrors, errorsForSection, tabForCompanyField } = await import('../src/features/company/validation.ts')
+  const { readCompanyFacts } = await import('../src/features/company/contract.ts')
+  const settings = emptyCompanySettings('org_real')
+  assert.deepEqual(companyFieldErrors(settings), {})
+  settings.data.document = '12.345.678/0001-90'
+  settings.data.email = 'sem-arroba'
+  settings.data.website = 'lhamalog.com'
+  settings.data.description = 'a'.repeat(501)
+  settings.address.postalCode = '8700-000'
+  const errors = companyFieldErrors(settings)
+  assert.equal(errors['data.document'], 'Informe um CNPJ válido.')
+  assert.equal(errors.email, 'Informe um e-mail válido.')
+  assert.equal(errors['data.website'], 'Informe um site http ou https.')
+  assert.match(errors['data.description'], /500/)
+  assert.equal(errors['address.postalCode'], 'Informe um CEP com 8 dígitos.')
+  assert.equal(errors['address.city'], undefined)
+  assert.equal(cnpj('11.444.777/0001-61'), true)
+  settings.data.document = '11.444.777/0001-61'
+  settings.data.email = 'contato@example.com'
+  settings.data.website = 'https://example.com'
+  settings.data.description = 'Monitoramento'
+  settings.address.postalCode = '87000-000'
+  assert.deepEqual(errorsForSection(settings, 'data'), {})
+  assert.equal(tabForCompanyField('address.postalCode'), 'address')
+  assert.equal(tabForCompanyField('email'), 'data')
+  const facts = readCompanyFacts({}, settings)
+  assert.equal(facts.verified, false)
+  assert.equal(facts.metrics, null)
+  assert.equal(facts.ingestion, null)
+  assert.equal(facts.completion.total, 10)
 })
 
 test('product list filters, metrics and create requirements use api fields only', async () => {
