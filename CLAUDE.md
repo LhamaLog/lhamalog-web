@@ -1,0 +1,1 @@
+C:/github/lhamalog-web/docs/instrucoes-agentes.md
