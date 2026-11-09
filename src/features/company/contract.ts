@@ -282,6 +282,7 @@ export function formField(serverKey: string) {
     'settings.data.website': 'data.website',
     'settings.data.logo': 'logo',
     'settings.address.postalCode': 'address.postalCode',
+    'context.description': 'context.description',
     'settings.context.description': 'context.description',
     'settings.context.monitoredSystems': 'context.monitoredSystems',
   }

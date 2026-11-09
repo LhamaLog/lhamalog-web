@@ -14,7 +14,7 @@ export function companyFieldErrors(settings: CompanySettings) {
   const postal = settings.address.postalCode.replace(/\D/g, '')
   if (settings.address.postalCode.trim() && !/^\d{8}$/.test(postal)) errors['address.postalCode'] = 'Informe um CEP com 8 dígitos.'
   if (settings.data.description.length > companyDescriptionLimit) errors['data.description'] = `A descrição da empresa aceita até ${companyDescriptionLimit} caracteres.`
-  if (settings.context.description.length > contextDescriptionLimit) errors['context.description'] = `A descrição do contexto aceita até ${contextDescriptionLimit} caracteres.`
+  if (settings.context.description.length > contextDescriptionLimit) errors['context.description'] = 'O texto excede o limite permitido.'
   return errors
 }
 

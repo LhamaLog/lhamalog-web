@@ -25,6 +25,7 @@ import {
   timeZones,
   withCurrentOption,
 } from './companyFields'
+import { ContextRevisionHistory } from './ContextRevisionHistory'
 import type { CompanyFacts } from '../contract'
 import { downloadCompanyDossier } from '../dossier'
 import { logoRejection } from '../logo'
@@ -255,6 +256,7 @@ type FormProps = {
   onSubmit: (event: FormEvent) => void
   onCancel: () => void
   onOpen: (section: CompanySection) => void
+  historyRefreshKey?: number
 }
 
 function patchData(settings: CompanySettings, partial: Partial<CompanySettings['data']>, onChange: FormProps['onChange']) {
@@ -353,7 +355,7 @@ export function CompanyDataScreen(props: FormProps) {
   )
 }
 
-export function CompanyContextScreen({ settings, errors, saving, onChange, onSubmit, onCancel, onOpen }: FormProps) {
+export function CompanyContextScreen({ settings, errors, saving, onChange, onSubmit, onCancel, onOpen, historyRefreshKey = 0 }: FormProps) {
   const [draftEnvironment, setDraftEnvironment] = useState('')
   function setEnvironments(environmentTypes: string[]) {
     onChange({ ...settings, context: { ...settings.context, environmentTypes } })
@@ -415,7 +417,8 @@ export function CompanyContextScreen({ settings, errors, saving, onChange, onSub
           <Textarea id="company-context-description" label="Descrição do Contexto" maxLength={contextDescriptionLimit} value={settings.context.description} error={errors['context.description']} onChange={(event) => onChange({ ...settings, context: { ...settings.context, description: event.target.value } })} />
         </Card>
       </fieldset>
-      <InfoBanner title="Como este contexto é usado?">O segmento é o mesmo ramo da tela de dados. A quantidade de sistemas é a seleção desta tela, não uma medição de nós conectados.</InfoBanner>
+      <InfoBanner title="Como este contexto é usado?">O segmento é o mesmo ramo da tela de dados. A quantidade de sistemas é a seleção desta tela, não uma medição de nós conectados. A descrição aceita até 2000 caracteres.</InfoBanner>
+      <ContextRevisionHistory refreshKey={historyRefreshKey} />
       <FormActions saving={saving} onCancel={onCancel} />
     </form>
   )

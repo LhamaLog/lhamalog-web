@@ -25,6 +25,7 @@ export function CompanyPage({ organizationId }: { organizationId: string }) {
   const [message, setMessage] = useState('')
   const [error, setError] = useState<ApiError | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
+  const [contextSavedTick, setContextSavedTick] = useState(0)
   const controller = useRef<AbortController | null>(null)
 
   useEffect(() => () => controller.current?.abort(), [])
@@ -108,6 +109,7 @@ export function CompanyPage({ organizationId }: { organizationId: string }) {
         return
       }
       applyServer(saved)
+      if (section === 'context') setContextSavedTick((value) => value + 1)
       setMessage('Alterações salvas. Preferências de segurança, IA e telemetria ficam registradas e não entram em vigor por este serviço.')
     } catch (reason) {
       if (!current.signal.aborted) setError(reason instanceof ApiError ? presentError(reason) : new ApiError('Não foi possível salvar.', 0))
@@ -131,7 +133,7 @@ export function CompanyPage({ organizationId }: { organizationId: string }) {
       )}
       {section === 'overview' && <CompanyOverview settings={settings} facts={facts} onOpen={open} />}
       {section === 'data' && <CompanyDataScreen settings={settings} errors={fieldErrors} saving={saving} onChange={setSettings} onSubmit={submit} onCancel={cancel} onOpen={open} />}
-      {section === 'context' && <CompanyContextScreen settings={settings} errors={fieldErrors} saving={saving} onChange={setSettings} onSubmit={submit} onCancel={cancel} onOpen={open} />}
+      {section === 'context' && <CompanyContextScreen settings={settings} errors={fieldErrors} saving={saving} onChange={setSettings} onSubmit={submit} onCancel={cancel} onOpen={open} historyRefreshKey={contextSavedTick} />}
       {section === 'address' && <CompanyAddressScreen settings={settings} errors={fieldErrors} saving={saving} onChange={setSettings} onSubmit={submit} onCancel={cancel} onOpen={open} />}
       {section === 'preferences' && <CompanyPreferencesScreen settings={settings} facts={facts} errors={fieldErrors} saving={saving} onChange={setSettings} onSubmit={submit} onCancel={cancel} onOpen={open} />}
     </div>

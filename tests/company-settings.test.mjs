@@ -132,3 +132,31 @@ test('dossier pdf contains the company name and does not invent a hash', async (
   assert.match(pdf, /LhamaLog Tecnologia LTDA/)
   assert.equal(pdf.includes('sha256'), false)
 })
+
+test('context description stops at 2000 and both server field names reach the textarea', async () => {
+  const { emptyCompanySettings, contextDescriptionLimit } = await import('../src/features/company/model.ts')
+  const { companyFieldErrors } = await import('../src/features/company/validation.ts')
+  const { formField } = await import('../src/features/company/contract.ts')
+  const { formatRevisionDate, readContextRevision, readContextRevisions } = await import('../src/features/company/contextRevisions.ts')
+  assert.equal(contextDescriptionLimit, 2000)
+  const settings = emptyCompanySettings('org_clerk')
+  settings.context.description = 'a'.repeat(2000)
+  assert.equal(companyFieldErrors(settings)['context.description'], undefined)
+  settings.context.description = 'a'.repeat(2001)
+  assert.equal(companyFieldErrors(settings)['context.description'], 'O texto excede o limite permitido.')
+  assert.equal(formField('context.description'), 'context.description')
+  assert.equal(formField('settings.context.description'), 'context.description')
+  const revisions = readContextRevisions({
+    revisions: [{
+      revision: 2,
+      createdAt: '2026-11-09T16:00:00Z',
+      actorUserId: 'user_b',
+      context: { sector: 'Tecnologia / SaaS', environments: ['Produção'], monitoredSystems: ['API'], criticalWindows: 'Horário comercial', description: 'Forma revista' },
+    }, { revision: 'nope' }],
+  })
+  assert.equal(revisions.length, 1)
+  assert.equal(revisions[0].context.description, 'Forma revista')
+  assert.equal(readContextRevision({ message: 'Revisão de contexto não encontrada.' }), null)
+  assert.match(formatRevisionDate('2026-11-09T16:00:00Z'), /09\/11\/2026/)
+  assert.equal(formatRevisionDate('sem-data'), 'sem-data')
+})
