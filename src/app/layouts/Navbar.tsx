@@ -13,6 +13,7 @@ type NavbarProps = {
   homeHref?: string
   onLogoClick?: () => void
   visibleItems?: string[]
+  hiddenItems?: string[]
 }
 
 type NavigationItem = {
@@ -102,11 +103,11 @@ function NavbarItem({
   )
 }
 
-export function Navbar({ activeItem, onItemSelect, productName, onProductSelect, collapsed = false, onToggleCollapse, homeHref = '#components-top', onLogoClick, visibleItems }: NavbarProps) {
+export function Navbar({ activeItem, onItemSelect, productName, onProductSelect, collapsed = false, onToggleCollapse, homeHref = '#components-top', onLogoClick, visibleItems, hiddenItems = [] }: NavbarProps) {
   const navigationId = useId()
   const { language } = useAppliedPreferences()
   const t = (key: MessageKey, values?: Record<string, string>) => profileMessage(language, key, values)
-  const visibleGroups = navigationGroups(t).map(group => ({ ...group, items: group.items.filter(item => !visibleItems || visibleItems.includes(item.id)) })).filter(group => group.items.length > 0)
+  const visibleGroups = navigationGroups(t).map(group => ({ ...group, items: group.items.filter(item => (!visibleItems || visibleItems.includes(item.id)) && !hiddenItems.includes(item.id)) })).filter(group => group.items.length > 0)
 
   return (
     <aside className={`flex w-full shrink-0 flex-col bg-[#033473] px-3 py-6 md:sticky md:top-0 md:h-dvh md:overflow-y-auto ${collapsed ? 'md:w-20' : 'md:w-60'}`}>

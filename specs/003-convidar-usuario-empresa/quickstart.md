@@ -2,6 +2,12 @@
 
 Verificação da LLT-167 no aplicativo web. O convite real depende de uma instância Clerk com organizações. O Core não precisa de endpoint novo e não deve receber chamada de convite.
 
+## Resultado desta entrega
+
+- `npm test`: passou, 26 testes, em 2026-11-12, neste ambiente (Node 22.23.4; o `package.json` pede Node 26.12.1 e o npm avisou a diferença).
+- `npm run build`: passou (`tsc --noEmit` e `vite build`), na mesma data.
+- Roteiro manual: **pendente**. Este ambiente não tem instância Clerk. Nenhum passo abaixo foi executado: envio real, e-mail, aceite, revogação, reenvio, troca de empresa e acesso de não administrador. Não foi criada chave secreta nem atalho de autenticação.
+
 ## Antes de começar
 
 - Aplicativo no ar com `VITE_CLERK_PUBLISHABLE_KEY` publicável (`pk_test_` ou `pk_live_`). Não definir `CLERK_SECRET_KEY` nem `sk_` no Web.

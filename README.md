@@ -118,7 +118,8 @@ São dois momentos diferentes:
 | `/componentes` | Demonstração visual preservada, com sessão. |
 | `/sign-in/*` | Login. `?motivo=deslogado` mostra o aviso "Você foi deslogado" (ADR_032). |
 | `/sign-up/*` | Cadastro. |
-| `/organizacoes/nova/*` | Criação de organização, sem a tela de convites (ADR_114). |
+| `/equipe` | Convite de pessoas para a empresa selecionada, só para o administrador. O envio usa o SDK do navegador na sessão já aberta, sem API de convite no Core e sem segredo. |
+| `/organizacoes/nova/*` | Criação de organização, sem a etapa de convite da plataforma. Convidar alguém fica em `/equipe`. |
 | `/tarefas/escolher-organizacao/*`, `/tarefas/configurar-mfa/*`, `/tarefas/redefinir-senha/*` | Etapas pós-login da Clerk (session tasks). |
 
 Outros caminhos redirecionam para `/`. O `/*` é necessário porque os componentes da Clerk usam sub-rotas, como `/sign-in/factor-one`.

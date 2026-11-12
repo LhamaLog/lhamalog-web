@@ -5,6 +5,8 @@ import { CompanyPage } from '../../features/company/components/CompanyPage'
 import { companySectionFromParam, companySections } from '../../features/company/model'
 import { ProductsPage } from '../../features/products/components/ProductsPage'
 import { ProfilePage } from '../../features/profile/components/ProfilePage'
+import { TeamPage } from '../../features/team/components/TeamPage'
+import { isOrganizationAdmin } from '../../features/team/invitations'
 import { setAppliedClerkLocale } from '../../features/profile/clerkLocale'
 import { profileMessage } from '../../features/profile/messages'
 import { UserPreferencesProvider, useAppliedPreferences } from '../../features/profile/preferences'
@@ -22,7 +24,7 @@ export function CompanyWorkspace() {
 }
 
 function WorkspaceShell() {
-  const { orgId } = useAuth()
+  const { orgId, orgRole } = useAuth()
   const { organization } = useOrganization()
   const { user } = useUser()
   const { language, headerName } = useAppliedPreferences()
@@ -32,30 +34,36 @@ function WorkspaceShell() {
   const text = (key: Parameters<typeof profileMessage>[1], values?: Record<string, string>) => profileMessage(language, key, values)
   const products = location.pathname.startsWith('/produtos')
   const profile = location.pathname.startsWith('/perfil')
+  const team = location.pathname.startsWith('/equipe')
+  const admin = isOrganizationAdmin(orgRole)
   const section = companySectionFromParam(params.get('secao'))
   const sectionLabel = companySections.find((item) => item.id === section)?.label ?? 'Empresa'
   const companyCrumbs = section === 'overview'
     ? [{ label: text('shell.breadcrumbAdministration') }, { label: 'Configurações da Empresa' }]
     : [{ label: text('shell.breadcrumbAdministration') }, { label: 'Configurações da Empresa', href: '/empresa' }, { label: sectionLabel }]
   const sessionName = user?.fullName || user?.primaryEmailAddress?.emailAddress || text('shell.userFallback')
-  const here = profile ? '/perfil' : products ? '/produtos' : '/empresa'
+  const here = team ? '/equipe' : profile ? '/perfil' : products ? '/produtos' : '/empresa'
   return <AppLayout
     contentClassName="max-w-none"
     navbar={{
-      activeItem: profile ? 'profile' : products ? 'products' : 'company',
+      activeItem: team ? 'team' : profile ? 'profile' : products ? 'products' : 'company',
       productName: 'Produtos da empresa',
       homeHref: '/empresa',
+      hiddenItems: admin ? [] : ['team'],
       onProductSelect: () => navigate('/produtos'),
       onItemSelect: item => {
         if (item === 'products') navigate('/produtos')
         if (item === 'company') navigate('/empresa')
         if (item === 'profile') navigate('/perfil')
+        if (item === 'team') navigate('/equipe')
       },
     }}
     header={{
       breadcrumbs: {
         homeHref: '/empresa',
-        items: profile
+        items: team
+          ? [{ label: text('shell.breadcrumbAdministration') }, { label: text('nav.team') }]
+          : profile
           ? [{ label: text('shell.breadcrumbAdministration') }, { label: text('shell.breadcrumbProfile') }]
           : products ? [{ label: text('shell.breadcrumbProducts') }] : companyCrumbs,
       },
@@ -78,6 +86,6 @@ function WorkspaceShell() {
       <Link to="/organizacoes/nova" className="rounded-lg px-3 py-2 text-sm font-semibold text-[#0C70F2] hover:bg-blue-50">{text('shell.registerCompany')}</Link>
     </div>
     {!orgId ? <EmptyState title={text('shell.emptyCompanyTitle')} description={text('shell.emptyCompanyDescription')} />
-      : <div key={orgId}>{profile ? <ProfilePage /> : products ? <ProductsPage /> : <CompanyPage organizationId={organization?.id ?? orgId} />}</div>}
+      : <div key={orgId}>{team ? <TeamPage /> : profile ? <ProfilePage /> : products ? <ProductsPage /> : <CompanyPage organizationId={organization?.id ?? orgId} />}</div>}
   </AppLayout>
 }
