@@ -47,4 +47,9 @@ Com o web e o Core no ar, entrar com uma pessoa que já tenha empresa.
 
 ## Evidência
 
-Anotar neste arquivo, na implementação, a data, o commit e o resultado de `npm test`, `npm run build` e dos passos manuais que puderam ser executados. Se Clerk ou Core não estiverem disponíveis, registrar isso em vez de marcar o manual como feito.
+2026-11-12, na implementação de LLT-174:
+
+- `npm test`: 23 testes, 23 passando, 0 falhas. Inclui `tests/profile.test.mjs` (contrato `timezone`/`version`, eco, validação, `splitDisplayName`, catálogos e `formatPercent`) e os testes já existentes de empresa e produtos.
+- `npm run build`: `tsc --noEmit` e o build Vite concluíram sem erro.
+- `src/features/company/components/companyFields.tsx` não foi alterado. A tela de perfil não chama `/api/company`.
+- Roteiro manual com Clerk e Core reais não rodou neste ambiente: não há sessão publicável nem API de perfil no ar aqui. Não foi criado atalho de autenticação. Ficam pendentes de execução manual os passos 1–10 do roteiro (incluindo `user.update`, nome de uma palavra, `version: null` e `409`).

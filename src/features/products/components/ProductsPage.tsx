@@ -10,6 +10,7 @@ import { PageHeader } from '../../../shared/ui/PageHeader'
 import { Pagination } from '../../../shared/ui/Pagination'
 import { SearchInput } from '../../../shared/ui/SearchInput'
 import { Select } from '../../../shared/ui/Select'
+import { useAppliedPreferences } from '../../profile/preferences'
 import { environmentLabel, filterProducts, formatPercent, productMetrics, uniqueSorted } from '../productListModel'
 import type { Product } from '../types'
 import { ProductForm } from './ProductForm'
@@ -73,9 +74,10 @@ export function ProductsBrowser({
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
   const currentPage = Math.min(page, totalPages)
   const visible = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
-  const categories = uniqueSorted(products.map((product) => product.category))
-  const statuses = uniqueSorted(products.map((product) => product.status))
-  const environments = uniqueSorted(['Produção', 'Homologação', 'Desenvolvimento', ...products.map((product) => environmentLabel(product.environment))])
+  const { language } = useAppliedPreferences()
+  const categories = uniqueSorted(products.map((product) => product.category), language)
+  const statuses = uniqueSorted(products.map((product) => product.status), language)
+  const environments = uniqueSorted(['Produção', 'Homologação', 'Desenvolvimento', ...products.map((product) => environmentLabel(product.environment))], language)
 
   function update(setter: (value: string) => void) {
     return (value: string) => {
@@ -103,7 +105,7 @@ export function ProductsBrowser({
         <Metric title="Total de Produtos" value={String(metrics.total)} detail="na lista atual" tone="blue" icon="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3zM12 12l8-4.5M12 12v9M12 12L4 7.5" />
         <Metric title="Produtos Saudáveis" value={String(metrics.healthy)} detail="conforme o status informado" tone="green" icon="m5 12 5 5L20 7" />
         <Metric title="Com Incidentes" value={String(metrics.incidents)} detail="conforme o status informado" tone="red" icon="M12 9v4M12 17h.01M12 3l10 18H2L12 3z" />
-        <Metric title="Disponibilidade Média" value={formatPercent(metrics.availability) ?? '—'} detail={metrics.availability === null ? 'SLA ainda não vem da API' : 'média informada pelos produtos'} tone="green" icon="M3 12h4l2-6 4 12 2-6h6" />
+        <Metric title="Disponibilidade Média" value={formatPercent(metrics.availability, language) ?? '—'} detail={metrics.availability === null ? 'SLA ainda não vem da API' : 'média informada pelos produtos'} tone="green" icon="M3 12h4l2-6 4 12 2-6h6" />
       </div>
       <Card className="space-y-4">
         <div className="flex flex-col gap-3 xl:flex-row xl:items-center">

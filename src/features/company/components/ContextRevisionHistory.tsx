@@ -4,10 +4,12 @@ import { useApi } from '../../../shared/services/useApi'
 import { Button } from '../../../shared/ui/Button'
 import { ErrorState } from '../../../shared/ui/ErrorState'
 import { LoadingState } from '../../../shared/ui/LoadingState'
+import { useAppliedPreferences } from '../../profile/preferences'
 import { formatRevisionDate, readContextRevision, readContextRevisions, type CompanyContextRevision } from '../contextRevisions'
 
 export function ContextRevisionHistory({ refreshKey }: { refreshKey: number }) {
   const request = useApi()
+  const { language } = useAppliedPreferences()
   const [open, setOpen] = useState(false)
   const [reload, setReload] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -65,7 +67,7 @@ export function ContextRevisionHistory({ refreshKey }: { refreshKey: number }) {
                 <li key={revision.revision} className="flex flex-wrap items-center justify-between gap-3 px-3 py-2 text-sm">
                   <div>
                     <p className="font-semibold text-[#083B7A]">Revisão {revision.revision}</p>
-                    <p className="text-xs text-slate-500">{formatRevisionDate(revision.createdAt)} · {revision.actorUserId || 'Autor indisponível'}</p>
+                    <p className="text-xs text-slate-500">{formatRevisionDate(revision.createdAt, language)} · {revision.actorUserId || 'Autor indisponível'}</p>
                   </div>
                   <Button type="button" variant="outline" size="small" fullWidth={false} onClick={() => viewRevision(revision.revision)}>Ver conteúdo</Button>
                 </li>

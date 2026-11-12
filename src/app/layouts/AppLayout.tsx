@@ -3,6 +3,8 @@ import type { ComponentProps, ReactNode } from 'react'
 import { Navbar } from './Navbar'
 import { Header } from './Header'
 import { Footer } from './Footer'
+import { profileMessage } from '../../features/profile/messages'
+import { useAppliedPreferences } from '../../features/profile/preferences'
 
 type AppLayoutProps = {
   navbar: Omit<ComponentProps<typeof Navbar>, 'collapsed' | 'onToggleCollapse'>
@@ -13,6 +15,7 @@ type AppLayoutProps = {
 }
 
 export function AppLayout({ navbar, header, footer, contentClassName = '', children }: AppLayoutProps) {
+  const { language } = useAppliedPreferences()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const mobileMenuId = useId()
@@ -42,7 +45,7 @@ export function AppLayout({ navbar, header, footer, contentClassName = '', child
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
               <path d={mobileOpen ? 'm6 6 12 12M6 18 18 6' : 'M4 6h16M4 12h16M4 18h16'} />
             </svg>
-            {mobileOpen ? 'Fechar menu' : 'Abrir menu'}
+            {mobileOpen ? profileMessage(language, 'nav.closeMenu') : profileMessage(language, 'nav.openMenu')}
           </button>
         </div>
 

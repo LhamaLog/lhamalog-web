@@ -60,30 +60,30 @@ export function productMetrics(products: Product[]) {
   }
 }
 
-export function uniqueSorted(values: Array<string | undefined>) {
-  return [...new Set(values.map((value) => value?.trim() ?? '').filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'))
+export function uniqueSorted(values: Array<string | undefined>, locale = 'pt-BR') {
+  return [...new Set(values.map((value) => value?.trim() ?? '').filter(Boolean))].sort((a, b) => a.localeCompare(b, locale))
 }
 
-export function occurrenceText(value?: string | null, now = Date.now()) {
+export function occurrenceText(value?: string | null, now = Date.now(), locale = 'pt-BR') {
   if (!value?.trim()) return 'Sem registro'
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
   const minutes = Math.round((date.getTime() - now) / 60000)
-  const formatter = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'always' })
+  const formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'always' })
   if (Math.abs(minutes) < 60) return formatter.format(minutes, 'minute')
   const hours = Math.round(minutes / 60)
   if (Math.abs(hours) < 24) return formatter.format(hours, 'hour')
   return formatter.format(Math.round(hours / 24), 'day')
 }
 
-export function formatPercent(value?: number | null) {
+export function formatPercent(value?: number | null, locale = 'pt-BR') {
   if (typeof value !== 'number' || !Number.isFinite(value)) return null
-  return `${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`
+  return `${value.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`
 }
 
-export function initials(name: string) {
+export function initials(name: string, locale = 'pt-BR') {
   const letters = name.trim().split(/\s+/).slice(0, 2).map((part) => part[0] ?? '')
-  return letters.join('').toLocaleUpperCase('pt-BR') || '•'
+  return letters.join('').toLocaleUpperCase(locale) || '•'
 }
 
 export function productFieldErrors(input: { editing: boolean; name: string; category: string; draft: ProductUiDraft }) {

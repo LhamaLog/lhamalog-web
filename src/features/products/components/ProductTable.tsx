@@ -1,6 +1,7 @@
 import { Badge } from '../../../shared/ui/Badge'
 import { IconButton } from '../../../shared/ui/IconButton'
 import type { Product } from '../types'
+import { useAppliedPreferences } from '../../profile/preferences'
 import { environmentLabel, formatPercent, initials, occurrenceText, statusTone } from '../productListModel'
 
 const categoryTones = [
@@ -42,6 +43,7 @@ function categoryClass(category: string) {
 }
 
 export function ProductTable({ products, onEdit }: { products: Product[]; onEdit: (product: Product) => void }) {
+  const { language } = useAppliedPreferences()
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[64rem] border-separate border-spacing-0 text-left text-sm">
@@ -56,7 +58,7 @@ export function ProductTable({ products, onEdit }: { products: Product[]; onEdit
           {products.map((product, index) => {
             const environment = environmentLabel(product.environment)
             const tone = statusTone(product.status)
-            const sla = formatPercent(product.sla)
+            const sla = formatPercent(product.sla, language)
             const slaValue = typeof product.sla === 'number' ? Math.max(0, Math.min(100, product.sla)) : 0
             return (
               <tr key={product.id} className="align-middle hover:bg-slate-50">
@@ -82,7 +84,7 @@ export function ProductTable({ products, onEdit }: { products: Product[]; onEdit
                 <td className="border-b border-slate-100 px-3 py-3">
                   <Badge variant={tone === 'neutral' ? 'neutral' : tone} dot>{product.status?.trim() || 'Sem status'}</Badge>
                 </td>
-                <td className="border-b border-slate-100 px-3 py-3 text-slate-600">{occurrenceText(product.lastOccurrence)}</td>
+                <td className="border-b border-slate-100 px-3 py-3 text-slate-600">{occurrenceText(product.lastOccurrence, Date.now(), language)}</td>
                 <td className="border-b border-slate-100 px-3 py-3">
                   {sla ? (
                     <span className="block min-w-24">
@@ -96,7 +98,7 @@ export function ProductTable({ products, onEdit }: { products: Product[]; onEdit
                 <td className="border-b border-slate-100 px-3 py-3">
                   {product.owner ? (
                     <span className="flex items-center gap-2">
-                      <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[11px] font-bold text-[#0C70F2]">{initials(product.owner)}</span>
+                      <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[11px] font-bold text-[#0C70F2]">{initials(product.owner, language)}</span>
                       <span className="truncate font-medium text-[#083B7A]">{product.owner}</span>
                     </span>
                   ) : '—'}

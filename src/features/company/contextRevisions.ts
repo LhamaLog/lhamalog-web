@@ -50,8 +50,8 @@ export function readContextRevisions(body: unknown) {
   })
 }
 
-export function formatRevisionDate(value: string) {
+export function formatRevisionDate(value: string, locale = 'pt-BR') {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value || 'Data indisponível'
-  return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(date)
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'short', timeStyle: 'short' }).format(date)
 }
