@@ -6,7 +6,7 @@
 
 ## Summary
 
-O aplicativo web passa a ter uma tela de perfil em que a pessoa autenticada vê e edita o próprio nome de exibição, o idioma (`pt-BR` ou `en`) e o fuso horário (identificador IANA). A gravação usa o cliente autenticado que já fala com o Core, em `GET`/`PUT /api/user/profile`. O Core grava o perfil e sincroniza o nome com a Clerk; o web não ganha integração Backend da Clerk.
+O aplicativo web passa a ter uma tela de perfil em que a pessoa autenticada vê e edita o próprio nome de exibição, o idioma (`pt-BR` ou `en`) e o fuso horário (identificador IANA no campo `timezone`). A gravação usa o cliente autenticado que já fala com o Core, em `GET`/`PUT /api/user/profile`, enviando também `version` (`null` na primeira gravação). Depois de um `PUT` confirmado, o web chama `user.update` na sessão do navegador. Não há SDK Backend da Clerk.
 
 O idioma gravado traduz a tela de perfil e a moldura autenticada (menu, cabeçalho, rodapé, faixa da empresa e sair) e passa a ser o locale das datas e números que o aplicativo já formata. O fuso só aparece na pré-visualização desta tela. Painel, agendamento de varredura e e-mail não existem aqui e não serão criados. Idioma e fuso da empresa permanecem como estão.
 
@@ -26,7 +26,7 @@ O idioma gravado traduz a tela de perfil e a moldura autenticada (menu, cabeçal
 
 **Performance Goals**: A pessoa conclui a revisão e a gravação em menos de 2 minutos (SC-001). A tela sempre termina em sucesso visível ou erro visível, sem permanecer em "salvando". Sem meta de latência diferente da tela de empresa.
 
-**Constraints**: Não criar painel, agendamento de varredura nem e-mail. Não traduzir empresa, produtos, ocorrências nem as telas de entrada. Não gravar na Clerk a partir do web e não alterar JWT, organizações ou instância. Não mudar `PUT /api/company`. Reusar `useApi` (Bearer, empresa selecionada, 401 desloga). Sem biblioteca nova de i18n. Sem campo de versão no contrato.
+**Constraints**: Não criar painel, agendamento de varredura nem e-mail. Não traduzir empresa, produtos, ocorrências nem as telas de entrada. A sessão Clerk só é atualizada com `user.update` depois de um `PUT` confirmado; sem SDK Backend, segredo, JWT, organizações ou instância. Não mudar `PUT /api/company`. Reusar `useApi` somente quando houver empresa selecionada. Sem biblioteca nova de i18n. O JSON do perfil usa `timezone` e `version`, não `timeZone` e não última gravação silenciosa.
 
 **Scale/Scope**: Um perfil por pessoa autenticada, dois idiomas, uma lista IANA no `<select>` nativo (centenas de opções, aceitável sem componente novo). Uma rota nova, `/perfil`.
 
@@ -65,6 +65,7 @@ src/features/profile/
 ├── validation.ts
 ├── preferences.tsx
 ├── clerkLocale.ts
+├── clerkName.ts
 └── components/ProfilePage.tsx
 
 src/app/routes/AppRoutes.tsx
@@ -88,7 +89,7 @@ src/shared/ui/RankingList.tsx
 tests/profile.test.mjs
 ```
 
-**Structure Decision**: Continua o aplicativo único em `src/`, com a feature nova ao lado de `src/features/company` e `src/features/products`. A moldura existente (`CompanyWorkspace`, `AppLayout`, `Navbar`, `Header`, `Footer`) hospeda `/perfil`. Componentes compartilhados não passam a importar a feature: quem quiser traduzir um texto entrega a string já traduzida, ou lê o contexto apenas em código de layout e da própria feature. Formatadores existentes ganham um argumento de locale com padrão `pt-BR` e não recebem fuso.
+**Structure Decision**: Continua o aplicativo único em `src/`, com a feature nova ao lado de `src/features/company` e `src/features/products`. A moldura existente (`CompanyWorkspace`, `AppLayout`, `Navbar`, `Header`, `Footer`) hospeda `/perfil`. O cabeçalho lê o `displayName` aplicado no provider, com fallback para o nome da sessão. `clerkLocale.ts` é chamado na carga e no salvamento confirmado, e o sign-out volta ao português. Sem empresa selecionada o provider não chama `useApi`. Componentes compartilhados não importam a feature. Formatadores existentes ganham um argumento de locale com padrão `pt-BR` e não recebem o `timezone` do perfil.
 
 ## Phase 0 — Research
 

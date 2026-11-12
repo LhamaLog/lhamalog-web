@@ -31,5 +31,6 @@
 
 ## Notes
 
-- Review iteration 1 (2026-11-12): the specification names Clerk only as the existing sign-in identity named by the story, and it names the profile service without endpoints, frameworks, or screen structure. Company language/timezone stay a separate entity. LLT-172, LLT-173, full translation, and new dashboard, scan, and email surfaces are out of scope.
+- Review iteration 1 (2026-11-12): the specification names Clerk only as the existing sign-in identity named by the story. Company language and time zone stay a separate entity. LLT-172, LLT-173, full translation, and new dashboard, scan, and email surfaces are out of scope.
+- Review iteration 2 (2026-11-12): product owner aligned the contract to Core (`timezone`, `version`, `409`) and the browser session update (`user.update`, no Backend SDK). The checklist stays satisfied: those names are the approved behavior, and the screen scope did not grow.
 - Items marked incomplete require spec updates before `$speckit-clarify` or `$speckit-plan`
