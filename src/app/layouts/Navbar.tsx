@@ -10,6 +10,7 @@ type NavbarProps = {
   onToggleCollapse?: () => void
   homeHref?: string
   onLogoClick?: () => void
+  visibleItems?: string[]
 }
 
 type NavigationItem = {
@@ -96,8 +97,9 @@ function NavbarItem({
   )
 }
 
-export function Navbar({ activeItem, onItemSelect, productName, onProductSelect, collapsed = false, onToggleCollapse, homeHref = '#components-top', onLogoClick }: NavbarProps) {
+export function Navbar({ activeItem, onItemSelect, productName, onProductSelect, collapsed = false, onToggleCollapse, homeHref = '#components-top', onLogoClick, visibleItems }: NavbarProps) {
   const navigationId = useId()
+  const visibleGroups = groups.map(group => ({ ...group, items: group.items.filter(item => !visibleItems || visibleItems.includes(item.id)) })).filter(group => group.items.length > 0)
 
   return (
     <aside className={`flex w-full shrink-0 flex-col bg-[#033473] px-3 py-6 md:sticky md:top-0 md:h-dvh md:overflow-y-auto ${collapsed ? 'md:w-20' : 'md:w-60'}`}>
@@ -150,7 +152,7 @@ export function Navbar({ activeItem, onItemSelect, productName, onProductSelect,
       </button>
 
       <nav id={navigationId} aria-label="Navegação principal" className="mt-8 shrink-0 space-y-6">
-        {groups.map((group) => (
+        {visibleGroups.map((group) => (
           <div key={group.label}>
             <p className="mb-2 flex h-4 items-center gap-4 px-2 text-[11px] font-bold uppercase text-[#9DBDF0]">
               <span className={collapsed ? 'sr-only' : ''}>{group.label}</span>

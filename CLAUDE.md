@@ -1,1 +1,1 @@
-C:/github/lhamalog-web/docs/instrucoes-agentes.md
+@docs/instrucoes-agentes.md
