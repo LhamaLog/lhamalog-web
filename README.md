@@ -118,11 +118,24 @@ São dois momentos diferentes:
 | `/componentes` | Demonstração visual preservada, com sessão. |
 | `/sign-in/*` | Login. `?motivo=deslogado` mostra o aviso "Você foi deslogado" (ADR_032). |
 | `/sign-up/*` | Cadastro. |
-| `/equipe` | Convite de pessoas para a empresa selecionada, só para o administrador. O envio usa o SDK do navegador na sessão já aberta, sem API de convite no Core e sem segredo. |
+| `/equipe` | Convite de pessoas para a empresa selecionada, só para o administrador. Detalhes em [spec](specs/003-convidar-usuario-empresa/spec.md) e [quickstart](specs/003-convidar-usuario-empresa/quickstart.md). |
 | `/organizacoes/nova/*` | Criação de organização, sem a etapa de convite da plataforma. Convidar alguém fica em `/equipe`. |
 | `/tarefas/escolher-organizacao/*`, `/tarefas/configurar-mfa/*`, `/tarefas/redefinir-senha/*` | Etapas pós-login da Clerk (session tasks). |
 
 Outros caminhos redirecionam para `/`. O `/*` é necessário porque os componentes da Clerk usam sub-rotas, como `/sign-in/factor-one`.
+
+### Convite para a empresa (`/equipe`)
+
+A especificação está em [specs/003-convidar-usuario-empresa/spec.md](specs/003-convidar-usuario-empresa/spec.md). O roteiro está em [specs/003-convidar-usuario-empresa/quickstart.md](specs/003-convidar-usuario-empresa/quickstart.md).
+
+A validade de 7 dias e a ativação dos convites de organização são configuradas no dashboard da Clerk, não neste repositório.
+
+Passo manual:
+
+1. Entre como administrador da empresa, abra Equipe e convide um e-mail escolhendo Administrador ou Membro.
+2. A pessoa aceita pelo e-mail, usando as telas de entrada que já existem (`/sign-in` ou `/sign-up`).
+3. Na lista de pendentes, confira o convite e use revogar ou reenviar.
+4. Um link expirado ou revogado é recusado nessas mesmas telas de entrada.
 
 ## Docker na raiz
 

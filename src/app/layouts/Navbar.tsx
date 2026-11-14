@@ -2,6 +2,7 @@ import { useId } from 'react'
 import logo from '../../shared/assets/lhamalog-logo.svg'
 import { profileMessage, type MessageKey } from '../../features/profile/messages'
 import { useAppliedPreferences } from '../../features/profile/preferences'
+import { filterNavItems } from './navVisibility'
 
 type NavbarProps = {
   activeItem: string
@@ -107,7 +108,7 @@ export function Navbar({ activeItem, onItemSelect, productName, onProductSelect,
   const navigationId = useId()
   const { language } = useAppliedPreferences()
   const t = (key: MessageKey, values?: Record<string, string>) => profileMessage(language, key, values)
-  const visibleGroups = navigationGroups(t).map(group => ({ ...group, items: group.items.filter(item => (!visibleItems || visibleItems.includes(item.id)) && !hiddenItems.includes(item.id)) })).filter(group => group.items.length > 0)
+  const visibleGroups = navigationGroups(t).map(group => ({ ...group, items: filterNavItems(group.items, visibleItems, hiddenItems) })).filter(group => group.items.length > 0)
 
   return (
     <aside className={`flex w-full shrink-0 flex-col bg-[#033473] px-3 py-6 md:sticky md:top-0 md:h-dvh md:overflow-y-auto ${collapsed ? 'md:w-20' : 'md:w-60'}`}>

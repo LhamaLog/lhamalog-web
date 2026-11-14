@@ -6,7 +6,7 @@ import { companySectionFromParam, companySections } from '../../features/company
 import { ProductsPage } from '../../features/products/components/ProductsPage'
 import { ProfilePage } from '../../features/profile/components/ProfilePage'
 import { TeamPage } from '../../features/team/components/TeamPage'
-import { isOrganizationAdmin } from '../../features/team/invitations'
+import { teamMenuHiddenItems } from '../../features/team/invitations'
 import { setAppliedClerkLocale } from '../../features/profile/clerkLocale'
 import { profileMessage } from '../../features/profile/messages'
 import { UserPreferencesProvider, useAppliedPreferences } from '../../features/profile/preferences'
@@ -35,7 +35,6 @@ function WorkspaceShell() {
   const products = location.pathname.startsWith('/produtos')
   const profile = location.pathname.startsWith('/perfil')
   const team = location.pathname.startsWith('/equipe')
-  const admin = isOrganizationAdmin(orgRole)
   const section = companySectionFromParam(params.get('secao'))
   const sectionLabel = companySections.find((item) => item.id === section)?.label ?? 'Empresa'
   const companyCrumbs = section === 'overview'
@@ -49,7 +48,7 @@ function WorkspaceShell() {
       activeItem: team ? 'team' : profile ? 'profile' : products ? 'products' : 'company',
       productName: 'Produtos da empresa',
       homeHref: '/empresa',
-      hiddenItems: admin ? [] : ['team'],
+      hiddenItems: teamMenuHiddenItems(orgRole),
       onProductSelect: () => navigate('/produtos'),
       onItemSelect: item => {
         if (item === 'products') navigate('/produtos')

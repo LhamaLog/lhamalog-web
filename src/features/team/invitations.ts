@@ -66,6 +66,25 @@ export function invitationOutcomeCopy(kind: 'expired' | 'revoked'): string {
   return 'Este convite foi revogado e não pode ser usado.'
 }
 
+// Chaves de unstable__errors em @clerk/shared (localization.d.ts) e em @clerk/localizations 4.24.2.
+// ticket_expired_code: ticket expirado. ticket_invalid_code: ticket inválido, inclusive convite revogado.
+export const invitationTicketErrors = {
+  ticket_expired_code: invitationOutcomeCopy('expired'),
+  ticket_invalid_code: invitationOutcomeCopy('revoked'),
+} as const
+
+export const teamNavItemId = 'team'
+
+export const teamAccessDeniedMessage = 'Você não tem acesso. Selecione uma empresa válida.'
+
+export function teamMenuHiddenItems(orgRole: string | null | undefined): string[] {
+  return isOrganizationAdmin(orgRole) ? [] : [teamNavItemId]
+}
+
+export function teamPageDenied(orgRole: string | null | undefined): boolean {
+  return !isOrganizationAdmin(orgRole)
+}
+
 export function roleLabel(role: string): string {
   if (role === 'org:admin') return 'Administrador'
   if (role === 'org:member') return 'Membro'

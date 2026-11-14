@@ -170,6 +170,7 @@ Task: "frases de expiração e revogação em src/features/auth/theme/localizati
 
 - O commit de implementação usa `LLT-167 Convidar usuário para a empresa`.
 - T011 está marcado porque o bloqueio foi registrado em `quickstart.md`. O roteiro manual em si não rodou: não há instância Clerk neste ambiente.
+- Revisão do PR: as chaves de `unstable__errors` conferidas em `@clerk/localizations` 4.24.2 e em `@clerk/shared` (`ticket_expired_code`, `ticket_invalid_code`) permanecem. O mapeamento ficou em `invitationTicketErrors`. O menu e a recusa direta de `/equipe` saem de `teamMenuHiddenItems`, `teamPageDenied` e `filterNavItems`, cobertos em `tests/team-invitations.test.mjs`. O README aponta a spec e o quickstart.
 - [P] = arquivos diferentes, sem dependência incompleta
 - Não chamar o Core para convite
 - Não adicionar SDK Backend da Clerk nem segredo

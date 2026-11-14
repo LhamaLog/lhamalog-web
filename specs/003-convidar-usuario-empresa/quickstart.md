@@ -7,6 +7,7 @@ Verificação da LLT-167 no aplicativo web. O convite real depende de uma instâ
 - `npm test`: passou, 26 testes, em 2026-11-12, neste ambiente (Node 22.23.4; o `package.json` pede Node 26.12.1 e o npm avisou a diferença).
 - `npm run build`: passou (`tsc --noEmit` e `vite build`), na mesma data.
 - Roteiro manual: **pendente**. Este ambiente não tem instância Clerk. Nenhum passo abaixo foi executado: envio real, e-mail, aceite, revogação, reenvio, troca de empresa e acesso de não administrador. Não foi criada chave secreta nem atalho de autenticação.
+- Revisão do PR, em 2026-11-13: `npm test` passou com 28 testes e `npm run build` passou no Node 22.23.4 e no Node 26.12.1.
 
 ## Antes de começar
 
@@ -16,6 +17,8 @@ Verificação da LLT-167 no aplicativo web. O convite real depende de uma instâ
 - Empresa B, para conferir que o convite não vaza.
 
 ## Automático
+
+Os testes cobrem as chaves `ticket_expired_code` e `ticket_invalid_code` com as frases em português, o item Equipe no menu (some para quem não administra e permanece para o administrador) e a recusa de quem abre `/equipe` sem ser administrador.
 
 Na raiz de `lhamalog-web`:
 

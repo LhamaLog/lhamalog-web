@@ -34,6 +34,32 @@ test('administrator is org:admin or admin, and expiry is seven days unless the i
   assert.notEqual(invitationOutcomeCopy('expired'), invitationOutcomeCopy('revoked'))
 })
 
+test('ticket errors use the Clerk unstable__errors keys and the Portuguese messages', async () => {
+  const { ptBR } = await import('@clerk/localizations')
+  const { invitationTicketErrors } = await import('../src/features/team/invitations.ts')
+  assert.equal('ticket_expired_code' in ptBR.unstable__errors, true)
+  assert.equal('ticket_invalid_code' in ptBR.unstable__errors, true)
+  assert.equal(invitationTicketErrors.ticket_expired_code, 'Este convite expirou e não pode ser usado.')
+  assert.equal(invitationTicketErrors.ticket_invalid_code, 'Este convite foi revogado e não pode ser usado.')
+})
+
+test('Equipe stays in the menu for an admin and the direct page is allowed', async () => {
+  const { teamAccessDeniedMessage, teamMenuHiddenItems, teamNavItemId, teamPageDenied } = await import('../src/features/team/invitations.ts')
+  const { filterNavItems } = await import('../src/app/layouts/navVisibility.ts')
+  const items = [{ id: 'dashboard' }, { id: teamNavItemId }, { id: 'company' }]
+  const adminItems = filterNavItems(items, undefined, teamMenuHiddenItems('org:admin')).map((item) => item.id)
+  const memberItems = filterNavItems(items, undefined, teamMenuHiddenItems('org:member')).map((item) => item.id)
+  const plainAdminItems = filterNavItems(items, undefined, teamMenuHiddenItems('admin')).map((item) => item.id)
+  assert.deepEqual(adminItems, ['dashboard', 'team', 'company'])
+  assert.deepEqual(plainAdminItems, ['dashboard', 'team', 'company'])
+  assert.deepEqual(memberItems, ['dashboard', 'company'])
+  assert.equal(teamPageDenied('org:admin'), false)
+  assert.equal(teamPageDenied('admin'), false)
+  assert.equal(teamPageDenied('org:member'), true)
+  assert.equal(teamPageDenied(undefined), true)
+  assert.equal(teamAccessDeniedMessage, 'Você não tem acesso. Selecione uma empresa válida.')
+})
+
 test('a usable pending invitation blocks a new send, and resend revokes every pending id before one invite', async () => {
   const { hasUsablePending, membershipBlocksInvite, resendPlan } = await import('../src/features/team/invitations.ts')
   const now = new Date('2026-11-12T12:00:00.000Z')

@@ -8,10 +8,11 @@ import {
   hasUsablePending,
   invitationExpiry,
   isClerkSessionExpired,
-  isOrganizationAdmin,
   membershipBlocksInvite,
   resendPlan,
   roleLabel,
+  teamAccessDeniedMessage,
+  teamPageDenied,
 } from '../invitations'
 import type { InviteRole } from '../types'
 import { emailFieldError, roleFieldError } from '../validation'
@@ -101,7 +102,7 @@ export function TeamPage() {
   }, [sameOrganization, signOut])
 
   useEffect(() => {
-    if (!organization || !isOrganizationAdmin(orgRole)) return
+    if (!organization || teamPageDenied(orgRole)) return
     let active = true
     const started = organization.id
     setListLoading(true)
@@ -220,8 +221,8 @@ export function TeamPage() {
 
   if (!isLoaded || !organization) return <LoadingState label="Carregando equipe..." />
   if (!orgId) return null
-  if (!isOrganizationAdmin(orgRole)) {
-    return <p role="alert" className="rounded-lg bg-red-50 p-4 text-sm text-red-700">Você não tem acesso. Selecione uma empresa válida.</p>
+  if (teamPageDenied(orgRole)) {
+    return <p role="alert" className="rounded-lg bg-red-50 p-4 text-sm text-red-700">{teamAccessDeniedMessage}</p>
   }
 
   return (
