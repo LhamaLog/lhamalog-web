@@ -1,3 +1,4 @@
+import { useAppliedPreferences } from '../../profile/preferences'
 import { Card } from '../../../shared/ui/Card'
 import { RankingList } from '../../../shared/ui/RankingList'
 
@@ -7,6 +8,7 @@ type LogsByProductProps = {
 }
 
 export function LogsByProduct({ products, periodLabel }: LogsByProductProps) {
+  const { language } = useAppliedPreferences()
   const rankedProducts = [...products].sort((a, b) => b.logs - a.logs)
 
   return (
@@ -20,7 +22,7 @@ export function LogsByProduct({ products, periodLabel }: LogsByProductProps) {
         </h3>
         <span className="rounded-md border border-slate-200 px-2 py-1 text-[11px] text-slate-600">{periodLabel}</span>
       </div>
-      <RankingList items={rankedProducts.map((product) => ({
+      <RankingList locale={language} items={rankedProducts.map((product) => ({
         id: product.id,
         label: product.name,
         value: product.logs,

@@ -1,97 +1,141 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useApi } from '../../../shared/services/useApi'
 import { ApiError } from '../../../shared/services/api'
-import { useApiResource } from '../../../shared/hooks/useApiResource'
-import { Input } from '../../../shared/ui/Input'
-import { Textarea } from '../../../shared/ui/Textarea'
 import { Button } from '../../../shared/ui/Button'
-import { Card } from '../../../shared/ui/Card'
-import { PageHeader } from '../../../shared/ui/PageHeader'
-import { LoadingState } from '../../../shared/ui/LoadingState'
 import { ErrorState } from '../../../shared/ui/ErrorState'
-import type { Company } from '../types'
+import { LoadingState } from '../../../shared/ui/LoadingState'
+import { buildCompanyPut, formField, readCompanyFacts, readCompanySettings, serverConfirmedSettings, type CompanyFacts } from '../contract'
+import { cloneCompanySettings, companySectionFromParam, companySectionParam, type CompanySection, type CompanySettings } from '../model'
+import { errorsForSection } from '../validation'
+import { CompanyAddressScreen, CompanyContextScreen, CompanyDataScreen, CompanyOverview, CompanyPreferencesScreen } from './CompanyScreens'
 
-const dataFields = { legalName: 'Razão social', tradeName: 'Nome fantasia', document: 'Documento (CNPJ ou VAT)', registrationDate: 'Data de inscrição', size: 'Porte' }
-const contextFields = { sector: 'Setor de atuação', mission: 'Missão', targetAudience: 'Público-alvo', differentiators: 'Diferenciais', language: 'Idioma' }
-const addressFields = { street: 'Logradouro', number: 'Número', complement: 'Complemento', district: 'Bairro', city: 'Cidade', state: 'Estado', country: 'País', postalCode: 'CEP' }
-
-export function CompanyPage() {
-  const resource = useApiResource<Company>('/api/company')
-  if (resource.loading) return <LoadingState label="Carregando empresa..." />
-  if (resource.error || !resource.data) return <ErrorState description={resource.error} onRetry={resource.reload} />
-  return <CompanyForm initial={resource.data} reload={resource.reload} />
-}
-
-function CompanyForm({ initial, reload }: { initial: Company; reload: () => void }) {
-  const [company, setCompany] = useState(initial)
+export function CompanyPage({ organizationId }: { organizationId: string }) {
+  const request = useApi()
+  const [params, setParams] = useSearchParams()
+  const section = companySectionFromParam(params.get('secao'))
+  const [raw, setRaw] = useState<unknown>(null)
+  const [settings, setSettings] = useState<CompanySettings | null>(null)
+  const [baseline, setBaseline] = useState<CompanySettings | null>(null)
+  const [facts, setFacts] = useState<CompanyFacts | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState<ApiError | null>(null)
-  const pending = useRef(false)
+  const [reloadKey, setReloadKey] = useState(0)
+  const [contextSavedTick, setContextSavedTick] = useState(0)
   const controller = useRef<AbortController | null>(null)
-  const request = useApi()
+
   useEffect(() => () => controller.current?.abort(), [])
+  useEffect(() => {
+    const current = new AbortController()
+    controller.current = current
+    setLoading(true)
+    setLoadError('')
+    request<unknown>('/api/company', { signal: current.signal })
+      .then((body) => {
+        if (current.signal.aborted) return
+        const parsed = readCompanySettings(body, organizationId)
+        parsed.organizationId = organizationId || parsed.organizationId
+        setRaw(body)
+        setSettings(parsed)
+        setBaseline(cloneCompanySettings(parsed))
+        setFacts(readCompanyFacts(body, parsed))
+      })
+      .catch((reason) => {
+        if (!current.signal.aborted) setLoadError(reason instanceof Error ? reason.message : 'Falha ao carregar a empresa.')
+      })
+      .finally(() => { if (!current.signal.aborted) setLoading(false) })
+    return () => current.abort()
+  }, [organizationId, request, reloadKey])
+
+  function open(next: CompanySection) {
+    const param = companySectionParam(next)
+    const updated = new URLSearchParams(params)
+    if (param) updated.set('secao', param)
+    else updated.delete('secao')
+    setParams(updated, { replace: true })
+    setMessage('')
+    setError(null)
+  }
+
+  function applyServer(body: unknown) {
+    const parsed = readCompanySettings(body, organizationId)
+    parsed.organizationId = organizationId || parsed.organizationId
+    setRaw(body)
+    setSettings(parsed)
+    setBaseline(cloneCompanySettings(parsed))
+    setFacts(readCompanyFacts(body, parsed))
+  }
+
+  function presentError(reason: ApiError) {
+    const fieldErrors = Object.fromEntries(Object.entries(reason.fieldErrors).map(([key, value]) => [formField(key), value]))
+    return new ApiError(reason.message, reason.status, fieldErrors)
+  }
+
+  function cancel() {
+    if (!baseline) return
+    setSettings(cloneCompanySettings(baseline))
+    setMessage('')
+    setError(null)
+  }
 
   async function submit(event: FormEvent) {
     event.preventDefault()
-    if (pending.current) return
-    pending.current = true
-    controller.current = new AbortController()
-    setSaving(true); setError(null); setMessage('')
+    if (!settings) return
+    const localErrors = errorsForSection(settings, section)
+    if (Object.keys(localErrors).length > 0) {
+      setMessage('')
+      setError(new ApiError('Confira os campos destacados.', 400, localErrors))
+      return
+    }
+    const current = new AbortController()
+    controller.current = current
+    setSaving(true)
+    setMessage('')
+    setError(null)
     try {
-      const saved = await request<Company>('/api/company', {
-        method: 'PUT', signal: controller.current.signal,
-        body: JSON.stringify({ data: company.data, context: company.context, address: company.address, version: company.version }),
+      const saved = await request<unknown>('/api/company', {
+        method: 'PUT',
+        signal: current.signal,
+        body: JSON.stringify(buildCompanyPut(raw, settings)),
       })
-      if (!controller.current.signal.aborted) { setCompany(saved); setMessage('Dados da empresa salvos.') }
+      if (current.signal.aborted) return
+      if (!serverConfirmedSettings(settings, saved)) {
+        applyServer(saved)
+        setError(new ApiError('O servidor não confirmou todas as configurações enviadas. A tela voltou ao que ele devolveu.', 0))
+        return
+      }
+      applyServer(saved)
+      if (section === 'context') setContextSavedTick((value) => value + 1)
+      setMessage('Alterações salvas. Preferências de segurança, IA e telemetria ficam registradas e não entram em vigor por este serviço.')
     } catch (reason) {
-      if (!controller.current.signal.aborted) setError(reason instanceof ApiError ? reason : new ApiError('Não foi possível salvar.', 0))
+      if (!current.signal.aborted) setError(reason instanceof ApiError ? presentError(reason) : new ApiError('Não foi possível salvar.', 0))
     } finally {
-      pending.current = false
-      if (!controller.current.signal.aborted) setSaving(false)
+      if (!current.signal.aborted) setSaving(false)
     }
   }
 
-  return <form onSubmit={submit} className="space-y-5">
-    <PageHeader title="Configurações da Empresa" description="Mantenha os dados e o contexto da empresa selecionada." />
-    <nav aria-label="Seções da empresa" className="flex flex-wrap gap-4 rounded-xl bg-white p-4 text-sm text-[#0C70F2]">
-      <a href="#company-data">Dados da Empresa</a><a href="#company-context">Contexto de Atuação</a><a href="#company-address">Endereço</a>
-    </nav>
-    {error && <div role="alert" className="rounded-lg bg-red-50 p-4 text-red-700">{error.message}
-      {error.status === 409 && <Button onClick={reload} variant="outline" fullWidth={false}>Recarregar dados</Button>}
-    </div>}
-    {message && <p role="status" className="rounded-lg bg-green-50 p-4 text-green-800">{message}</p>}
-    <fieldset disabled={saving} className="space-y-5">
-      <Card id="company-data" className="space-y-4 scroll-mt-4">
-        <h2 className="font-bold text-[#083B7A]">Dados da Empresa</h2>
-        <p className="text-sm text-slate-500">Os campos cadastrais são opcionais. Complete-os para enriquecer as informações da empresa.</p>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {Object.entries(dataFields).map(([key, label]) => <Input key={key} id={`company-${key}`} label={label} compact
-            type={key === 'registrationDate' ? 'date' : 'text'} maxLength={200}
-            value={company.data[key as keyof Company['data']] ?? ''} error={error?.fieldErrors[`data.${key}`]}
-            onChange={event => { setMessage(''); setCompany({ ...company, data: { ...company.data, [key]: key === 'registrationDate' ? event.target.value || null : event.target.value } }) }} />)}
+  if (loading) return <LoadingState label="Carregando empresa..." />
+  if (loadError || !settings || !facts) return <ErrorState description={loadError || 'Não foi possível carregar a empresa.'} onRetry={() => setReloadKey((value) => value + 1)} />
+  const fieldErrors = error?.fieldErrors ?? {}
+
+  return (
+    <div className="space-y-4">
+      {message && <p role="status" className="rounded-lg bg-green-50 p-4 text-sm text-green-800">{message}</p>}
+      {error && (
+        <div role="alert" className="flex flex-wrap items-center gap-3 rounded-lg bg-red-50 p-4 text-sm text-red-700">
+          <span>{error.message}</span>
+          {error.status === 409 && <Button onClick={() => setReloadKey((value) => value + 1)} variant="outline" size="small" fullWidth={false}>Recarregar dados</Button>}
         </div>
-      </Card>
-      <Card id="company-context" className="space-y-4 scroll-mt-4">
-        <h2 className="font-bold text-[#083B7A]">Contexto de Atuação</h2>
-        {Object.values(company.context).some(value => !value?.trim()) && <p className="text-sm text-amber-800">Há campos de contexto vazios. Você pode salvar e completá-los depois.</p>}
-        <div className="grid gap-4 sm:grid-cols-2">
-          {Object.entries(contextFields).map(([key, label]) => <Textarea key={key} id={`company-${key}`} label={label}
-            maxLength={key === 'sector' || key === 'language' ? 200 : 10000}
-            value={company.context[key as keyof Company['context']] ?? ''} error={error?.fieldErrors[`context.${key}`]}
-            onChange={event => { setMessage(''); setCompany({ ...company, context: { ...company.context, [key]: event.target.value } }) }} />)}
-        </div>
-      </Card>
-      <Card id="company-address" className="space-y-4 scroll-mt-4">
-        <h2 className="font-bold text-[#083B7A]">Endereço</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {Object.entries(addressFields).map(([key, label]) => <Input key={key} id={`company-${key}`} label={label} compact maxLength={200}
-            value={company.address[key as keyof Company['address']] ?? ''} error={error?.fieldErrors[`address.${key}`]}
-            onChange={event => { setMessage(''); setCompany({ ...company, address: { ...company.address, [key]: event.target.value } }) }} />)}
-        </div>
-      </Card>
-      <Button type="submit" fullWidth={false}>{saving ? 'Salvando...' : 'Salvar alterações'}</Button>
-    </fieldset>
-  </form>
+      )}
+      {section === 'overview' && <CompanyOverview settings={settings} facts={facts} onOpen={open} />}
+      {section === 'data' && <CompanyDataScreen settings={settings} errors={fieldErrors} saving={saving} onChange={setSettings} onSubmit={submit} onCancel={cancel} onOpen={open} />}
+      {section === 'context' && <CompanyContextScreen settings={settings} errors={fieldErrors} saving={saving} onChange={setSettings} onSubmit={submit} onCancel={cancel} onOpen={open} historyRefreshKey={contextSavedTick} />}
+      {section === 'address' && <CompanyAddressScreen settings={settings} errors={fieldErrors} saving={saving} onChange={setSettings} onSubmit={submit} onCancel={cancel} onOpen={open} />}
+      {section === 'preferences' && <CompanyPreferencesScreen settings={settings} facts={facts} errors={fieldErrors} saving={saving} onChange={setSettings} onSubmit={submit} onCancel={cancel} onOpen={open} />}
+    </div>
+  )
 }

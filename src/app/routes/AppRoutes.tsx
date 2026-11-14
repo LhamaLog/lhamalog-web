@@ -19,6 +19,8 @@ export function AppRoutes() {
       <Route path="/componentes" element={<ProtectedRoute><App /></ProtectedRoute>} />
       <Route path="/empresa" element={<ProtectedRoute><CompanyWorkspace /></ProtectedRoute>} />
       <Route path="/produtos" element={<ProtectedRoute><CompanyWorkspace /></ProtectedRoute>} />
+      <Route path="/perfil" element={<ProtectedRoute><CompanyWorkspace /></ProtectedRoute>} />
+      <Route path="/equipe" element={<ProtectedRoute><CompanyWorkspace /></ProtectedRoute>} />
 
       {/* Telas de autenticação: layout dividido (painel da marca + card) */}
       <Route path="/sign-in/*" element={<SignInPage />} />
