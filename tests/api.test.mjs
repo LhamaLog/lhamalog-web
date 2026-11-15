@@ -25,6 +25,29 @@ test('preserves validation errors and does not retry a mutation', async () => {
   } finally { globalThis.fetch = original }
 })
 
+test('distinguishes member access codes without signing the caller out', async () => {
+  const original = globalThis.fetch
+  const cases = [
+    [{ message: 'Seu acesso a esta empresa foi desativado.', code: 'user_deactivated' }, 403, 'user_deactivated', 'Seu acesso a esta empresa foi desativado.'],
+    [{ code: 'user_deactivated' }, 403, 'user_deactivated', 'Seu acesso a esta empresa foi desativado.'],
+    [{ message: 'Não é possível desativar o último administrador.', code: 'last_admin' }, 403, 'last_admin', 'Não é possível desativar o último administrador.'],
+    [{ message: 'Somente o administrador da empresa pode gerenciar os usuários.', code: 'not_admin' }, 403, 'not_admin', 'Somente o administrador da empresa pode gerenciar os usuários.'],
+    [{}, 403, '', 'Você não tem acesso. Selecione uma empresa válida.'],
+  ]
+  try {
+    for (const [body, status, code, message] of cases) {
+      globalThis.fetch = async () => new Response(JSON.stringify(body), { status })
+      await assert.rejects(apiRequest('', '/api/company/members', 'token'), (error) => {
+        assert.equal(error.status, status)
+        assert.notEqual(error.status, 401)
+        assert.equal(error.code, code)
+        assert.equal(error.message, message)
+        return true
+      })
+    }
+  } finally { globalThis.fetch = original }
+})
+
 test('handles unauthorized and non-JSON errors without leaking details', async () => {
   const original = globalThis.fetch
   globalThis.fetch = async () => new Response('<html>private error details</html>', { status: 401 })

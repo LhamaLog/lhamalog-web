@@ -86,8 +86,8 @@ export function teamPageDenied(orgRole: string | null | undefined): boolean {
 }
 
 export function roleLabel(role: string): string {
-  if (role === 'org:admin') return 'Administrador'
-  if (role === 'org:member') return 'Membro'
+  if (role === 'org:admin' || role === 'admin') return 'Administrador'
+  if (role === 'org:member' || role === 'member') return 'Membro'
   return role
 }
 

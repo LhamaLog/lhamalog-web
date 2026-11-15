@@ -4,9 +4,9 @@ Verificação da LLT-168 no aplicativo web. A marca e o último acesso dependem 
 
 ## Resultado desta entrega
 
-- Implementação: não começa neste passo. O roteiro abaixo é para a fase seguinte.
-- Automático: `npm test` e `npm run build`, quando as tarefas de teste e de código existirem.
-- Manual: pendente até haver instância Clerk e Core alinhado ao contrato. Não criar chave secreta nem atalho de autenticação para destravar o roteiro.
+- `npm test`: passou, 33 testes, em 2026-11-15, neste ambiente (Node 22.23.4; o `package.json` pede Node 26.12.1 e o npm avisou a diferença).
+- `npm run build`: passou (`tsc --noEmit` e `vite build`), na mesma data.
+- Roteiro manual: **pendente**. Este ambiente não tem instância Clerk nem Core. Nenhum passo manual abaixo foi executado: lista real, troca de cargo, desativação, reativação e a próxima requisição da pessoa desativada. Não foi criada chave secreta nem atalho de autenticação.
 
 ## Antes de começar
 
