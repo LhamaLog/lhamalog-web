@@ -6,11 +6,11 @@
 
 ## Summary
 
-O administrador continua em `/equipe`. A tela ganha um bloco de usuários ao lado dos convites pendentes da LLT-167. Cada linha junta `organization.getMemberships` (nome público, identificador, cargo, `userId`) com o Core (status e último acesso) pelo `userId`. Editar é só `membership.update({ role })` entre `org:admin` e `org:member`. Desativar e reativar gravam a marca no Core. A pessoa não sai da organização: a tela não chama `membership.destroy` nem `organization.removeMember`.
+O administrador continua em `/equipe`. A tela ganha um bloco de usuários ao lado dos convites pendentes da LLT-167. Cada linha junta `organization.getMemberships` (nome público, identificador, cargo, `userId`) com `GET /api/company/members` (status e último acesso) pelo `userId`. Editar é `organization.updateMember({ userId, role })` com `admin` ou `member`, sem prefixo. Desativar é `POST /api/company/members/{userId}/deactivation` e reativar é `DELETE` no mesmo caminho, sem corpo. Não há `PUT`. A pessoa não sai da organização: a tela não chama `membership.destroy` nem `organization.removeMember`.
 
-O Core é o serviço da spec. Ele confere a marca em toda requisição. O Web, ao receber `code: user_deactivated`, mostra "Seu acesso a esta empresa está desativado." e não encerra a sessão. A trava do último administrador é dupla: a tela conta `org:admin` em todas as páginas e o Core recusa desativar o último administrador que ele conhece.
+O Core é o serviço da spec e a fonte da verdade do contrato, no commit `4f32c77`. Ele confere a marca em toda requisição. O Web distingue os 403 por `code`: `user_deactivated` mostra "Seu acesso a esta empresa foi desativado." e não encerra a sessão; `last_admin` é 403, não 409; `not_admin` é a recusa de membro neste recurso. A trava local conta administradores da organização que não estão `deactivated` no Core. Ausência no `GET` conta como ativo.
 
-Não há chave secreta, não há configuração nova de dashboard e não há dependência nova. O contrato em [contracts/company-members.md](contracts/company-members.md) é o que o Web espera. Em 2026-11-15 o Core ainda não tinha `specs/005-listar-editar-usuarios/contracts/`.
+Não há chave secreta, não há configuração nova de dashboard e não há dependência nova. O contrato em [contracts/company-members.md](contracts/company-members.md) acompanha o do Core.
 
 ## Technical Context
 
@@ -28,7 +28,7 @@ Não há chave secreta, não há configuração nova de dashboard e não há dep
 
 **Performance Goals**: O administrador vê as cinco colunas da página em menos de 1 minuto (SC-001). Cada ação termina em sucesso visível ou erro visível. Sem meta de latência diferente da tela de empresa.
 
-**Constraints**: Sem `sk_` e sem `CLERK_SECRET_KEY` no Web e no Core. Sem configuração nova de dashboard. Sem `membership.destroy` e sem `organization.removeMember`. Cargo só `org:admin` e `org:member`, via `membership.update`. Status e último acesso só pelo Core, pelo cliente `apiRequest` / `useApi`. Rota existente: `/equipe`. Textos próprios em português. Recusa de não administrador: "Você não tem acesso. Selecione uma empresa válida.", sem `signOut`. Recusa do próprio usuário desativado: "Seu acesso a esta empresa está desativado.", sem `signOut`. Página de 10, igual aos convites.
+**Constraints**: Sem `sk_` e sem `CLERK_SECRET_KEY` no Web e no Core. Sem configuração nova de dashboard. Sem `membership.destroy`, sem `organization.removeMember` e sem `PUT` de membro. Cargo gravado só `admin` ou `member`, via `organization.updateMember`. Status e último acesso só pelo Core, pelo cliente `apiRequest` / `useApi`. Rota existente: `/equipe`. Textos próprios em português. Recusa de quem abre `/equipe` sem ser administrador, antes da chamada: "Você não tem acesso. Selecione uma empresa válida.", sem `signOut`. Recusa `not_admin` do recurso: "Somente o administrador da empresa pode gerenciar os usuários." Recusa do próprio usuário desativado: "Seu acesso a esta empresa foi desativado.", sem `signOut`. Página de 10, igual aos convites. `lastAccessAt` pode ter até 5 minutos.
 
 **Scale/Scope**: Um bloco novo na tela já existente, dois cargos, dois status, uma empresa ativa por vez. Sem ação em massa. A lista visível é a página da Clerk; o Core devolve os registros que conhece e o Web completa o restante como Ativo e sem acesso registrado.
 
@@ -71,11 +71,11 @@ tests/team-members.test.mjs
 tests/api.test.mjs
 ```
 
-**Structure Decision**: A feature `src/features/team/` já existe. Esta história acrescenta a junção e o contrato do Core ao lado das funções de convite, e estende `TeamPage.tsx` com o bloco de usuários. `api.ts` passa a reconhecer `user_deactivated` sem mudar o 401 nem o 403 genérico. Não há rota nova, item de menu novo nem dependência. `AppRoutes.tsx`, `CompanyWorkspace.tsx` e `Navbar.tsx` permanecem como a LLT-167 os deixou.
+**Structure Decision**: A feature `src/features/team/` já existe. Esta história acrescenta a junção e o contrato do Core ao lado das funções de convite, e estende `TeamPage.tsx` com o bloco de usuários. `api.ts` passa a copiar `code` e a reconhecer `user_deactivated`, `last_admin` e `not_admin` sem mudar o 401 nem o 403 sem `code`. Não há rota nova, item de menu novo nem dependência. `AppRoutes.tsx`, `CompanyWorkspace.tsx` e `Navbar.tsx` permanecem como a LLT-167 os deixou.
 
 ## Phase 0 — Research
 
-Resolvido em [research.md](research.md). Não restou `NEEDS CLARIFICATION` no contexto técnico. O contrato do Core está descrito como expectativa do Web e marcado para alinhar.
+Resolvido em [research.md](research.md). Não restou `NEEDS CLARIFICATION` no contexto técnico. O contrato do Core no commit `4f32c77` é a fonte da verdade, inclusive o `code` opcional no erro.
 
 ## Phase 1 — Design
 

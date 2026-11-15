@@ -12,13 +12,14 @@
 
 ### Session 2026-11-15
 
-- Q: Como a pessoa desativada perde o acesso na próxima requisição? → A: Só uma marca de desativado no Core, conferida pelo Core em toda requisição. A pessoa não sai da organização. A tela não chama remoção de membro. Ela continua na lista de membros e aparece com status Desativado. O Web trata a recusa do Core para o próprio usuário desativado com a frase "Seu acesso a esta empresa está desativado." A sessão permanece aberta.
+- Q: Como a pessoa desativada perde o acesso na próxima requisição? → A: Só uma marca de desativado no Core, conferida pelo Core em toda requisição. A pessoa não sai da organização. A tela não chama remoção de membro. Ela continua na lista de membros e aparece com status Desativado. O Web trata a recusa do Core para o próprio usuário desativado com a frase "Seu acesso a esta empresa foi desativado." A sessão permanece aberta.
 - Q: De onde vem o último acesso? → A: Do Core: o instante da última requisição autenticada aceita daquela pessoa na empresa. Sem chave secreta. Sem uso registrado, a lista diz "Sem acesso registrado".
-- Q: O que a edição cobre? → A: Só o cargo, entre Administrador (`org:admin`) e Membro (`org:member`), na sessão do administrador. O nome mostrado é o nome público. Sem nome, a lista mostra o e-mail. O nome de outra pessoa não é editado aqui.
+- Q: O que a edição cobre? → A: Só o cargo, entre Administrador e Membro, na sessão do administrador, com `organization.updateMember`. O Web envia `admin` ou `member`, sem prefixo. O nome mostrado é o nome público. Sem nome, a lista mostra o e-mail. O nome de outra pessoa não é editado aqui.
 - Q: Onde fica a lista? → A: Na rota `/equipe`, em um bloco de usuários junto com o bloco de convites pendentes da LLT-167.
-- Q: Como garantir o último administrador sem chave secreta? → A: O Web conta os administradores em todas as páginas antes de rebaixar ou de desativar um administrador e recusa se ele for o único. O Core também recusa desativar o último administrador que ele conhece. Se o Core ou a plataforma devolver erro, a tela mostra esse erro. O cargo e o status anteriores permanecem.
+- Q: Como garantir o último administrador sem chave secreta? → A: O Web conta os administradores da organização que não estão `deactivated` no Core. Quem não aparece no Core conta como ativo. Se a ação deixasse zero, a tela recusa sem chamar o Core nem a troca de cargo. O Core também recusa o `POST` com 403, `code` `last_admin` e a frase "Não é possível desativar o último administrador." A frase local de rebaixar é "Não é possível rebaixar o último administrador." Se o Core ou a plataforma devolver erro, a tela mostra esse erro. O cargo e o status anteriores permanecem.
 - Q: Desativar é reversível? → A: Sim. O administrador tira a marca no Core. A pessoa continua na organização o tempo todo. O status volta a Ativo.
-- Q: Quem vê e altera a lista? → A: Só o administrador da empresa selecionada. Quem não administra não vê Equipe e não lista, edita, desativa nem reativa.
+- Q: Quem vê e altera a lista? → A: Só o administrador da empresa selecionada. Quem não administra não vê Equipe e não lista, edita, desativa nem reativa. Se chegar a chamar o Core, a resposta é 403, `code` `not_admin`, "Somente o administrador da empresa pode gerenciar os usuários."
+- Q: Qual contrato o Web consome? → A: O publicado pelo Core em `specs/005-listar-editar-usuarios/contracts/company-members.md`, commit `4f32c77`. `GET /api/company/members` devolve `{ members: [{ userId, status, lastAccessAt }] }`. Desativar é `POST /api/company/members/{userId}/deactivation`, sem corpo. Reativar é `DELETE` no mesmo caminho, sem corpo. Não há `PUT`. Os 403 desta história trazem `code`: `user_deactivated`, `last_admin` e `not_admin`. O Web distingue por `code`.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -63,7 +64,7 @@ O administrador altera só o cargo de uma pessoa que já pertence à empresa, en
 
 ### User Story 3 - Desativar, reativar e proteger o último administrador (Priority: P1)
 
-O administrador desativa uma pessoa que não é o único administrador. Ela continua na empresa e na lista, com status Desativado. A próxima requisição dela ao serviço é recusada, e o aplicativo mostra "Seu acesso a esta empresa está desativado." sem encerrar a sessão. O administrador reativa essa pessoa tirando a marca. Desativar ou rebaixar o único administrador é recusado.
+O administrador desativa uma pessoa que não é o único administrador. Ela continua na empresa e na lista, com status Desativado. A próxima requisição dela ao serviço é recusada, e o aplicativo mostra "Seu acesso a esta empresa foi desativado." sem encerrar a sessão. O administrador reativa essa pessoa tirando a marca. Desativar ou rebaixar o único administrador é recusado.
 
 **Why this priority**: São os critérios de aceite que faltam: corte na próxima requisição, status visível e a trava do último administrador. A reativação faz parte da mesma marca.
 
@@ -72,7 +73,7 @@ O administrador desativa uma pessoa que não é o único administrador. Ela cont
 **Acceptance Scenarios**:
 
 1. **Given** um membro, ou um administrador que não é o único, **When** o administrador o desativa, **Then** ele continua na lista com status Desativado e a próxima requisição dele ao serviço não acessa o produto.
-2. **Given** a pessoa desativada faz uma requisição ao serviço, **When** a recusa chega, **Then** a frase é "Seu acesso a esta empresa está desativado." e a sessão permanece aberta.
+2. **Given** a pessoa desativada faz uma requisição ao serviço, **When** a recusa chega, **Then** a frase é "Seu acesso a esta empresa foi desativado." e a sessão permanece aberta.
 3. **Given** uma pessoa desativada, **When** o administrador reativa, **Then** o status volta a Ativo e a próxima requisição aceita dela volta a passar.
 4. **Given** a empresa tem um único administrador, **When** alguém tenta desativá-lo, **Then** a ação é recusada, ele continua administrador e Ativo, e a lista não muda o cargo nem o status dele.
 5. **Given** o serviço recusa a desativação porque, para ele, aquele é o último administrador, **When** a resposta chega, **Then** a tela mostra o erro do serviço e o status permanece Ativo.
@@ -102,7 +103,7 @@ O administrador desativa uma pessoa que não é o único administrador. Ela cont
 - Serviço ou plataforma indisponível, ou resposta ilegível: alerta, lista anterior permanece, nova tentativa é possível.
 - Cargo fora de Administrador e Membro: a edição é recusada e o cargo anterior permanece.
 - Pessoa desativada com token ainda válido: a próxima requisição ao serviço é recusada pela marca. A pessoa continua na organização. A tela não remove o membro.
-- Último acesso: não usa a data de entrada nem a data de atualização do vínculo. Usa o instante devolvido pelo serviço, ou "Sem acesso registrado".
+- Último acesso: não usa a data de entrada nem a data de atualização do vínculo. Usa o `lastAccessAt` devolvido pelo serviço, ou "Sem acesso registrado". Dentro de 5 minutos, com o mesmo cargo, o serviço pode não gravar um instante novo.
 - Paginação: um administrador fora da primeira página continua protegido pela trava. A contagem percorre todas as páginas de administradores.
 - Promoção recente que o serviço ainda não conhece: a contagem da tela pode permitir a desativação e o serviço pode recusar. A tela mostra o erro do serviço e mantém o status.
 
@@ -114,10 +115,10 @@ O administrador desativa uma pessoa que não é o único administrador. Ela cont
 - **FR-002**: Quem não administra a empresa selecionada MUST NOT ver o item Equipe e MUST NOT listar, editar, desativar nem reativar usuários. No acesso direto a `/equipe`, a pessoa MUST ver "Você não tem acesso. Selecione uma empresa válida." e a sessão MUST permanecer aberta.
 - **FR-003**: Sem empresa selecionada, o aplicativo MUST NOT listar, editar, desativar nem reativar usuários e MUST orientar a pessoa a selecionar ou cadastrar uma empresa, como já faz nas outras áreas autenticadas.
 - **FR-004**: A lista, a edição, a desativação e a reativação MUST aparecer na rota `/equipe`, aberta pelo item Equipe, em bloco distinto dos convites pendentes. O envio, a revogação, o reenvio e o aceite de convite MUST permanecer como na LLT-167.
-- **FR-005**: A edição MUST alterar só o cargo da pessoa na empresa selecionada. O cargo MUST ser exatamente Administrador (`org:admin`) ou Membro (`org:member`). A alteração MUST ocorrer na sessão do administrador. Nome, e-mail, status e último acesso MUST NOT mudar por essa ação.
-- **FR-006**: Desativar MUST gravar uma marca de desativado no serviço, para a pessoa na empresa selecionada. A pessoa MUST continuar na organização e na lista, com status Desativado. A próxima requisição dela ao serviço MUST ser recusada. O aplicativo MUST NOT remover o membro da organização.
-- **FR-007**: O último acesso MUST ser o instante da última requisição autenticada aceita daquela pessoa na empresa, vindo do serviço. Sem esse instante, a lista MUST mostrar "Sem acesso registrado". A data de entrada ou de atualização do vínculo MUST NOT ser usada como último acesso.
-- **FR-008**: O aplicativo MUST impedir desativar e MUST impedir rebaixar o único administrador da empresa selecionada. A contagem MUST incluir os administradores das outras páginas. A pessoa MUST continuar administradora e Ativa. A recusa local de desativar MUST dizer "Não é possível desativar o último administrador." A recusa local de rebaixar MUST dizer "Não é possível rebaixar o último administrador." Se o serviço recusar a desativação do último administrador que ele conhece, ou se a plataforma recusar a troca de cargo, a tela MUST mostrar esse erro e MUST manter o cargo e o status anteriores.
+- **FR-005**: A edição MUST alterar só o cargo da pessoa na empresa selecionada. O cargo enviado MUST ser `admin` ou `member`, sem prefixo, por `organization.updateMember` na sessão do administrador. Nome, e-mail, status e último acesso MUST NOT mudar por essa ação.
+- **FR-006**: Desativar MUST gravar a marca com `POST /api/company/members/{userId}/deactivation`, sem corpo. A pessoa MUST continuar na organização e na lista, com status Desativado. A próxima requisição dela ao serviço MUST ser recusada com 403, `code` `user_deactivated`. O aplicativo MUST NOT remover o membro da organização e MUST NOT usar `PUT`.
+- **FR-007**: O último acesso MUST ser o `lastAccessAt` devolvido pelo serviço. Sem esse instante, a lista MUST mostrar "Sem acesso registrado". A data de entrada ou de atualização do vínculo MUST NOT ser usada como último acesso. O valor pode estar até 5 minutos atrás quando o cargo observado não mudou.
+- **FR-008**: O aplicativo MUST impedir desativar e MUST impedir rebaixar quando a ação deixaria zero administradores ativos. A contagem MUST percorrer todas as páginas e MUST incluir só quem tem cargo de administrador e não está `deactivated` no serviço. Quem o serviço não devolve MUST contar como ativo. A recusa local de desativar MUST dizer "Não é possível desativar o último administrador." e MUST NOT chamar o `POST`. A recusa local de rebaixar MUST dizer "Não é possível rebaixar o último administrador." e MUST NOT chamar a troca de cargo. Se o serviço responder 403 com `code` `last_admin`, ou se a plataforma recusar a troca de cargo, a tela MUST mostrar esse erro e MUST manter o cargo e o status anteriores.
 - **FR-009**: Cada pessoa visível na lista MUST ter um status. Quem pode acessar MUST aparecer como Ativo. Quem foi desativado MUST aparecer como Desativado e MUST continuar na lista. Quem o serviço ainda não registrou MUST aparecer como Ativo.
 - **FR-010**: O nome exibido MUST ser o nome público da pessoa. Se não houver nome, MUST ser o e-mail. O e-mail exibido MUST ser o identificador da pessoa na empresa. O cargo exibido MUST ser Administrador ou Membro, com o mesmo critério já usado nos convites. A lista MUST juntar nome, e-mail e cargo da organização com status e último acesso do serviço pelo identificador do usuário.
 - **FR-011**: Durante listar, editar, desativar ou reativar, o aplicativo MUST fazer um único pedido daquela ação e MUST manter o controle correspondente bloqueado até a resposta. Falha MUST ser um alerta e MUST NOT apresentar como concluída uma mudança que não foi confirmada.
@@ -128,15 +129,15 @@ O administrador desativa uma pessoa que não é o único administrador. Ela cont
 - **FR-016**: O aplicativo MUST NOT receber nem guardar chave secreta da plataforma, e o serviço MUST NOT passar a usar chave secreta por causa desta história. A tela MUST NOT apagar a conta da pessoa na plataforma e MUST NOT remover a pessoa da organização.
 - **FR-017**: Esta história MUST NOT alterar o perfil que a própria pessoa edita (nome, idioma e fuso), os dados da empresa, o contexto da empresa nem os produtos. MUST NOT criar cargo além de Administrador e Membro. MUST NOT definir a matriz de permissões nem esconder outras ações do produto segundo essa matriz. MUST NOT pedir configuração nova no dashboard da plataforma.
 - **FR-018**: O administrador MUST poder desativar a si mesmo e MUST poder rebaixar o próprio cargo somente quando existir outro administrador. Sendo o único, as duas ações MUST ser recusadas pelo FR-008.
-- **FR-019**: Reativar MUST retirar a marca de desativado no serviço. O status MUST voltar a Ativo. A pessoa MUST continuar na organização. A próxima requisição aceita dela MUST voltar a passar. Reativar MUST NOT mudar o cargo.
-- **FR-020**: Quando o serviço recusar o próprio usuário por estar desativado, o aplicativo MUST mostrar "Seu acesso a esta empresa está desativado." MUST NOT usar a frase de quem não administra e MUST NOT encerrar a sessão. Depois dessa recusa, Equipe MUST NOT oferecer convite, troca de cargo, desativar nem reativar.
+- **FR-019**: Reativar MUST retirar a marca com `DELETE /api/company/members/{userId}/deactivation`, sem corpo. O status MUST voltar a Ativo. A pessoa MUST continuar na organização. A próxima requisição aceita dela MUST voltar a passar. Reativar MUST NOT mudar o cargo.
+- **FR-020**: Quando o serviço recusar o próprio usuário com `code` `user_deactivated`, o aplicativo MUST mostrar a `message`, que é "Seu acesso a esta empresa foi desativado." MUST NOT usar a frase de quem não administra e MUST NOT encerrar a sessão. Depois dessa recusa, Equipe MUST NOT oferecer convite, troca de cargo, desativar nem reativar. Os três 403 desta lista MUST ser distinguidos por `code`, não pela frase.
 
 ### Key Entities *(include if feature involves data)*
 
 - **Usuário da empresa**: Pessoa que já pertence à empresa selecionada. Nome, e-mail e cargo vêm da organização. Status e último acesso vêm do serviço, ligados pelo identificador do usuário. Não inclui convite ainda não aceito. Sem nome público, o nome mostrado é o e-mail. Sem registro no serviço, o status é Ativo e o último acesso é "Sem acesso registrado".
 - **Cargo**: Só Administrador (`org:admin`) e Membro (`org:member`), os mesmos do convite. A edição troca só esse valor, na sessão do administrador. Não é o nome da empresa no cabeçalho.
 - **Status**: Ativo ou Desativado, por empresa. Desativado é a marca no serviço. A pessoa desativada continua na organização e na lista. Reativar tira a marca.
-- **Último acesso**: Instante da última requisição autenticada aceita da pessoa na empresa, guardado pelo serviço. Não é a data do vínculo nem o último login da plataforma.
+- **Último acesso**: `lastAccessAt` do serviço, instante ISO-8601 em UTC ou ausência. Não é a data do vínculo nem o último login da plataforma. Pode ficar até 5 minutos atrás se o cargo observado não mudou.
 - **Administrador da empresa**: Quem, na empresa selecionada, tem o cargo de administrador, no mesmo critério já usado em Equipe. A empresa não pode ficar sem pelo menos um. A tela conta os administradores da organização. O serviço recusa desativar o último administrador que ele conhece.
 - **Empresa selecionada**: A organização ativa da sessão. A lista, a edição, a desativação e a reativação valem só para ela.
 
@@ -151,7 +152,7 @@ O administrador desativa uma pessoa que não é o único administrador. Ela cont
 - **SC-005**: Em 100% das trocas de cargo confirmadas entre Administrador e Membro, a lista mostra o cargo novo e o nome, o e-mail, o status e o último acesso permanecem. Em 100% das falhas, o cargo anterior permanece.
 - **SC-006**: Em 100% das respostas de um pedido abandonado, por saída da tela ou troca de empresa, a lista da empresa atual não muda por causa dessa resposta.
 - **SC-007**: Em 100% dos casos sem empresa selecionada, nenhuma lista é alterada e a pessoa vê a orientação para selecionar ou cadastrar uma empresa.
-- **SC-008**: Em 100% das requisições recusadas porque a própria pessoa está desativada, a frase exibida é "Seu acesso a esta empresa está desativado." e a sessão permanece aberta.
+- **SC-008**: Em 100% das requisições recusadas porque a própria pessoa está desativada, a frase exibida é "Seu acesso a esta empresa foi desativado." e a sessão permanece aberta.
 - **SC-009**: Em 100% das reativações confirmadas, o status volta a Ativo, a pessoa continua na lista e a próxima requisição aceita dela volta a passar.
 
 ## Out of Scope
@@ -173,11 +174,12 @@ O administrador desativa uma pessoa que não é o único administrador. Ela cont
 - A organização, na sessão do administrador, fornece o nome público, o identificador, o cargo e o identificador do usuário. Não fornece status nem último acesso. A sessão também troca o cargo. Esta história não usa a capacidade de retirar a pessoa da organização.
 - O token de sessão continua válido até expirar. A marca no serviço é o que recusa a próxima requisição. A pessoa desativada continua membro da organização.
 - O nome da lista é o nome público. O e-mail da lista é o identificador da pessoa na empresa. O perfil da LLT-174 continua sendo a edição da própria pessoa.
-- A contagem de administradores da tela percorre todas as páginas antes de rebaixar e antes de desativar um administrador. Desativar um membro não esbarra na trava, porque ele não é o único administrador. O serviço aplica a própria recusa quando, pelos registros que ele tem, o alvo é o último administrador ativo. O Web não envia a lista de cargos ao serviço e não usa chave secreta para o serviço descobrir essa lista. Se as duas contagens divergirem, vale o erro devolvido e o status não muda.
+- A contagem de administradores da tela percorre todas as páginas. Entra quem tem cargo de administrador, sem o prefixo `org:`, e cujo status no serviço não é `deactivated`. Ausência no `GET` conta como ativo. Desativar um membro não reduz essa conta. O serviço recusa o `POST` com 403 e `code` `last_admin` quando, pelos registros que ele tem, o alvo é o último administrador ativo. O Web não envia a lista de cargos ao serviço e não usa chave secreta. Se as duas contagens divergirem, vale o erro devolvido e o status não muda.
+- O contrato consumido é o do Core no commit `4f32c77`. Não há `PUT`. Desativar é `POST` e reativar é `DELETE` em `/api/company/members/{userId}/deactivation`, sem corpo.
 - Textos próprios desta tela ficam em português, como os de Equipe. O rótulo Equipe do menu continua o que a moldura já traduz. Datas de último acesso usam o formato curto de data e hora no fuso local do navegador.
 - Nenhuma chave secreta (`sk_` ou `CLERK_SECRET_KEY`) entra no web nem no serviço. As chamadas novas ao serviço passam pelo cliente já usado pelo aplicativo.
 - A verificação automática da junção da lista, da trava do último administrador, dos dois cargos, dos dois status e da frase de acesso desativado faz parte da conclusão, no mesmo tipo de checagem já usado em Equipe. O acesso real da pessoa desativada e a troca de cargo na organização ficam no roteiro manual.
-- O contrato esperado do serviço está em `contracts/company-members.md`. Em 2026-11-15 a pasta `contracts/` ainda não existia na spec do Core (`specs/005-listar-editar-usuarios`). Esse contrato do Web fica marcado para alinhar quando o Core publicar o dele.
+- O contrato do serviço está publicado em `lhamalog-core`, `specs/005-listar-editar-usuarios/contracts/company-members.md`, commit `4f32c77`. O arquivo `contracts/company-members.md` deste repositório o acompanha.
 
 ### Configuração da plataforma (outra pessoa)
 

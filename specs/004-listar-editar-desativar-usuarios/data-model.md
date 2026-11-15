@@ -6,8 +6,8 @@ A linha da tela não é uma entidade só. Nome, e-mail e cargo nascem da associa
 
 | Valor | Rótulo | Administrador da sessão |
 | --- | --- | --- |
-| `org:admin` | Administrador | Sim. Também vale `admin`, sem o prefixo, como em `isOrganizationAdmin`. |
-| `org:member` | Membro | Não. Também vale `member` só para reconhecer que não administra. A gravação envia `org:member`, nunca `member`. |
+| `org:admin` ou `admin` | Administrador | Sim, na leitura. A gravação por `organization.updateMember` envia `admin`, sem prefixo. |
+| `org:member` ou `member` | Membro | Não administra. A gravação envia `member`, sem prefixo. |
 
 Não há terceiro valor de gravação. Outro `role` lido na lista aparece como texto cru e não entra no controle de edição. Gestor, Visualizador e Usuário Master não são opções.
 
@@ -21,11 +21,12 @@ Não há terceiro valor de gravação. Outro `role` lido na lista aparece como t
 
 Transições feitas pelo administrador:
 
-- `active` ou ausente → `deactivated`, se o alvo não for o único administrador.
-- `deactivated` → `active`, sem mudar o cargo.
-- Repetir `deactivated` não produz `active`. Repetir `active` não produz `deactivated`.
+- `active` ou ausente → `deactivated`, por `POST /api/company/members/{userId}/deactivation`, sem corpo, se a ação não deixar zero administradores ativos.
+- `deactivated` → `active`, por `DELETE` no mesmo caminho, sem corpo, sem mudar o cargo.
+- Repetir o `POST` devolve `deactivated` e não produz `active`. Repetir o `DELETE` devolve `active` e não produz `deactivated`.
+- Não há `PUT` nem corpo `{ "status" }`.
 
-Desativar ou rebaixar quando a contagem de administradores da organização é menor que 2, e o alvo é administrador, não muda status nem cargo.
+Desativar ou rebaixar não muda status nem cargo quando a contagem de administradores ativos ficaria em zero.
 
 ## Linha da lista
 
@@ -36,7 +37,7 @@ Desativar ou rebaixar quando a contagem de administradores da organização é m
 | `email` | `publicUserData.identifier` | Texto da coluna E-mail. Pode ser telefone. Vazio permanece vazio. |
 | `role` | `membership.role` | `org:admin` ou `org:member` têm rótulo. Qualquer outro valor é texto cru. |
 | `status` | Core, pelo `userId` | `active`, `deactivated`, ou Ativo quando o Core não tem o `userId`. |
-| `lastAccessAt` | Core, pelo `userId` | Instante, ou ausente. Ausente mostra "Sem acesso registrado". Não usa `createdAt` nem `updatedAt` da associação. |
+| `lastAccessAt` | Core, pelo `userId` | ISO-8601 em UTC, ou `null`. `null` mostra "Sem acesso registrado". Não usa `createdAt` nem `updatedAt` da associação. Pode estar até 5 minutos atrás se o cargo observado não mudou. |
 
 Página: tamanho 10, começando em 1, no formato já devolvido por `getMemberships` (`data` e `totalCount`). A tela usa a paginação existente quando `totalCount` for maior que 10. A contagem de administradores não usa essa página: percorre `getMemberships({ role: ['org:admin'] })` até a última página.
 
@@ -51,14 +52,16 @@ Página: tamanho 10, começando em 1, no formato já devolvido por `getMembershi
 
 ## Trava do último administrador
 
-Entrada da função pura: quantidade de administradores já contada em todas as páginas, e se o alvo é administrador (`org:admin` ou `admin`).
+A contagem, feita na tela antes da rede da ação, inclui a pessoa quando o cargo sem o prefixo `org:` é `admin` e o `status` no Core não é `deactivated`. Ausência no `GET` conta como ativo. A contagem usa todas as páginas da organização.
 
-- Rebaixar: bloqueado quando o alvo é administrador e a quantidade é menor que 2.
-- Desativar: bloqueado nas mesmas condições. Desativar quem não é administrador não é bloqueado por esta trava.
-- A função não chama rede. A contagem é feita antes, na tela.
-- Mensagens: "Não é possível rebaixar o último administrador." e "Não é possível desativar o último administrador."
+Entrada da função pura: essa quantidade, e se o alvo entra nela.
 
-A recusa do Core (`code: last_admin`) é outra porta. Ela não passa por essa função. A tela mostra a `message` e não aplica Desativado.
+- Rebaixar: bloqueado quando o alvo entra na contagem e a quantidade é menor que 2. A frase é "Não é possível rebaixar o último administrador." Não chama `organization.updateMember`.
+- Desativar: bloqueado nas mesmas condições. A frase é "Não é possível desativar o último administrador." Não chama o `POST`. Desativar quem não entra na contagem não é bloqueado por esta trava.
+- A função não chama rede.
+- Desativar a si mesmo segue a mesma conta: permitido quando, depois da ação, permanece pelo menos um.
+
+A recusa do Core é 403 com `code` `last_admin` e a mesma frase de desativar. Não é 409. A tela mostra a `message` e não aplica Desativado.
 
 ## Frases fixas
 
@@ -66,7 +69,8 @@ A recusa do Core (`code: last_admin`) é outra porta. Ela não passa por essa fu
 | --- | --- |
 | Lista de usuários vazia | `Não há usuário vinculado.` |
 | Sem último acesso | `Sem acesso registrado` |
-| Desativado, na próxima requisição da própria pessoa | `Seu acesso a esta empresa está desativado.` |
+| Desativado, na próxima requisição da própria pessoa | `Seu acesso a esta empresa foi desativado.` `code` `user_deactivated` |
+| Membro chama a lista, a desativação ou a reativação | `Somente o administrador da empresa pode gerenciar os usuários.` `code` `not_admin` |
 | Último administrador, desativar, recusa local | `Não é possível desativar o último administrador.` |
 | Último administrador, rebaixar, recusa local | `Não é possível rebaixar o último administrador.` |
 | Sucesso ao desativar | `Usuário desativado.` |

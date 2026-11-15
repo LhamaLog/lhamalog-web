@@ -16,27 +16,27 @@ Decisões fechadas para o aplicativo web. O Core guarda a marca e o último aces
 
 ## 3. Cargo
 
-- **Decision**: A tela oferece só Administrador (`org:admin`) e Membro (`org:member`). Confirmar chama `membership.update({ role })` com uma dessas duas strings. `organization.updateMember({ userId, role })` não é usado, para haver um único caminho. `roleLabel` e `isInviteRole` já existentes continuam valendo. Outro `role` vindo da lista aparece como texto cru e não é uma opção de gravação.
-- **Rationale**: `UpdateOrganizationMembershipParams` só tem `role`. Não há como alterar nome por esse método. O responsável pediu o mínimo de mudança na Clerk.
-- **Alternatives considered**: Gravar o cargo no Core (rejeitado: o cargo da sessão é o da organização). Editar nome (rejeitado).
+- **Decision**: A tela oferece só Administrador e Membro. Confirmar chama `organization.updateMember({ userId, role })` com `admin` ou `member`, sem prefixo, como o contrato do Core descreve. A leitura continua aceitando `org:admin` e `org:member`, que o Core trata como o mesmo cargo no token. Outro `role` vindo da lista aparece como texto cru e não é opção de gravação. Não chama `membership.update`.
+- **Rationale**: O contrato do Core, commit `4f32c77`, é a fonte da verdade e nomeia `organization.updateMember` com o identificador sem prefixo. `UpdateMembershipParams` também só tem `userId` e `role`. Não há como alterar nome por esse método.
+- **Alternatives considered**: Gravar o cargo no Core (rejeitado: o Core não tem caminho de cargo). `membership.update({ role: 'org:admin' })` (rejeitado neste alinhamento: o contrato publicado manda o outro método e o identificador sem prefixo). Editar nome (rejeitado).
 
 ## 4. Desativar e reativar
 
-- **Decision**: `PUT /api/company/members/{userId}` com `{ "status": "deactivated" }` ou `{ "status": "active" }`. A pessoa permanece em `getMemberships`. A tela não chama `membership.destroy` nem `organization.removeMember`. Repetir o mesmo status não inverte o outro.
-- **Rationale**: A marca no Core é o que a próxima requisição confere, com o token ainda válido. Tirar da organização esconderia a linha e exigiria readmissão.
-- **Alternatives considered**: `destroy` / `removeMember` (rejeitado pelo responsável). Os dois juntos (rejeitado). Esperar o token expirar (rejeitado: não corta a próxima requisição).
+- **Decision**: `POST /api/company/members/{userId}/deactivation` sem corpo grava a marca. `DELETE` no mesmo caminho, sem corpo, tira a marca. Os dois respondem 200 com `{ userId, status, lastAccessAt }`. Não há `PUT`. A pessoa permanece em `getMemberships`. A tela não chama `membership.destroy` nem `organization.removeMember`. Repetir o `POST` não reativa. Repetir o `DELETE` não desativa.
+- **Rationale**: É o contrato publicado pelo Core. A marca é o que a próxima requisição confere, com o token ainda válido. Tirar da organização esconderia a linha.
+- **Alternatives considered**: `PUT` com `{ "status" }` (era a expectativa anterior do Web; o Core não tem esse caminho). `destroy` / `removeMember` (rejeitado). Esperar o token expirar (rejeitado).
 
 ## 5. Último administrador
 
-- **Decision**: Imediatamente antes de `membership.update` para um cargo que não seja administrador, e imediatamente antes de desativar alguém cujo `role` normalizado é `admin`, a tela percorre todas as páginas de `getMemberships({ role: ['org:admin'] })`. Se a contagem for menor que 2, recusa sem chamar a Clerk nem o Core. Frases: "Não é possível rebaixar o último administrador." e "Não é possível desativar o último administrador." Desativar um membro não consulta essa trava. Se o Core responder `code: last_admin`, a tela mostra `message` e mantém Ativo. Se `membership.update` falhar, a tela mostra `clerkErrorMessage` e mantém o cargo anterior.
-- **Rationale**: O Web enxerga os administradores da organização na sessão, sem segredo. O Core recusa pelo que ele conhece, e esse conjunto pode divergir até a pessoa promovida fazer uma requisição aceita. As duas recusas convivem. O Web não envia a lista de cargos ao Core.
-- **Alternatives considered**: Só a contagem da tela (rejeitado: o responsável pediu a recusa do Core também). Só o Core (rejeitado: o Core não lê a organização sem segredo, e o rebaixamento acontece na Clerk). Confiar só no componente pronto da Clerk (rejeitado: a tela é a de Equipe).
+- **Decision**: Antes do `POST` e antes de rebaixar, a tela conta quem tem cargo `admin` depois de remover o prefixo `org:` e cujo `status` no Core não é `deactivated`. Ausência no `GET` conta como ativo. A contagem usa todas as páginas. Se a ação deixasse zero, não chama o `POST` nem `organization.updateMember`. Frases: "Não é possível desativar o último administrador." e "Não é possível rebaixar o último administrador." Desativar um membro não reduz a conta. O Core recusa o `POST` com 403 e `code` `last_admin`, não com 409. A tela mostra a `message` e mantém Ativo. Se `organization.updateMember` falhar, a tela mostra `clerkErrorMessage` e mantém o cargo anterior.
+- **Rationale**: É a regra do contrato do Core. Administrador já desativado continua na organização, então contar só `role: ['org:admin']` incluiria quem não pode mais acessar. O Core recusa pelo que ele conhece, e esse conjunto pode divergir até a próxima requisição aceita. O Web não envia a lista de cargos.
+- **Alternatives considered**: Contar todo `org:admin` da Clerk, inclusive desativado (rejeitado pelo contrato publicado). Tratar `last_admin` como 409 (era a expectativa anterior; o Core responde 403). Só o Core (rejeitado: o rebaixamento não tem caminho no Core).
 
 ## 6. Frase de acesso desativado
 
-- **Decision**: `apiRequest` trata HTTP 403 com `code: user_deactivated`. A mensagem fica "Seu acesso a esta empresa está desativado." quando o corpo não trouxer `message`. Se trouxer `message`, o Web mostra esse texto. O 403 sem esse `code` continua "Você não tem acesso. Selecione uma empresa válida." quando não houver `message`. O 401 continua levando ao `signOut` já existente em `useApi`. `user_deactivated` não é 401 e não encerra a sessão. Em Equipe, essa recusa substitui o formulário de convite e as ações de cargo, desativar e reativar.
-- **Rationale**: O cliente já mostra `body.message`. O `code` impede que a frase genérica de 403 apareça quando o Core omitir `message`. A pessoa desativada continua na organização, então a sessão da Clerk segue aberta.
-- **Alternatives considered**: Encerrar a sessão (rejeitado: a spec manda mantê-la). Reusar a frase de não administrador (rejeitado: são recusas diferentes).
+- **Decision**: `apiRequest` copia `body.code` quando for string. Os três 403 desta lista são distinguidos por `code`, não pela frase. `user_deactivated` mostra "Seu acesso a esta empresa foi desativado." `last_admin` mostra "Não é possível desativar o último administrador." `not_admin` mostra "Somente o administrador da empresa pode gerenciar os usuários." Se o `code` vier e a `message` vier vazia, o Web usa essa frase do código. O 403 sem `code` e sem `message` continua "Você não tem acesso. Selecione uma empresa válida." O 401 continua levando ao `signOut` já existente em `useApi`. `user_deactivated` não encerra a sessão. Em Equipe, essa recusa não oferece convite, cargo, desativar nem reativar.
+- **Rationale**: O contrato do Core, commit `4f32c77`, acrescenta `code` opcional e manda o Web distinguir por ele. A frase de acesso desativado usa "foi", não "está". A pessoa desativada continua na organização, então a sessão da Clerk segue aberta.
+- **Alternatives considered**: Distinguir só pela frase (desnecessário: o `code` existe). Encerrar a sessão (rejeitado). Tratar `last_admin` como 409 (rejeitado: o status é 403).
 
 ## 7. Onde a tela muda
 
@@ -44,11 +44,11 @@ Decisões fechadas para o aplicativo web. O Core guarda a marca e o último aces
 - **Rationale**: O responsável pediu o bloco na mesma rota. A LLT-167 já fechou o acesso.
 - **Alternatives considered**: Rota nova (rejeitado). Mover os convites para outra rota (rejeitado).
 
-## 8. Contrato ainda não publicado pelo Core
+## 8. Contrato publicado pelo Core
 
-- **Decision**: [contracts/company-members.md](contracts/company-members.md) descreve o que o Web vai consumir. Em 2026-11-15, `lhamalog-core` na branch `LLT-168-listar-editar-e-desativar-usuarios` tinha `specs/005-listar-editar-usuarios/spec.md` e `checklists/`, sem pasta `contracts/`, e a spec do Core ainda listava as decisões como abertas. A implementação do Web espera o alinhamento desse arquivo antes de fixar os nomes no código, se o Core publicar outro caminho ou outros campos.
-- **Rationale**: O responsável pediu para descrever o esperado e marcar o alinhamento quando a pasta ainda não existir.
-- **Alternatives considered**: Inventar o consumo sem documento (rejeitado: a LLT-174 versionou o contrato do perfil). Bloquear o plano até o Core publicar (rejeitado: o Web já tem decisão suficiente para o contrato esperado).
+- **Decision**: [contracts/company-members.md](contracts/company-members.md) acompanha o arquivo do Core no commit `4f32c77`. O `GET` usa o envelope `members`. Desativar e reativar não têm corpo. O `code` existe para `user_deactivated`, `last_admin` e `not_admin`.
+- **Rationale**: O responsável definiu o contrato do Core como fonte da verdade e pediu para substituir a expectativa anterior do Web.
+- **Alternatives considered**: Manter o `PUT` com `{ "status" }` (rejeitado: o Core não publica esse caminho). Esperar um `code` que não veio (o commit seguinte ao `a976683` acrescentou o campo).
 
 ## 9. Testes
 

@@ -32,6 +32,7 @@
 ## Notes
 
 - Revisão 1 (2026-11-15): três marcadores ficaram de propósito. Os itens de clareza permaneceram desmarcados.
-- Revisão 2 (2026-11-15): o responsável fechou corte por marca no serviço, último acesso no serviço, edição só de cargo, rota `/equipe`, trava dupla do último administrador, reativação e lista só para administrador. Os marcadores foram removidos. Os nomes `org:admin` e `org:member` são o comportamento aprovado, no mesmo critério da LLT-167. O contrato do Core ainda não estava publicado; o esperado pelo Web fica no plano, marcado para alinhar.
+- Revisão 2 (2026-11-15): o responsável fechou corte por marca no serviço, último acesso no serviço, edição só de cargo, rota `/equipe`, trava dupla do último administrador, reativação e lista só para administrador. Os marcadores foram removidos.
+- Revisão 3 (2026-11-15): o Web passou a seguir o contrato do Core no commit `4f32c77`: `POST` e `DELETE` sem corpo, 403 com `code`, frases do Core e contagem que ignora administrador `deactivated`.
 - Sem `extensions.yml`: nenhum hook de `before_specify`, `after_specify`, `before_clarify` ou `after_clarify`.
 - Checklist satisfeito para seguir ao `$speckit-plan`.

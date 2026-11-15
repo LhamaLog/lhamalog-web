@@ -11,7 +11,7 @@ Verificação da LLT-168 no aplicativo web. A marca e o último acesso dependem 
 ## Antes de começar
 
 - Aplicativo no ar com `VITE_CLERK_PUBLISHABLE_KEY` publicável (`pk_test_` ou `pk_live_`). Não definir `CLERK_SECRET_KEY` nem `sk_` no Web nem no Core.
-- Core no ar, com `GET` e `PUT /api/company/members` conforme o contrato, inclusive a recusa `user_deactivated` nas requisições já existentes e a recusa `last_admin`.
+- Core no ar no contrato do commit `4f32c77`: `GET /api/company/members`, `POST` e `DELETE /api/company/members/{userId}/deactivation`, com `code` `user_deactivated`, `last_admin` e `not_admin`. Não há `PUT`.
 - Nenhuma configuração nova de dashboard. Organizações, convites e os papéis `org:admin` e `org:member` continuam os da LLT-167.
 - Duas pessoas administradoras da empresa A, e uma membra. Uma quarta, se houver, desativada só na empresa B, para conferir que a marca não atravessa empresa.
 - Confirmar, no contrato publicado pelo Core, caminho e nomes de campo. Se divergirem de [contracts/company-members.md](contracts/company-members.md), alinhar esse arquivo antes de codar.
@@ -34,7 +34,7 @@ O que o automático prova, sem rede:
 - `deactivated` continua na linha; a junção não descarta o `userId`.
 - Rebaixar ou desativar com menos de dois administradores, sendo o alvo administrador, é recusado pelas frases fixas.
 - Desativar um membro com um único administrador na empresa não é recusado por essa trava.
-- `user_deactivated` não usa a frase "Você não tem acesso. Selecione uma empresa válida." e não é tratado como 401.
+- 403 com `code` `user_deactivated` usa "Seu acesso a esta empresa foi desativado." e não é 401. 403 com `code` `last_admin` usa "Não é possível desativar o último administrador." e não é 409. 403 com `code` `not_admin` usa "Somente o administrador da empresa pode gerenciar os usuários." Administrador `deactivated` no Core não entra na contagem; ausência no Core conta como ativo.
 - Nenhuma função pura descreve remoção da organização.
 
 ## Manual — lista (US1)
@@ -58,7 +58,7 @@ O que o automático prova, sem rede:
 ## Manual — desativar, reativar e último administrador (US3)
 
 1. Desativar um membro. A linha permanece, com Desativado. "Usuário desativado."
-2. Com a sessão dessa pessoa ainda aberta, a próxima abertura de empresa, produtos ou perfil mostra "Seu acesso a esta empresa está desativado." A sessão não cai em `/sign-in`.
+2. Com a sessão dessa pessoa ainda aberta, a próxima abertura de empresa, produtos ou perfil mostra "Seu acesso a esta empresa foi desativado." A sessão não cai em `/sign-in`. O último acesso pode não mudar dentro de 5 minutos se o cargo observado for o mesmo.
 3. Reativar. A linha volta a Ativo. "Acesso reativado." A próxima requisição aceita dessa pessoa volta a passar.
 4. Desativar o segundo administrador, restando outro. A linha fica Desativado. Desativar o único administrador que resta é recusado, por "Não é possível desativar o último administrador." ou pelo erro do Core, e o status continua Ativo.
 5. Se o Core recusar porque ainda não conhece um administrador que a tela já contou, a tela mostra o erro do Core e não marca Desativado.
