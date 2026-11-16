@@ -67,10 +67,10 @@ export function invitationOutcomeCopy(kind: 'expired' | 'revoked'): string {
 }
 
 // Chaves de unstable__errors em @clerk/shared (localization.d.ts) e em @clerk/localizations 4.24.2.
-// ticket_expired_code: ticket expirado. ticket_invalid_code: ticket inválido, inclusive convite revogado.
+// ticket_expired_code: ticket expirado. ticket_invalid_code: convite inválido, sem distinguir revogação.
 export const invitationTicketErrors = {
   ticket_expired_code: invitationOutcomeCopy('expired'),
-  ticket_invalid_code: invitationOutcomeCopy('revoked'),
+  ticket_invalid_code: 'Este convite não é mais válido. Peça um novo convite ao administrador.',
 } as const
 
 export const teamNavItemId = 'team'

@@ -40,7 +40,7 @@ test('ticket errors use the Clerk unstable__errors keys and the Portuguese messa
   assert.equal('ticket_expired_code' in ptBR.unstable__errors, true)
   assert.equal('ticket_invalid_code' in ptBR.unstable__errors, true)
   assert.equal(invitationTicketErrors.ticket_expired_code, 'Este convite expirou e não pode ser usado.')
-  assert.equal(invitationTicketErrors.ticket_invalid_code, 'Este convite foi revogado e não pode ser usado.')
+  assert.equal(invitationTicketErrors.ticket_invalid_code, 'Este convite não é mais válido. Peça um novo convite ao administrador.')
 })
 
 test('Equipe stays in the menu for an admin and the direct page is allowed', async () => {
