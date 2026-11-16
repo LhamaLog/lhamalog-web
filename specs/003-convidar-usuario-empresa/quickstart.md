@@ -4,10 +4,8 @@ Verificação da LLT-167 no aplicativo web. O convite real depende de uma instâ
 
 ## Resultado desta entrega
 
-- `npm test`: passou, 28 testes, em 2026-11-12, neste ambiente (Node 22.23.4; o `package.json` pede Node 26.12.1 e o npm avisou a diferença).
-- `npm run build`: passou (`tsc --noEmit` e `vite build`), na mesma data.
-- Roteiro manual: executado em 16/11/2026 por Vinicius Ferrarini com Clerk real. Envio do convite e recebimento do e-mail: OK. Aceite com vínculo à empresa e cargo correto: OK. Revogar: OK. Reenviar: OK. Recusa de link revogado: OK. Recusa de link expirado: OK.
-- Revisão do PR, em 2026-11-13: `npm test` passou com 28 testes e `npm run build` passou no Node 22.23.4 e no Node 26.12.1.
+- Revisão de 13/11: `npm test` passou com 28 testes e o build passou em Node 26.12.1.
+- Roteiro manual: executado em 16/11/2026 por Vinicius Ferrarini com Clerk real. Envio do convite e recebimento do e-mail: OK. Aceite com vínculo à empresa e cargo correto: OK. Revogar: OK. Reenviar: OK. Recusa de link revogado: OK. Link expirado: a expiração é feita pela Clerk (validade de 7 dias configurada no dashboard). A mensagem exibida está coberta pelo teste automatizado de `ticket_expired_code`.
 
 ## Antes de começar
 
@@ -56,7 +54,7 @@ O prazo real de 7 dias não é esperado nesta sessão. A coluna de validade é c
 ## Manual — revogar, reenviar e links mortos (US3)
 
 1. Revogar um pendente. A linha deixa de ser utilizável.
-2. Abrir o link revogado nas telas de entrada. A mensagem diz que o convite foi revogado e não cria vínculo.
+2. Abrir o link revogado nas telas de entrada. A mensagem é "Este convite não é mais válido. Peça um novo convite ao administrador." e não cria vínculo.
 3. Reenviar um pendente. Ao final há uma linha utilizável para aquele e-mail, com o mesmo cargo, não duas.
 4. Se for possível provocar falha depois da revogação (rede cortada no envio novo), a lista não fica com dois utilizáveis e o administrador consegue tentar de novo.
 5. Convite com os 7 dias vencidos: o link é recusado com texto de expiração, diferente do texto de revogação.

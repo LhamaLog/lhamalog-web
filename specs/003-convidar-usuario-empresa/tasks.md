@@ -70,7 +70,7 @@
 
 ### Implementation for User Story 2
 
-- [x] T007 [P] [US2] Em `src/features/auth/theme/localization.ts`, fazer as telas de entrada já existentes distinguirem convite expirado de convite revogado usando as frases de `invitationOutcomeCopy` em `src/features/team/invitations.ts`: `Este convite expirou e não pode ser usado.` e `Este convite foi revogado e não pode ser usado.` Procurar no pacote `@clerk/localizations` as chaves de erro de convite de organização já presentes e preencher só essas chaves com essas duas frases, sem apagar o restante de `ptBR` já espalhado no arquivo. Não adicionar rota em `src/app/routes/AppRoutes.tsx`. Não definir URL de retorno no `inviteMember`: o dashboard é quem aponta o portal para `/sign-in` e `/sign-up`, como em `specs/003-convidar-usuario-empresa/contracts/team-invitations.md`.
+- [x] T007 [P] [US2] Em `src/features/auth/theme/localization.ts`, fazer as telas de entrada já existentes distinguirem convite expirado de convite revogado usando as frases de `invitationOutcomeCopy` em `src/features/team/invitations.ts`: `Este convite expirou e não pode ser usado.` e `Este convite não é mais válido. Peça um novo convite ao administrador.` Procurar no pacote `@clerk/localizations` as chaves de erro de convite de organização já presentes e preencher só essas chaves com essas duas frases, sem apagar o restante de `ptBR` já espalhado no arquivo. Não adicionar rota em `src/app/routes/AppRoutes.tsx`. Não definir URL de retorno no `inviteMember`: o dashboard é quem aponta o portal para `/sign-in` e `/sign-up`, como em `specs/003-convidar-usuario-empresa/contracts/team-invitations.md`.
 
 **Checkpoint**: US2 não cria tela; o texto dos dois fracassos fica distinto
 
