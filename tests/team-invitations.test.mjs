@@ -44,7 +44,7 @@ test('ticket errors use the Clerk unstable__errors keys and the Portuguese messa
 })
 
 test('Equipe stays in the menu for an admin and the direct page is allowed', async () => {
-  const { teamAccessDeniedMessage, teamMenuHiddenItems, teamNavItemId, teamPageDenied } = await import('../src/features/team/invitations.ts')
+  const { organizationProfileNavigation, teamAccessDeniedMessage, teamMenuHiddenItems, teamNavItemId, teamPageDenied, teamPath } = await import('../src/features/team/invitations.ts')
   const { filterNavItems } = await import('../src/app/layouts/navVisibility.ts')
   const items = [{ id: 'dashboard' }, { id: teamNavItemId }, { id: 'company' }]
   const adminItems = filterNavItems(items, undefined, teamMenuHiddenItems('org:admin')).map((item) => item.id)
@@ -58,6 +58,9 @@ test('Equipe stays in the menu for an admin and the direct page is allowed', asy
   assert.equal(teamPageDenied('org:member'), true)
   assert.equal(teamPageDenied(undefined), true)
   assert.equal(teamAccessDeniedMessage, 'Você não tem acesso. Selecione uma empresa válida.')
+  assert.equal(teamPath, '/equipe')
+  assert.equal(organizationProfileNavigation.organizationProfileMode, 'navigation')
+  assert.equal(organizationProfileNavigation.organizationProfileUrl, teamPath)
 })
 
 test('a usable pending invitation blocks a new send, and resend revokes every pending id before one invite', async () => {

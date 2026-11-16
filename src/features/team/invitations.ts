@@ -75,6 +75,14 @@ export const invitationTicketErrors = {
 
 export const teamNavItemId = 'team'
 
+export const teamPath = '/equipe'
+
+// O seletor da organização não abre o perfil padrão da plataforma, onde dá para remover membro e trocar cargo.
+export const organizationProfileNavigation = {
+  organizationProfileMode: 'navigation',
+  organizationProfileUrl: teamPath,
+} as const
+
 export const teamAccessDeniedMessage = 'Você não tem acesso. Selecione uma empresa válida.'
 
 export function teamMenuHiddenItems(orgRole: string | null | undefined): string[] {

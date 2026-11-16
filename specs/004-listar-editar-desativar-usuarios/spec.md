@@ -106,6 +106,7 @@ O administrador desativa uma pessoa que não é o único administrador. Ela cont
 - Último acesso: não usa a data de entrada nem a data de atualização do vínculo. Usa o `lastAccessAt` devolvido pelo serviço, ou "Sem acesso registrado". Dentro de 5 minutos, com o mesmo cargo, o serviço pode não gravar um instante novo.
 - Paginação: um administrador fora da primeira página continua protegido pela trava. A contagem percorre todas as páginas de administradores.
 - Promoção recente que o serviço ainda não conhece: a contagem da tela pode permitir a desativação e o serviço pode recusar. A tela mostra o erro do serviço e mantém o status.
+- Editar ou gerenciar a organização pelo seletor: a navegação vai para `/equipe`. O perfil padrão da plataforma, com a gestão de membros, não abre. Quem não administra vê a recusa dessa rota.
 
 ## Requirements *(mandatory)*
 
@@ -131,6 +132,7 @@ O administrador desativa uma pessoa que não é o único administrador. Ela cont
 - **FR-018**: O administrador MUST poder desativar a si mesmo e MUST poder rebaixar o próprio cargo somente quando existir outro administrador. Sendo o único, as duas ações MUST ser recusadas pelo FR-008.
 - **FR-019**: Reativar MUST retirar a marca com `DELETE /api/company/members/{userId}/deactivation`, sem corpo. O status MUST voltar a Ativo. A pessoa MUST continuar na organização. A próxima requisição aceita dela MUST voltar a passar. Reativar MUST NOT mudar o cargo.
 - **FR-020**: Quando o serviço recusar o próprio usuário com `code` `user_deactivated`, o aplicativo MUST mostrar a `message`, que é "Seu acesso a esta empresa foi desativado." MUST NOT usar a frase de quem não administra e MUST NOT encerrar a sessão. Depois dessa recusa, Equipe MUST NOT oferecer convite, troca de cargo, desativar nem reativar. Os três 403 desta lista MUST ser distinguidos por `code`, não pela frase.
+- **FR-021**: O seletor de organização MUST NOT abrir o perfil padrão da plataforma, onde é possível remover membro ou trocar cargo fora de `/equipe`. A ação de editar ou gerenciar a organização MUST navegar para `/equipe`. Quem não administra, se acionar essa ação, MUST cair na recusa já usada nessa rota. A sessão MUST permanecer aberta.
 
 ### Key Entities *(include if feature involves data)*
 

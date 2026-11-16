@@ -6,7 +6,7 @@ import { companySectionFromParam, companySections } from '../../features/company
 import { ProductsPage } from '../../features/products/components/ProductsPage'
 import { ProfilePage } from '../../features/profile/components/ProfilePage'
 import { TeamPage } from '../../features/team/components/TeamPage'
-import { teamMenuHiddenItems } from '../../features/team/invitations'
+import { organizationProfileNavigation, teamMenuHiddenItems } from '../../features/team/invitations'
 import { setAppliedClerkLocale } from '../../features/profile/clerkLocale'
 import { profileMessage } from '../../features/profile/messages'
 import { UserPreferencesProvider, useAppliedPreferences } from '../../features/profile/preferences'
@@ -81,7 +81,13 @@ function WorkspaceShell() {
     }}>
     <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4">
       <div className="space-y-1"><p className="text-sm font-semibold text-[#083B7A]">{text('shell.companySelected')}</p>
-        <OrganizationSwitcher hidePersonal createOrganizationMode="navigation" createOrganizationUrl="/organizacoes/nova" afterSelectOrganizationUrl={here} /></div>
+        <OrganizationSwitcher
+          hidePersonal
+          createOrganizationMode="navigation"
+          createOrganizationUrl="/organizacoes/nova"
+          afterSelectOrganizationUrl={here}
+          {...organizationProfileNavigation}
+        /></div>
       <Link to="/organizacoes/nova" className="rounded-lg px-3 py-2 text-sm font-semibold text-[#0C70F2] hover:bg-blue-50">{text('shell.registerCompany')}</Link>
     </div>
     {!orgId ? <EmptyState title={text('shell.emptyCompanyTitle')} description={text('shell.emptyCompanyDescription')} />

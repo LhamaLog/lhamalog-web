@@ -101,6 +101,8 @@
 
 - [ ] T011 Executar o roteiro manual de `specs/004-listar-editar-desativar-usuarios/quickstart.md` quando a instância Clerk e o Core alinhado a `specs/004-listar-editar-desativar-usuarios/contracts/company-members.md` estiverem disponíveis, e registrar naquele arquivo o que foi exercitado e o que ficou bloqueado por ambiente. Se o Core tiver publicado outro caminho ou outros nomes, alinhar o contrato antes de dar o roteiro por encerrado. Não criar atalho de autenticação, chave secreta nem configuração de dashboard.
 
+- [x] T012 Em `src/app/layouts/CompanyWorkspace.tsx`, o único `OrganizationSwitcher` de `@clerk/react` 6.18.2 deve receber `organizationProfileMode="navigation"` e `organizationProfileUrl="/equipe"`, pelos valores de `organizationProfileNavigation` em `src/features/team/invitations.ts`. Não montar `OrganizationProfile`. Não esconder a opção só para membro: quem não administra cai na recusa já usada em `/equipe`. Não alterar o painel da Clerk e não usar chave secreta. Cobrir em `tests/team-invitations.test.mjs` que o modo é `navigation` e a URL é `/equipe`.
+
 ---
 
 ## Dependencies & Execution Order
