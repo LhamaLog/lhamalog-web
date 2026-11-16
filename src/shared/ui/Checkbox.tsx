@@ -24,7 +24,7 @@ export function Checkbox({
         className="
           h-5 w-5 shrink-0 cursor-pointer
           appearance-none rounded-md
-          border border-slate-300 bg-white
+          border border-slate-300 bg-field
           checked:border-[#0C70F2] checked:bg-[#0C70F2]
           checked:bg-[url('data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2020%2020%22%3E%3Cpath%20d=%22m5%2010%203%203%207-7%22%20fill=%22none%22%20stroke=%22white%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22/%3E%3C/svg%3E')]
           focus-visible:outline-2

@@ -37,7 +37,7 @@ export function Select({
           aria-describedby={
             [props['aria-describedby'], error ? `${id}-error` : undefined].filter(Boolean).join(' ') || undefined
           }
-          className={`h-10 w-full appearance-none rounded-lg border bg-white pr-10 text-sm text-slate-900 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+          className={`h-10 w-full appearance-none rounded-lg border bg-field pr-10 text-sm text-slate-900 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:opacity-70 ${
             startIcon ? 'pl-10' : 'pl-3'
           } ${
             error

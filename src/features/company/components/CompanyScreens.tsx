@@ -382,7 +382,7 @@ export function CompanyContextScreen({ settings, errors, saving, onChange, onSub
           <Input id="company-context-sector" label="Segmento de Mercado" requiredMark value={settings.data.sector} error={errors.sector} onChange={(event) => patchData(settings, { sector: event.target.value }, onChange)} />
           <div>
             <label htmlFor="company-environment" className="text-sm font-semibold text-slate-900">Tipo de Ambiente Monitorado</label>
-            <div className="mt-2 flex min-h-11 flex-wrap items-center gap-2 rounded-lg border border-slate-200 px-2 py-2">
+            <div className="mt-2 flex min-h-11 flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-field px-2 py-2 focus-within:border-[#0C70F2] focus-within:ring-2 focus-within:ring-[#0C70F2]/20">
               {settings.context.environmentTypes.map((environment) => (
                 <span key={environment} className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-[#0C70F2]">
                   {environment}

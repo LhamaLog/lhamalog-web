@@ -48,10 +48,10 @@ export function Input({
           }
           className={`
             w-full border px-4 text-slate-900
-            ${compact ? 'h-10 rounded-lg bg-white text-sm' : 'h-14 rounded-xl bg-slate-50 text-base'}
+            ${compact ? 'h-10 rounded-lg bg-field text-sm' : 'h-14 rounded-xl bg-field text-base'}
             placeholder:text-slate-600
             focus:outline-none focus:ring-2
-            disabled:cursor-not-allowed disabled:opacity-50
+            disabled:cursor-not-allowed disabled:bg-slate-200 disabled:opacity-70
             ${startIcon ? 'pl-10' : ''}
             ${endAction ? 'pr-14' : ''}
             ${
