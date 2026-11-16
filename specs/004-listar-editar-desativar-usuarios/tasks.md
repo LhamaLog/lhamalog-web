@@ -103,6 +103,8 @@
 
 - [x] T012 Em `src/app/layouts/CompanyWorkspace.tsx`, o único `OrganizationSwitcher` de `@clerk/react` 6.18.2 deve receber `organizationProfileMode="navigation"` e `organizationProfileUrl="/equipe"`, pelos valores de `organizationProfileNavigation` em `src/features/team/invitations.ts`. Não montar `OrganizationProfile`. Não esconder a opção só para membro: quem não administra cai na recusa já usada em `/equipe`. Não alterar o painel da Clerk e não usar chave secreta. Cobrir em `tests/team-invitations.test.mjs` que o modo é `navigation` e a URL é `/equipe`.
 
+- [x] T013 Em `src/features/team/components/TeamPage.tsx`, os efeitos de convites e de membros não podem depender do objeto `organization`, de `request` nem de `signOut`. A chave é `teamLoadKey` em `src/features/team/invitations.ts`: id da organização, papel, página e recarregamento. O objeto atual é lido por ref. Trocar de organização ainda muda a chave e resposta de organização antiga continua descartada. Cobrir em `tests/team-invitations.test.mjs` que o mesmo id produz a mesma chave, outro id, outra página ou outro recarregamento mudam a chave, e membro ou id vazio não disparam carga.
+
 ---
 
 ## Dependencies & Execution Order

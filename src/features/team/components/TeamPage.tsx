@@ -14,6 +14,7 @@ import {
   resendPlan,
   roleLabel,
   teamAccessDeniedMessage,
+  teamLoadKey,
   teamPageDenied,
 } from '../invitations'
 import { companyMembersPath, deactivationPath, readMemberList } from '../memberContract'
@@ -99,7 +100,13 @@ export function TeamPage() {
   const { organization, isLoaded } = useOrganization()
   const request = useApi()
   const orgIdRef = useRef(orgId)
+  const organizationRef = useRef(organization)
+  const requestRef = useRef(request)
+  const signOutRef = useRef(signOut)
   orgIdRef.current = orgId
+  organizationRef.current = organization
+  requestRef.current = request
+  signOutRef.current = signOut
   const [email, setEmail] = useState('')
   const [role, setRole] = useState<InviteRole>('org:member')
   const [fieldErrors, setFieldErrors] = useState<{ emailAddress?: string, role?: string }>({})
@@ -120,25 +127,29 @@ export function TeamPage() {
   const [memberReloadKey, setMemberReloadKey] = useState(0)
   const [roleDraft, setRoleDraft] = useState<Record<string, 'admin' | 'member'>>({})
   const [blocked, setBlocked] = useState('')
+  const organizationId = organization?.id ?? null
+  const invitationKey = teamLoadKey({ organizationId, orgRole, page, reloadKey })
+  const memberKey = teamLoadKey({ organizationId, orgRole, page: memberPage, reloadKey: memberReloadKey })
 
   const sameOrganization = useCallback((started: string | null | undefined) => orgIdRef.current === started, [])
 
   const fail = useCallback(async (reason: unknown, started: string | null | undefined) => {
     if (isClerkSessionExpired(reason)) {
-      await signOut({ redirectUrl: `/sign-in?motivo=${SIGNED_OUT_REASON}` })
+      await signOutRef.current({ redirectUrl: `/sign-in?motivo=${SIGNED_OUT_REASON}` })
       return
     }
     if (!sameOrganization(started)) return
     setError(clerkErrorMessage(reason))
-  }, [sameOrganization, signOut])
+  }, [sameOrganization])
 
   useEffect(() => {
-    if (!organization || teamPageDenied(orgRole)) return
+    const current = organizationRef.current
+    if (!invitationKey || !current || current.id !== organizationId) return
     let active = true
-    const started = organization.id
+    const started = current.id
     setListLoading(true)
     setListError('')
-    organization.getInvitations({ status: ['pending'], initialPage: page, pageSize })
+    current.getInvitations({ status: ['pending'], initialPage: page, pageSize })
       .then((result) => {
         if (!active || orgIdRef.current !== started) return
         setRows(result.data)
@@ -147,7 +158,7 @@ export function TeamPage() {
       .catch((reason: unknown) => {
         if (!active || orgIdRef.current !== started) return
         if (isClerkSessionExpired(reason)) {
-          void signOut({ redirectUrl: `/sign-in?motivo=${SIGNED_OUT_REASON}` })
+          void signOutRef.current({ redirectUrl: `/sign-in?motivo=${SIGNED_OUT_REASON}` })
           return
         }
         setListError(clerkErrorMessage(reason))
@@ -156,7 +167,7 @@ export function TeamPage() {
         if (active) setListLoading(false)
       })
     return () => { active = false }
-  }, [organization, orgRole, page, reloadKey, signOut])
+  }, [invitationKey, organizationId, page])
 
   async function send(event: FormEvent) {
     event.preventDefault()
@@ -251,15 +262,16 @@ export function TeamPage() {
   }
 
   useEffect(() => {
-    if (!organization || teamPageDenied(orgRole)) return
+    const current = organizationRef.current
+    if (!memberKey || !current || current.id !== organizationId) return
     let active = true
-    const started = organization.id
+    const started = current.id
     setMemberLoading(true)
     setMemberError('')
     setBlocked('')
     Promise.all([
-      organization.getMemberships({ initialPage: memberPage, pageSize }),
-      request<unknown>(companyMembersPath),
+      current.getMemberships({ initialPage: memberPage, pageSize }),
+      requestRef.current<unknown>(companyMembersPath),
     ])
       .then(([memberships, body]) => {
         if (!active || orgIdRef.current !== started) return
@@ -293,7 +305,7 @@ export function TeamPage() {
         }
         if (reason instanceof ApiError && reason.status === 401) return
         if (isClerkSessionExpired(reason)) {
-          void signOut({ redirectUrl: `/sign-in?motivo=${SIGNED_OUT_REASON}` })
+          void signOutRef.current({ redirectUrl: `/sign-in?motivo=${SIGNED_OUT_REASON}` })
           return
         }
         setMemberRows([])
@@ -303,13 +315,14 @@ export function TeamPage() {
         if (active) setMemberLoading(false)
       })
     return () => { active = false }
-  }, [organization, orgRole, memberPage, memberReloadKey, request, signOut])
+  }, [memberKey, organizationId, memberPage])
 
   async function freshAdminCount(started: string | null | undefined): Promise<number | null> {
-    if (!organization) return null
-    const memberships = await everyMembership(organization)
+    const current = organizationRef.current
+    if (!current) return null
+    const memberships = await everyMembership(current)
     if (!sameOrganization(started)) return null
-    const body = await request<unknown>(companyMembersPath)
+    const body = await requestRef.current<unknown>(companyMembersPath)
     if (!sameOrganization(started)) return null
     const core = readMemberList(body)
     if (!core) throw new ApiError('O servidor retornou uma resposta inválida.', 200)
@@ -339,7 +352,9 @@ export function TeamPage() {
           return
         }
       }
-      await organization.updateMember({ userId: row.userId, role: next })
+      const current = organizationRef.current
+      if (!current || !sameOrganization(started)) return
+      await current.updateMember({ userId: row.userId, role: next })
       if (!sameOrganization(started)) return
       setMessage(`Cargo atualizado para ${roleLabel(next)}.`)
       setMemberReloadKey((value) => value + 1)
@@ -374,7 +389,7 @@ export function TeamPage() {
           return
         }
       }
-      await request(path, { method: status === 'deactivated' ? 'POST' : 'DELETE' })
+      await requestRef.current(path, { method: status === 'deactivated' ? 'POST' : 'DELETE' })
       if (!sameOrganization(started)) return
       setMessage(status === 'deactivated' ? 'Usuário desativado.' : 'Acesso reativado.')
       setMemberReloadKey((value) => value + 1)

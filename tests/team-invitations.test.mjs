@@ -44,7 +44,7 @@ test('ticket errors use the Clerk unstable__errors keys and the Portuguese messa
 })
 
 test('Equipe stays in the menu for an admin and the direct page is allowed', async () => {
-  const { organizationProfileNavigation, teamAccessDeniedMessage, teamMenuHiddenItems, teamNavItemId, teamPageDenied, teamPath } = await import('../src/features/team/invitations.ts')
+  const { organizationProfileNavigation, teamAccessDeniedMessage, teamLoadKey, teamMenuHiddenItems, teamNavItemId, teamPageDenied, teamPath } = await import('../src/features/team/invitations.ts')
   const { filterNavItems } = await import('../src/app/layouts/navVisibility.ts')
   const items = [{ id: 'dashboard' }, { id: teamNavItemId }, { id: 'company' }]
   const adminItems = filterNavItems(items, undefined, teamMenuHiddenItems('org:admin')).map((item) => item.id)
@@ -61,6 +61,15 @@ test('Equipe stays in the menu for an admin and the direct page is allowed', asy
   assert.equal(teamPath, '/equipe')
   assert.equal(organizationProfileNavigation.organizationProfileMode, 'navigation')
   assert.equal(organizationProfileNavigation.organizationProfileUrl, teamPath)
+  const first = teamLoadKey({ organizationId: 'org_a', orgRole: 'org:admin', page: 1, reloadKey: 0 })
+  const sameId = teamLoadKey({ organizationId: 'org_a', orgRole: 'org:admin', page: 1, reloadKey: 0 })
+  assert.equal(first, sameId)
+  assert.equal(teamLoadKey({ organizationId: 'org_a', orgRole: 'admin', page: 1, reloadKey: 0 }), 'org_a\u0000admin\u00001\u00000')
+  assert.notEqual(first, teamLoadKey({ organizationId: 'org_b', orgRole: 'org:admin', page: 1, reloadKey: 0 }))
+  assert.notEqual(first, teamLoadKey({ organizationId: 'org_a', orgRole: 'org:admin', page: 2, reloadKey: 0 }))
+  assert.notEqual(first, teamLoadKey({ organizationId: 'org_a', orgRole: 'org:admin', page: 1, reloadKey: 1 }))
+  assert.equal(teamLoadKey({ organizationId: 'org_a', orgRole: 'org:member', page: 1, reloadKey: 0 }), null)
+  assert.equal(teamLoadKey({ organizationId: null, orgRole: 'org:admin', page: 1, reloadKey: 0 }), null)
 })
 
 test('a usable pending invitation blocks a new send, and resend revokes every pending id before one invite', async () => {
