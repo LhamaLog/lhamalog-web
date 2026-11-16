@@ -85,6 +85,18 @@ export function teamPageDenied(orgRole: string | null | undefined): boolean {
   return !isOrganizationAdmin(orgRole)
 }
 
+// Chave do efeito da lista de convites. Usa só o id da organização, o papel, a página e o recarregamento.
+// O objeto organization da Clerk muda de identidade e não pode entrar na chave.
+export function teamLoadKey(input: {
+  organizationId: string | null | undefined
+  orgRole: string | null | undefined
+  page: number
+  reloadKey: number
+}): string | null {
+  if (!input.organizationId || teamPageDenied(input.orgRole)) return null
+  return `${input.organizationId}\u0000${input.orgRole ?? ''}\u0000${input.page}\u0000${input.reloadKey}`
+}
+
 export function roleLabel(role: string): string {
   if (role === 'org:admin') return 'Administrador'
   if (role === 'org:member') return 'Membro'

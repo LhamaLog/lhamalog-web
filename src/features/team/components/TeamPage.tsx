@@ -12,6 +12,7 @@ import {
   resendPlan,
   roleLabel,
   teamAccessDeniedMessage,
+  teamLoadKey,
   teamPageDenied,
 } from '../invitations'
 import type { InviteRole } from '../types'
@@ -76,7 +77,11 @@ export function TeamPage() {
   const { user } = useUser()
   const { organization, isLoaded } = useOrganization()
   const orgIdRef = useRef(orgId)
+  const organizationRef = useRef(organization)
+  const signOutRef = useRef(signOut)
   orgIdRef.current = orgId
+  organizationRef.current = organization
+  signOutRef.current = signOut
   const [email, setEmail] = useState('')
   const [role, setRole] = useState<InviteRole>('org:member')
   const [fieldErrors, setFieldErrors] = useState<{ emailAddress?: string, role?: string }>({})
@@ -89,25 +94,28 @@ export function TeamPage() {
   const [listLoading, setListLoading] = useState(true)
   const [listError, setListError] = useState('')
   const [reloadKey, setReloadKey] = useState(0)
+  const organizationId = organization?.id ?? null
+  const invitationKey = teamLoadKey({ organizationId, orgRole, page, reloadKey })
 
   const sameOrganization = useCallback((started: string | null | undefined) => orgIdRef.current === started, [])
 
   const fail = useCallback(async (reason: unknown, started: string | null | undefined) => {
     if (isClerkSessionExpired(reason)) {
-      await signOut({ redirectUrl: `/sign-in?motivo=${SIGNED_OUT_REASON}` })
+      await signOutRef.current({ redirectUrl: `/sign-in?motivo=${SIGNED_OUT_REASON}` })
       return
     }
     if (!sameOrganization(started)) return
     setError(clerkErrorMessage(reason))
-  }, [sameOrganization, signOut])
+  }, [sameOrganization])
 
   useEffect(() => {
-    if (!organization || teamPageDenied(orgRole)) return
+    const current = organizationRef.current
+    if (!invitationKey || !current || current.id !== organizationId) return
     let active = true
-    const started = organization.id
+    const started = current.id
     setListLoading(true)
     setListError('')
-    organization.getInvitations({ status: ['pending'], initialPage: page, pageSize })
+    current.getInvitations({ status: ['pending'], initialPage: page, pageSize })
       .then((result) => {
         if (!active || orgIdRef.current !== started) return
         setRows(result.data)
@@ -116,7 +124,7 @@ export function TeamPage() {
       .catch((reason: unknown) => {
         if (!active || orgIdRef.current !== started) return
         if (isClerkSessionExpired(reason)) {
-          void signOut({ redirectUrl: `/sign-in?motivo=${SIGNED_OUT_REASON}` })
+          void signOutRef.current({ redirectUrl: `/sign-in?motivo=${SIGNED_OUT_REASON}` })
           return
         }
         setListError(clerkErrorMessage(reason))
@@ -125,7 +133,7 @@ export function TeamPage() {
         if (active) setListLoading(false)
       })
     return () => { active = false }
-  }, [organization, orgRole, page, reloadKey, signOut])
+  }, [invitationKey, organizationId, page])
 
   async function send(event: FormEvent) {
     event.preventDefault()
