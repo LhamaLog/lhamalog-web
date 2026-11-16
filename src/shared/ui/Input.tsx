@@ -8,6 +8,7 @@ type InputProps = ComponentPropsWithoutRef<'input'> & {
   endAction?: ReactNode
   compact?: boolean
   hideLabel?: boolean
+  requiredMark?: boolean
 }
 
 export function Input({
@@ -19,6 +20,7 @@ export function Input({
   endAction,
   compact = false,
   hideLabel = false,
+  requiredMark = false,
   className = '',
   ...props
 }: InputProps) {
@@ -26,9 +28,10 @@ export function Input({
     <div className="flex w-full flex-col gap-2">
       <label
         htmlFor={id}
-        className={hideLabel ? 'sr-only' : 'text-base font-semibold text-slate-900'}
+        className={hideLabel ? 'sr-only' : compact ? 'text-sm font-semibold text-slate-900' : 'text-base font-semibold text-slate-900'}
       >
         {label}
+        {requiredMark && <span aria-hidden="true" className="text-red-500"> *</span>}
       </label>
 
       <div className="relative">
@@ -36,6 +39,7 @@ export function Input({
           {...props}
           id={id}
           type={type}
+          aria-required={requiredMark || props['aria-required'] ? true : undefined}
           aria-invalid={error ? true : props['aria-invalid']}
           aria-describedby={
             [props['aria-describedby'], error ? `${id}-error` : undefined]

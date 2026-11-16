@@ -1,4 +1,5 @@
 import type { ComponentProps } from 'react'
+import { Link } from 'react-router-dom'
 import { Button } from '../../shared/ui/Button'
 import { Avatar } from '../../shared/ui/Avatar'
 
@@ -124,11 +125,12 @@ export function NotificationButton({ count = 0, ...props }: NotificationButtonPr
 type UserIdentityProps = {
   name: string
   role: string
+  href?: string
 }
 
-export function UserIdentity({ name, role }: UserIdentityProps) {
-  return (
-    <div className="inline-flex min-w-0 max-w-64 items-center gap-2">
+export function UserIdentity({ name, role, href }: UserIdentityProps) {
+  const identity = (
+    <>
       <span aria-hidden="true" className="inline-flex shrink-0">
         <Avatar name={name} />
       </span>
@@ -140,6 +142,8 @@ export function UserIdentity({ name, role }: UserIdentityProps) {
           {role}
         </p>
       </div>
-    </div>
+    </>
   )
+  if (!href) return <div className="inline-flex min-w-0 max-w-64 items-center gap-2">{identity}</div>
+  return <Link to={href} className="inline-flex min-w-0 max-w-64 items-center gap-2 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0C70F2]">{identity}</Link>
 }

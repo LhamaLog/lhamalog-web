@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { useAuth } from '@clerk/react'
+import { readPublicConfig } from '../config'
 import { ApiError, apiRequest, tokenMatchesOrganization } from './api'
 
 export function useApi() {
@@ -11,7 +12,7 @@ export function useApi() {
     if (!token) throw new ApiError('Sua sessão expirou. Entre novamente.', 401)
     if (!tokenMatchesOrganization(token, orgId)) throw new ApiError('A empresa mudou. Recarregue os dados.', 409)
     try {
-      return await apiRequest<T>(import.meta.env.VITE_API_URL ?? 'http://localhost:8080', path, token, options)
+      return await apiRequest<T>(readPublicConfig().apiUrl, path, token, options)
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         await signOut({ redirectUrl: '/sign-in?motivo=deslogado' })

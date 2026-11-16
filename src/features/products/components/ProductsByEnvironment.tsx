@@ -1,3 +1,4 @@
+import { useAppliedPreferences } from '../../profile/preferences'
 import { Card } from '../../../shared/ui/Card'
 import { DistributionBars } from '../../../shared/ui/DistributionBars'
 
@@ -8,6 +9,7 @@ type ProductsByEnvironmentProps = {
 }
 
 export function ProductsByEnvironment({ production, staging, development }: ProductsByEnvironmentProps) {
+  const { language } = useAppliedPreferences()
   return (
     <Card>
       <h3 className="mb-4 flex items-center gap-2 text-sm font-bold text-[#083B7A]">
@@ -17,6 +19,7 @@ export function ProductsByEnvironment({ production, staging, development }: Prod
         Produtos por ambiente
       </h3>
       <DistributionBars
+        locale={language}
         items={[
           { label: 'Produção', value: production, color: 'blue' },
           { label: 'Homologação', value: staging, color: 'amber' },

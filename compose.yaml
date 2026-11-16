@@ -1,0 +1,38 @@
+# Frontend independente. Não inclui API, MongoDB, Redis nem OpenObserve
+# e não entra em rede Docker compartilhada com o Core.
+# O navegador chama VITE_API_URL (padrão http://localhost:8080).
+# Antes de subir: copie .env.example para .env e preencha a chave publicável.
+name: lhamalog-web
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+      args:
+        NODE_VERSION: "26.12.1"
+    image: lhamalog-web:local
+    restart: unless-stopped
+    user: "101:101"
+    init: true
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "${WEB_BIND_ADDRESS:-127.0.0.1}:${WEB_PORT:-5173}:8080"
+    environment:
+      VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY:-}
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,mode=1777
+      - /var/log/nginx:rw,nosuid,nodev,uid=101,gid=101,mode=755
+      - /var/cache/nginx:rw,nosuid,nodev,uid=101,gid=101,mode=755
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 10s

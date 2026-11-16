@@ -1,6 +1,7 @@
 import type { ComponentProps } from 'react'
 import type { ClerkProvider } from '@clerk/react'
 import { ptBR } from '@clerk/localizations'
+import { invitationTicketErrors } from '../../team/invitations'
 
 type Localization = NonNullable<ComponentProps<typeof ClerkProvider>['localization']>
 
@@ -78,6 +79,12 @@ export const localization: Localization = {
     ...ptBR.organizationList,
     titleWithoutPersonal: 'Escolha uma organização',
     subtitle: 'Selecione a empresa que você quer acessar no LhamaLog.',
+  },
+
+  // Convite aceito em /sign-in e /sign-up. As duas chaves já existem em ptBR.unstable__errors.
+  unstable__errors: {
+    ...ptBR.unstable__errors,
+    ...invitationTicketErrors,
   },
 
   // Etapas pós-login (session tasks): escolher organização, configurar MFA e redefinir senha

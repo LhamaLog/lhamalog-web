@@ -2,13 +2,15 @@
 
 Guia único: [quickstart Core](../../../lhamalog-core/specs/001-empresa-produtos/quickstart.md). Contrato: [API](../../../lhamalog-core/specs/001-empresa-produtos/contracts/api.md).
 
-Frontend: Node 26.12.1, npm ci, .env.local com VITE_CLERK_PUBLISHABLE_KEY e VITE_API_URL, npm run dev. Validar npm test e npm run build.
+Frontend: Node 26.12.1, `npm ci`, `.env` com `VITE_CLERK_PUBLISHABLE_KEY` e `VITE_API_URL=http://localhost:8080`, `npm run dev`. Docker deste repositório, sem pasta do Core: `docker compose up -d --build` na raiz (React compilado no Nginx). Validar `npm test` e `npm run build`. O guia operacional está no README.
 
 Build e cinco testes aprovados; verificação de interface com identidade local e backend/Mongo reais aprovada. Sessão real Clerk ainda precisa ser conferida.
 
-## P05 — Docker integrado (04/11/2026)
+## P05 — Docker integrado (04/11/2026) — registro histórico
 
-Dockerfile existente reutilizado pelo compose.app.yaml do Core, com API localhost:8080 e chave publicável opcional no ambiente. Imagem construída e 5 testes aprovados dentro do container Node 26.12.1; Vite responde HTTP 200. Usuário pediu para deixar Clerk sem chave: login e páginas autenticadas continuam indisponíveis e o aceite real permanece pendente. Guia compartilhado em ../../../lhamalog_docs/planejamento/ambiente-local.md.
+O parágrafo seguinte registra a tentativa daquela data. Não é o procedimento atual. O site sobe pelo `compose.yaml` da raiz deste repositório; não depende de `compose.app.yaml` no Core nem de repositórios lado a lado.
+
+Naquela data, o Dockerfile foi reutilizado pelo compose.app.yaml do Core, com API localhost:8080 e chave publicável opcional no ambiente. Imagem construída e 5 testes aprovados dentro do container Node 26.12.1; Vite respondeu HTTP 200. O usuário pediu para deixar a Clerk sem chave: login e páginas autenticadas continuaram indisponíveis e o aceite real permaneceu pendente.
 
 
 ## Atualização: Clerk local configurada

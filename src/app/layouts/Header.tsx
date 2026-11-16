@@ -9,9 +9,11 @@ type HeaderProps = {
   period?: ComponentProps<typeof PeriodSelector>
   notifications?: ComponentProps<typeof NotificationButton>
   user: ComponentProps<typeof UserIdentity>
+  signOutLabel?: string
+  onSignOut?: () => void
 }
 
-export function Header({ breadcrumbs, systemStatus, period, notifications, user }: HeaderProps) {
+export function Header({ breadcrumbs, systemStatus, period, notifications, user, signOutLabel, onSignOut }: HeaderProps) {
   return (
     <header className="flex min-h-14 flex-wrap items-center justify-between gap-4 border-b border-slate-200 bg-white px-6 py-2">
       <div className="min-w-0">
@@ -23,7 +25,7 @@ export function Header({ breadcrumbs, systemStatus, period, notifications, user 
         {period && <PeriodSelector {...period} />}
         {notifications && <NotificationButton {...notifications} />}
         <UserIdentity {...user} />
-        <SignOutButton />
+        <SignOutButton label={signOutLabel} onSignOut={onSignOut} />
       </div>
     </header>
   )
