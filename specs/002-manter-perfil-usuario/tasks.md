@@ -106,6 +106,8 @@
 - [x] T019 Rodar `npm test` e `npm run build` na raiz de `lhamalog-web` e registrar o resultado em `specs/002-manter-perfil-usuario/quickstart.md`. Confirmar que `src/features/company/contract.ts` não passou a ser chamado pela tela de perfil e que os rótulos de idioma e fuso da empresa em `src/features/company/components/companyFields.tsx` permanecem os atuais, inclusive o nome `timeZone` desse outro recurso.
 - [x] T020 Executar o roteiro manual de `specs/002-manter-perfil-usuario/quickstart.md` quando Clerk e Core estiverem disponíveis, inclusive `user.update`, nome de uma palavra, falha sem rollback, `version: null` na primeira gravação e `409` na versão antiga, e registrar naquele arquivo o que foi exercitado e o que ficou bloqueado por ambiente. Não criar atalho de autenticação.
 
+- [x] T021 Quando `GET /api/user/profile` vier com `version: null` e `displayName` vazio, `src/features/profile/components/ProfilePage.tsx` preenche o nome com `clerkSessionName` de `src/features/profile/clerkName.ts` (`fullName`, senão nome e sobrenome). Rascunho e baseline recebem o mesmo nome; a `version` continua nula. Se o nome da sessão chegar depois e o campo ainda não foi editado, preencher sem depender do objeto `user` no efeito de carga. Se o nome digitado diferir do baseline, não sobrescrever. Cobrir em `tests/profile.test.mjs`.
+
 ---
 
 ## Dependencies & Execution Order
