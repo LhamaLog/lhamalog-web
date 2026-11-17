@@ -18,7 +18,7 @@ import {
   teamPageDenied,
 } from '../invitations'
 import { companyMembersPath, deactivationPath, readMemberList } from '../memberContract'
-import { activeAdminCount, isActiveAdmin, lastAdminBlocked, lastAdminMessage, mergeMember, roleToUpdate } from '../members'
+import { activeAdminCount, isActiveAdmin, localLastAdminGuard, mergeMember, roleToUpdate } from '../members'
 import type { InviteRole, MemberRow } from '../types'
 import { emailFieldError, roleFieldError } from '../validation'
 import { Button } from '../../../shared/ui/Button'
@@ -352,9 +352,14 @@ export function TeamPage() {
     try {
       if (isActiveAdmin(row.role, row.status) && next === 'member') {
         const count = await freshAdminCount(started)
-        if (!sameOrganization(started) || count === null) return
-        if (lastAdminBlocked({ adminCount: count, targetIsActiveAdmin: true, action: 'demote' })) {
-          setError(lastAdminMessage('demote'))
+        const guard = localLastAdminGuard({
+          action: 'demote',
+          targetIsActiveAdmin: true,
+          adminCount: count,
+          sameOrganization: sameOrganization(started),
+        })
+        if (!guard.call) {
+          if (guard.error) setError(guard.error)
           return
         }
       }
@@ -393,9 +398,14 @@ export function TeamPage() {
     try {
       if (status === 'deactivated' && isActiveAdmin(row.role, row.status)) {
         const count = await freshAdminCount(started)
-        if (!sameOrganization(started) || count === null) return
-        if (lastAdminBlocked({ adminCount: count, targetIsActiveAdmin: true, action: 'deactivate' })) {
-          setError(lastAdminMessage('deactivate'))
+        const guard = localLastAdminGuard({
+          action: 'deactivate',
+          targetIsActiveAdmin: true,
+          adminCount: count,
+          sameOrganization: sameOrganization(started),
+        })
+        if (!guard.call) {
+          if (guard.error) setError(guard.error)
           return
         }
       }

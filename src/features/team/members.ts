@@ -66,6 +66,22 @@ export function lastAdminMessage(action: 'demote' | 'deactivate'): string {
     : 'Não é possível desativar o último administrador.'
 }
 
+// Decisão da tela antes de organization.updateMember ou do POST. Empresa trocada ou contagem
+// indisponível descarta o efeito (FR-012): não chama a ação e não mostra a recusa.
+export function localLastAdminGuard(input: {
+  action: 'demote' | 'deactivate'
+  targetIsActiveAdmin: boolean
+  adminCount: number | null
+  sameOrganization: boolean
+}): { call: false, error: string | null } | { call: true, error: null } {
+  if (!input.targetIsActiveAdmin) return { call: true, error: null }
+  if (!input.sameOrganization || input.adminCount === null) return { call: false, error: null }
+  if (lastAdminBlocked({ adminCount: input.adminCount, targetIsActiveAdmin: true, action: input.action })) {
+    return { call: false, error: lastAdminMessage(input.action) }
+  }
+  return { call: true, error: null }
+}
+
 export function isActiveAdmin(role: string, status: MemberStatus): boolean {
   return isOrganizationAdmin(role) && status !== 'deactivated'
 }

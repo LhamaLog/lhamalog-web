@@ -71,6 +71,53 @@ test('active admin count ignores deactivated admins, members and admins without 
   assert.equal(lastAdminMessage('deactivate'), 'Não é possível desativar o último administrador.')
 })
 
+test('TeamPage refuses demoting and deactivating the last administrator and ignores an admin without userId', async () => {
+  const { activeAdminCount, localLastAdminGuard } = await import('../src/features/team/members.ts')
+  const memberships = [
+    { role: 'org:admin', userId: 'user_ana' },
+    { role: 'org:admin', userId: null },
+    { role: 'admin', userId: '   ' },
+    { role: 'org:member', userId: 'user_membro' },
+  ]
+  const count = activeAdminCount(memberships, [])
+  assert.equal(count, 1)
+  const demote = localLastAdminGuard({ action: 'demote', targetIsActiveAdmin: true, adminCount: count, sameOrganization: true })
+  const deactivate = localLastAdminGuard({ action: 'deactivate', targetIsActiveAdmin: true, adminCount: count, sameOrganization: true })
+  assert.deepEqual(demote, { call: false, error: 'Não é possível rebaixar o último administrador.' })
+  assert.deepEqual(deactivate, { call: false, error: 'Não é possível desativar o último administrador.' })
+  const member = localLastAdminGuard({ action: 'deactivate', targetIsActiveAdmin: false, adminCount: count, sameOrganization: true })
+  assert.deepEqual(member, { call: true, error: null })
+})
+
+test('two active administrators may be demoted or deactivated, and a changed organization discards the refusal', async () => {
+  const { activeAdminCount, localLastAdminGuard } = await import('../src/features/team/members.ts')
+  const memberships = [
+    { role: 'org:admin', userId: 'user_ana' },
+    { role: 'admin', userId: 'user_bia' },
+    { role: 'org:admin', userId: null },
+  ]
+  const count = activeAdminCount(memberships, [
+    { userId: 'user_ana', status: 'active', lastAccessAt: null },
+  ])
+  assert.equal(count, 2)
+  assert.deepEqual(
+    localLastAdminGuard({ action: 'demote', targetIsActiveAdmin: true, adminCount: count, sameOrganization: true }),
+    { call: true, error: null },
+  )
+  assert.deepEqual(
+    localLastAdminGuard({ action: 'deactivate', targetIsActiveAdmin: true, adminCount: count, sameOrganization: true }),
+    { call: true, error: null },
+  )
+  assert.deepEqual(
+    localLastAdminGuard({ action: 'demote', targetIsActiveAdmin: true, adminCount: 1, sameOrganization: false }),
+    { call: false, error: null },
+  )
+  assert.deepEqual(
+    localLastAdminGuard({ action: 'deactivate', targetIsActiveAdmin: true, adminCount: null, sameOrganization: true }),
+    { call: false, error: null },
+  )
+})
+
 test('role update uses the unprefixed identifiers and the member contract has no body', async () => {
   const { roleToUpdate } = await import('../src/features/team/members.ts')
   const { companyMembersPath, deactivationPath, readMember, readMemberList } = await import('../src/features/team/memberContract.ts')
