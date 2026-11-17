@@ -2,11 +2,11 @@ import { useClerk } from '@clerk/react'
 import { IconButton } from '../../../shared/ui/IconButton'
 
 // Encerra a sessão na Clerk; o afterSignOutUrl do provider leva para /sign-in.
-export function SignOutButton() {
+export function SignOutButton({ label = 'Sair', onSignOut }: { label?: string; onSignOut?: () => void }) {
   const { signOut } = useClerk()
 
   return (
-    <IconButton variant="outline" aria-label="Sair" title="Sair" onClick={() => void signOut()}>
+    <IconButton variant="outline" aria-label={label} title={label} onClick={() => { onSignOut?.(); void signOut() }}>
       <svg
         width="20"
         height="20"

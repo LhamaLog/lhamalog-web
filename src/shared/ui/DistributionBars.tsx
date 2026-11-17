@@ -1,4 +1,5 @@
 type DistributionBarsProps = {
+  locale?: string
   items: {
     label: string
     value: number
@@ -12,7 +13,7 @@ const colors = {
   navy: 'bg-[#083B7A]',
 }
 
-export function DistributionBars({ items }: DistributionBarsProps) {
+export function DistributionBars({ items, locale = 'pt-BR' }: DistributionBarsProps) {
   const values = items.map((item) => ({
     ...item,
     value: Number.isFinite(item.value) ? Math.max(0, item.value) : 0,
@@ -36,7 +37,7 @@ export function DistributionBars({ items }: DistributionBarsProps) {
                 <span className={`block h-full rounded-full ${color}`} style={{ width: `${width}%` }} />
               </span>
               <span className="text-right font-bold tabular-nums text-[#083B7A]">
-                {item.value.toLocaleString('pt-BR')}
+                {item.value.toLocaleString(locale)}
               </span>
             </dd>
           </div>

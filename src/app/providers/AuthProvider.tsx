@@ -1,25 +1,27 @@
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ClerkProvider } from '@clerk/react'
+import { enUS } from '@clerk/localizations'
+import { readPublicConfig } from '../../shared/config'
 import { baseAppearance } from '../../features/auth/theme/appearance'
 import { localization } from '../../features/auth/theme/localization'
+import { subscribeAppliedClerkLocale } from '../../features/profile/clerkLocale'
 
 // Chave publicável da instância da Clerk (ADR_023). A CLERK_SECRET_KEY nunca entra no front (ADR_026).
-const publishableKey: string = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
-if (!publishableKey) {
-  throw new Error(
-    'Falta VITE_CLERK_PUBLISHABLE_KEY. Crie o arquivo .env.local a partir do .env.example.',
-  )
-}
+// Em Docker/Nginx o valor vem de /config.js na subida do contêiner. No Vite, o fallback é o valor
+// incorporado quando o servidor de desenvolvimento inicia ou quando o bundle é gerado.
+const publishableKey = readPublicConfig().clerkPublishableKey
 
 // O ClerkProvider precisa ficar dentro do BrowserRouter para navegar sem recarregar a página.
 export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
+  const [clerkLanguage, setClerkLanguage] = useState<'pt-BR' | 'en'>('pt-BR')
+  useEffect(() => subscribeAppliedClerkLocale(setClerkLanguage), [])
   return (
     <ClerkProvider
       publishableKey={publishableKey}
       appearance={baseAppearance}
-      localization={localization}
+      localization={clerkLanguage === 'en' ? enUS : localization}
       signInUrl="/sign-in"
       signUpUrl="/sign-up"
       afterSignOutUrl="/sign-in"

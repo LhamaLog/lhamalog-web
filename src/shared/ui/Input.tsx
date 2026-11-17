@@ -8,6 +8,7 @@ type InputProps = ComponentPropsWithoutRef<'input'> & {
   endAction?: ReactNode
   compact?: boolean
   hideLabel?: boolean
+  requiredMark?: boolean
 }
 
 export function Input({
@@ -19,6 +20,7 @@ export function Input({
   endAction,
   compact = false,
   hideLabel = false,
+  requiredMark = false,
   className = '',
   ...props
 }: InputProps) {
@@ -26,9 +28,10 @@ export function Input({
     <div className="flex w-full flex-col gap-2">
       <label
         htmlFor={id}
-        className={hideLabel ? 'sr-only' : 'text-base font-semibold text-slate-900'}
+        className={hideLabel ? 'sr-only' : compact ? 'text-sm font-semibold text-slate-900' : 'text-base font-semibold text-slate-900'}
       >
         {label}
+        {requiredMark && <span aria-hidden="true" className="text-red-500"> *</span>}
       </label>
 
       <div className="relative">
@@ -36,6 +39,7 @@ export function Input({
           {...props}
           id={id}
           type={type}
+          aria-required={requiredMark || props['aria-required'] ? true : undefined}
           aria-invalid={error ? true : props['aria-invalid']}
           aria-describedby={
             [props['aria-describedby'], error ? `${id}-error` : undefined]
@@ -44,10 +48,10 @@ export function Input({
           }
           className={`
             w-full border px-4 text-slate-900
-            ${compact ? 'h-10 rounded-lg bg-white text-sm' : 'h-14 rounded-xl bg-slate-50 text-base'}
+            ${compact ? 'h-10 rounded-lg bg-field text-sm' : 'h-14 rounded-xl bg-field text-base'}
             placeholder:text-slate-600
             focus:outline-none focus:ring-2
-            disabled:cursor-not-allowed disabled:opacity-50
+            disabled:cursor-not-allowed disabled:bg-slate-200 disabled:opacity-70
             ${startIcon ? 'pl-10' : ''}
             ${endAction ? 'pr-14' : ''}
             ${

@@ -1,6 +1,16 @@
 .git
+.github
+**/.npmrc
+AGENTS.md
+CLAUDE.md
 node_modules
 dist
 .env
 .env.*
 *.log
+coverage
+.specify
+.agents
+specs
+docs
+*.md

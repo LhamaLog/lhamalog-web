@@ -1,0 +1,35 @@
+# Alternativa de desenvolvimento: servidor Vite com recarga do código-fonte.
+# Não sobe junto com compose.yaml; os dois publicam a porta 5173.
+# Uso: docker compose -f compose.dev.yaml up -d --build
+name: lhamalog-web-dev
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+      args:
+        NODE_VERSION: "26.12.1"
+    image: lhamalog-web:dev
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "${WEB_BIND_ADDRESS:-127.0.0.1}:${WEB_PORT:-5173}:5173"
+    environment:
+      VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY:-}
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+      WATCH_POLLING: ${WATCH_POLLING:-false}
+    volumes:
+      - ./:/home/node/app
+      - dev_node_modules:/home/node/app/node_modules
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5173/').then((response)=>process.exit(response.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 120s
+
+volumes:
+  dev_node_modules:
