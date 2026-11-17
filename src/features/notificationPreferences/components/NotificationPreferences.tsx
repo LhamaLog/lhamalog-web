@@ -126,9 +126,6 @@ function PreferencesForm() {
     {loading ? <LoadingState label="Carregando preferências de notificação..." />
       : loadError || !draft ? <ErrorState description={loadError || 'Não foi possível carregar.'} onRetry={() => setReload(value => value + 1)} />
       : <form onSubmit={submit} className="space-y-4">
-        <p className="rounded-lg bg-blue-50 p-3 text-sm text-[#083B7A]">
-          Você já pode salvar suas preferências. A entrega de notificações por estes canais ainda depende da integração do serviço de notificações.
-        </p>
         {message && <p role="status" className="text-sm text-green-700">{message}</p>}
         {error && <div role="alert" className="space-y-2 text-sm text-red-700">
           <p>{error}</p>
@@ -141,7 +138,7 @@ function PreferencesForm() {
             <Checkbox id="notifications-web" label="Web — canal obrigatório" checked disabled />
             <Checkbox id="notifications-email" label="E-mail" checked={draft.email}
               onChange={event => { setMessage(''); setDraft({ ...draft, email: event.target.checked }) }} />
-            <Checkbox id="notifications-push" label="Push" checked={draft.push}
+            <Checkbox id="notifications-push" label="Aplicativo móvel" checked={draft.push}
               onChange={event => { setMessage(''); setDraft({ ...draft, push: event.target.checked }) }} />
           </fieldset>
           <Filter name="notification-products" title="Produtos" allLabel="Todos os produtos disponíveis"
