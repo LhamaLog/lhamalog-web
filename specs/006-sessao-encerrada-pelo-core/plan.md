@@ -1,8 +1,8 @@
 # Implementation Plan: Sessão encerrada pelo Core
 
-**Branch**: `LLT-163-validar-o-token-do-clerk-no-core` (padrão do Jira; ainda não criada no web) | **Date**: 2026-11-17 | **Spec**: [spec.md](spec.md)
+**Branch**: `LLT-162-login-e-logout-na-web-com-clerk` (padrão do Jira; empilhada no PR #7) | **Date**: 2026-11-17 | **Spec**: [spec.md](spec.md)
 
-**Input**: Feature specification from `specs/005-sessao-encerrada-pelo-core/spec.md`
+**Input**: Feature specification from `specs/006-sessao-encerrada-pelo-core/spec.md`
 
 ## Summary
 
@@ -50,7 +50,7 @@ Re-check pós-design: sem violações.
 ### Documentation (this feature)
 
 ```text
-specs/005-sessao-encerrada-pelo-core/
+specs/006-sessao-encerrada-pelo-core/
 ├── plan.md
 ├── research.md
 ├── data-model.md

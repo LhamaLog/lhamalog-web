@@ -7,7 +7,7 @@ import { OrganizationPlanNotice } from './OrganizationPlanNotice'
 // Convidar alguém é a tela /equipe, pelo SDK do navegador na sessão do administrador,
 // sem API de convite no Core e sem segredo.
 // Enquanto o fluxo de compra (LLT-157) não existe, a empresa nova não tem Tenant e o Core recusa o acesso:
-// o aviso explica isso antes da criação (spec 005, FR-008).
+// o aviso explica isso antes da criação (spec 006, FR-008).
 export function CreateOrganizationPage() {
   return (
     <AuthBackground>

@@ -2,7 +2,7 @@ export class ApiError extends Error {
   status: number
   fieldErrors: Record<string, string>
   code: string
-  // Mensagem enviada pelo Core, ou vazio. A classificação da recusa usa esta, não o texto de reserva (spec 005).
+  // Mensagem enviada pelo Core, ou vazio. A classificação da recusa usa esta, não o texto de reserva (spec 006).
   serverMessage: string
   constructor(message: string, status: number, fieldErrors: Record<string, string> = {}, code = '', serverMessage = '') {
     super(message)

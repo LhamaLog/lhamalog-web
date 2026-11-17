@@ -1,6 +1,6 @@
 # Feature Specification: Sessão encerrada pelo Core
 
-**Feature Branch**: `LLT-163-validar-o-token-do-clerk-no-core`
+**Feature Branch**: `LLT-162-login-e-logout-na-web-com-clerk`
 
 **Created**: 2026-11-16
 
@@ -67,7 +67,7 @@ Hoje a pessoa consegue criar uma organização pelo Web ("Cadastrar empresa"). A
 
 ### User Story 4 - Teste de ponta a ponta com a Clerk real (Priority: P2)
 
-Com o Core da LLT-163 e uma organização de teste com Tenant (spec 007 do `lhamalog-core`), o responsável percorre um roteiro manual no Web: login com segundo fator, Empresa, Produtos, Equipe e Perfil, sessão expirada com volta à rota, 403 de segurança e 403 de negócio. O resultado de cada item fica registrado. Cobre a T009 da spec 001, que continua aberta.
+Com o Core da LLT-163 e uma organização de teste com Tenant (spec 008 do `lhamalog-core`), o responsável percorre um roteiro manual no Web: login com segundo fator, Empresa, Produtos, Equipe e Perfil, sessão expirada com volta à rota, 403 de segurança e 403 de negócio. O resultado de cada item fica registrado. Cobre a T009 da spec 001, que continua aberta.
 
 **Why this priority**: Os testes automatizados do Web não usam a Clerk real. É a evidência para fechar a integração do login.
 
@@ -124,7 +124,7 @@ Com o Core da LLT-163 e uma organização de teste com Tenant (spec 007 do `lham
 
 - O contrato do Core é o da LLT-163: 401 `{"error":"unauthorized"}` e 403 `{"error":"forbidden"}` com revogação das sessões na Clerk. Os 403 de negócio vêm da LLT-168, com `code` e `message`.
 - A revogação de todas as sessões no 403 é feita pelo Core, não pelo Web (ADR_032). O Web só encerra a sessão local.
-- O ambiente de teste (login, organização e Tenant de desenvolvimento) é o da spec 007 do `lhamalog-core`.
+- O ambiente de teste (login, organização e Tenant de desenvolvimento) é o da spec 008 do `lhamalog-core`.
 - Os testes automatizados seguem sem dependências novas: a lógica de classificação de recusas e de validação do destino é extraída como função pura e testada com `node --test`. Bibliotecas de teste de componente entram só com aprovação.
 - O README já descreve o login e a organização de teste com um link para o guia do Core. Atualizar o README depois da LLT-176 (nome e função fixos no Header, o hook e as pastas) entra no plano desta feature.
 - O "403 de negócio permanece na tela" (USID_030.1, research da spec 001) fica confirmado por esta spec: vale só para os códigos de negócio. O 403 de segurança sempre encerra a sessão.

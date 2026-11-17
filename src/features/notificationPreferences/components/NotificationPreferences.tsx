@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useApi } from '../../../shared/services/useApi'
 import { ApiError } from '../../../shared/services/api'
+import { endsSession } from '../../../shared/services/sessionRedirect'
 import { Button } from '../../../shared/ui/Button'
 import { Card } from '../../../shared/ui/Card'
 import { Checkbox } from '../../../shared/ui/Checkbox'
@@ -77,7 +78,7 @@ function PreferencesForm() {
       setCatalog(options)
       setProducts(availableProducts)
     }).catch(reason => {
-      if (!controller.signal.aborted) setLoadError(reason instanceof Error ? reason.message : 'Não foi possível carregar as preferências.')
+      if (!controller.signal.aborted && !endsSession(reason)) setLoadError(reason instanceof Error ? reason.message : 'Não foi possível carregar as preferências.')
     }).finally(() => {
       if (!controller.signal.aborted) setLoading(false)
     })
@@ -107,7 +108,7 @@ function PreferencesForm() {
       setBaseline(saved)
       setMessage('Preferências de notificação salvas.')
     } catch (reason) {
-      if (controller.signal.aborted) return
+      if (controller.signal.aborted || endsSession(reason)) return
       const details = reason instanceof ApiError ? Object.values(reason.fieldErrors).join(' ') : ''
       setError((reason instanceof Error ? reason.message : 'Não foi possível salvar.') + (details ? ' ' + details : ''))
     } finally {

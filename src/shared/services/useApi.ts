@@ -7,7 +7,7 @@ import { classifyRejection, signOutOnce } from './sessionRedirect'
 export function useApi() {
   const { getToken, orgId, signOut } = useAuth()
   return useCallback(async <T,>(path: string, options: RequestInit = {}): Promise<T> => {
-    // Sem empresa selecionada o Core nem é chamado, e a sessão continua (spec 005, FR-004).
+    // Sem empresa selecionada o Core nem é chamado, e a sessão continua (spec 006, FR-004).
     if (!orgId) throw new ApiError('Selecione uma empresa para continuar.', 403, {}, 'no_organization')
     const token = await getToken()
     if (options.signal?.aborted) throw new DOMException('Aborted', 'AbortError')

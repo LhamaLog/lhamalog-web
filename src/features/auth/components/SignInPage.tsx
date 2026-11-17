@@ -12,7 +12,7 @@ export function SignInPage() {
   const signedOut = params.get('motivo') === SIGNED_OUT_REASON
   // /sign-in é a primeira etapa; /sign-in/factor-one, /factor-two etc. são as verificações.
   const step = /^\/sign-in\/?$/.test(pathname) ? 'inicio' : 'interna'
-  // Destino depois do login (spec 005): só rota interna; destino externo, malformado ou ausente vira "/".
+  // Destino depois do login (spec 006): só rota interna; destino externo, malformado ou ausente vira "/".
   const destination = safeReturnPath(params.get('redirect_url'), window.location.origin)
 
   // Com a sessão já ativa (por exemplo, logo depois do código de segundo fator), o <SignIn> da Clerk não

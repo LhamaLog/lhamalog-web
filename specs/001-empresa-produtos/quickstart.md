@@ -19,4 +19,4 @@ Em 04/11/2026, o usuário autorizou criar LhamaLog Local e configurar a instânc
 
 ## Sessão real Clerk (17/11/2026)
 
-Login com segundo fator, logout, troca e criação de organização conferidos com a instância de desenvolvimento e o Core da LLT-163, pelo roteiro E1 a E12 de `specs/005-sessao-encerrada-pelo-core/quickstart.md`. Resultado registrado no PR #7. Isso fecha o aceite de sessão real pendente acima.
+Login com segundo fator, logout, troca e criação de organização conferidos com a instância de desenvolvimento e o Core da LLT-163, pelo roteiro E1 a E12 de `specs/006-sessao-encerrada-pelo-core/quickstart.md`. Resultado registrado no PR #7. Isso fecha o aceite de sessão real pendente acima.

@@ -18,4 +18,4 @@
 
 Dependências: esclarecimentos e contrato Core → T003 → T004/T005 → T006/T007 → T008. Sem alteração dos componentes de login/logout.
 
-- [X] T009 Conferir sessão real Clerk (login/logout/criação de organização) e registrar em `quickstart.md`. Feito pelo roteiro E1 a E12 da spec 005 em 17/11/2026.
+- [X] T009 Conferir sessão real Clerk (login/logout/criação de organização) e registrar em `quickstart.md`. Feito pelo roteiro E1 a E12 da spec 006 em 17/11/2026.

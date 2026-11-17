@@ -240,7 +240,7 @@
   .lh-fundo * { transition: none !important; animation: none !important; }
 }
 
-/* Criar organização: aviso acima do formulário da Clerk, na mesma largura (spec 005, FR-008). */
+/* Criar organização: aviso acima do formulário da Clerk, na mesma largura (spec 006, FR-008). */
 .lh-criar-organizacao {
   display: flex;
   flex-direction: column;

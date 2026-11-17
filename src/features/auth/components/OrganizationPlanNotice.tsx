@@ -1,5 +1,5 @@
 // Enquanto o fluxo de compra (LLT-157) não existe, a empresa nova não tem Tenant e o Core recusa o acesso:
-// o aviso aparece em toda tela que cria organização, antes da criação (spec 005, FR-008).
+// o aviso aparece em toda tela que cria organização, antes da criação (spec 006, FR-008).
 export function OrganizationPlanNotice() {
   return (
     <p role="note" className="lh-aviso">

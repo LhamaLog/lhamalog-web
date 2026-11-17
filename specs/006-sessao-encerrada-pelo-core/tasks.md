@@ -60,14 +60,14 @@
 
 **Independent Test**: tabela E1 a E12 registrada.
 
-- [X] T014 [US4] (manual, Felipe) Preparar o ambiente da spec 007 do `lhamalog-core` (organizações A com Tenant e C sem Tenant, conta membro `+clerk_test`, `CLERK_SECRET_KEY` no Core)
-- [X] T015 [US4] (manual, Felipe) Executar E1 a E12 de `specs/005-sessao-encerrada-pelo-core/quickstart.md` e registrar `Item | Data | Resultado | Observação` no PR da feature, sem token, e-mail real ou `org_id` real
+- [X] T014 [US4] (manual, Felipe) Preparar o ambiente da spec 008 do `lhamalog-core` (organizações A com Tenant e C sem Tenant, conta membro `+clerk_test`, `CLERK_SECRET_KEY` no Core)
+- [X] T015 [US4] (manual, Felipe) Executar E1 a E12 de `specs/006-sessao-encerrada-pelo-core/quickstart.md` e registrar `Item | Data | Resultado | Observação` no PR da feature, sem token, e-mail real ou `org_id` real
 - [X] T016 [US4] Marcar a T009 de `specs/001-empresa-produtos/tasks.md` como concluída, citando este roteiro, se E1 a E3 passarem
 
 ## Phase 7: Polish
 
 - [X] T017 [P] `README.md`: na seção de autenticação e no item de `features/auth` em "Responsabilidades", descrever 401 e 403 de segurança (saem), 403 de negócio (fica), volta à rota e `shared/services/sessionRedirect.ts`; corrigir "O nome e a função exibidos continuam fixos" conforme o Header atual (`src/app/layouts/HeaderControls.tsx`)
-- [X] T018 [P] Em `specs/001-empresa-produtos/research.md`, no USID_030.1, registrar que o "403 de negócio permanece na tela" vale para 403 com `code` ou mensagem do Core e que o 403 de segurança encerra a sessão (spec 005)
+- [X] T018 [P] Em `specs/001-empresa-produtos/research.md`, no USID_030.1, registrar que o "403 de negócio permanece na tela" vale para 403 com `code` ou mensagem do Core e que o 403 de segurança encerra a sessão (spec 006)
 - [X] T020 [US3] Achado do E11: a etapa `/tarefas/escolher-organizacao` também cria organização e não mostrava o aviso. O aviso passa a ser o componente `src/features/auth/components/OrganizationPlanNotice.tsx`, usado em `CreateOrganizationPage.tsx` e em `ChooseOrganizationTask.tsx`; E3, E6 e E11 do quickstart ajustados ao comportamento observado
 - [X] T019 `npm test` e `npm run build` finais; comparar com o total do T001 (devem entrar os testes novos sem perder nenhum)
 
@@ -82,7 +82,7 @@ T013 ─────────────────┴───────
 
 - US1 e US2 dependem da fase 2 e não dependem uma da outra.
 - US3 (T013) é independente.
-- US4 (roteiro) depende de US1, US2 e US3, e do ambiente da spec 007 do Core.
+- US4 (roteiro) depende de US1, US2 e US3, e do ambiente da spec 008 do Core.
 
 ## Parallel Execution
 

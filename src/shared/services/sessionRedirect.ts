@@ -1,4 +1,4 @@
-// Leitura das recusas do Core e saída da sessão (spec 005, ADR_032).
+// Leitura das recusas do Core e saída da sessão (spec 006, ADR_032).
 // 401 e 403 de segurança ({"error":"forbidden"}, sem código e sem mensagem) encerram a sessão local; o Core já
 // revogou as sessões na Clerk. 403 com código ou mensagem do Core é recusa de negócio e mantém a pessoa na tela.
 
