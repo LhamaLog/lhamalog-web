@@ -12,6 +12,7 @@ import { loadProductDraft, moveProductDraft, saveProductDraft } from '../draft'
 import { environmentLabel, productFieldErrors } from '../productListModel'
 import { emptyProductContext, emptyProductDraft } from '../types'
 import type { Product, ProductContext, ProductUiDraft } from '../types'
+import { endsSession } from '../../../shared/services/sessionRedirect'
 
 const contextLabels: Record<keyof ProductContext, string> = {
   problemSolved: 'Problema resolvido',
@@ -98,7 +99,7 @@ export function ProductEditor({ product, onSaved, onCancel, request }: { product
         onSaved(result)
       }
     } catch (reason) {
-      if (!controller.current.signal.aborted) setError(reason instanceof ApiError ? reason : new ApiError('Não foi possível salvar.', 0))
+      if (!controller.current.signal.aborted && !endsSession(reason)) setError(reason instanceof ApiError ? reason : new ApiError('Não foi possível salvar.', 0))
     } finally {
       pending.current = false
       if (!controller.current.signal.aborted) setSaving(false)

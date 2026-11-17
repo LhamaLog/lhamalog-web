@@ -13,7 +13,8 @@ As rotas `/empresa` e `/produtos` usam o Core e persistem dados. Há seleção/c
 A aplicação exige login. Sem sessão ativa, `/` redireciona para `/sign-in`; depois do login, `/` abre `/empresa`. A demonstração **Componentes LhamaLog**, com exemplos e dados ilustrativos, permanece em `/componentes`. Estão implementados:
 
 - Telas de autenticação com componentes da Clerk (ADR_023) e visual do LhamaLog: login, cadastro, etapas pós-login (escolher ou criar organização, configurar MFA e redefinir senha) e criação de organização. Sessão `pending` conta como deslogada (ADR_024, ADR_032).
-- Botão **Sair** no Header, ao lado da identificação do usuário. O nome e a função exibidos continuam fixos.
+- Botão **Sair** no Header, ao lado da identificação do usuário. Nas telas integradas, o Header mostra o nome do perfil (ou da sessão) e o nome da empresa ativa; só a demonstração `/componentes` usa dados fixos.
+- Sessão encerrada pelo Core (spec 005, ADR_032): 401 e 403 de segurança (sem `code` e sem mensagem do Core) encerram a sessão uma vez só, mesmo com várias chamadas recusadas ao mesmo tempo, e levam ao login com "Você foi deslogado". Depois de entrar, a pessoa volta à rota em que estava (só rotas internas). 403 com `code` ou mensagem do Core é recusa de negócio e mantém a pessoa na tela. A tela de criar organização avisa que a empresa nova só dá acesso depois da contratação de um plano (LLT-157).
 
 - Campos, botões, checkbox, badges para status e tags, avatar, busca, cartões, paginação e barra de progresso.
 - Navbar com recolhimento no desktop e menu em telas pequenas, Header e Footer compostos pelo AppLayout.
@@ -99,6 +100,10 @@ O Compose lê `.env`. O Vite também lê `.env`. Se existir `.env.local`, ele so
 
 Sem a chave publicável, a página não inicia e o console mostra `Falta VITE_CLERK_PUBLISHABLE_KEY`.
 
+### Login e organização de teste
+
+Enquanto o fluxo de compra não cria o Tenant (LLT-157), o login só funciona com uma organização que tenha Tenant no Core. Sem ele, toda chamada à API responde 403 e o usuário é deslogado. Cada desenvolvedor cria o próprio login e a própria organização na instância de desenvolvimento da Clerk e registra o `org_id` no `.env` do Core (`DEV_TENANT_CLERK_ORG_ID`). Passo a passo no README do `lhamalog-core`, seção "Login e organização de teste (enquanto não há fluxo de compra)".
+
 ### Build do Vite e execução do contêiner
 
 São dois momentos diferentes:
@@ -116,7 +121,7 @@ São dois momentos diferentes:
 | `/empresa` | Dados, endereço e contexto da empresa ativa, com sessão. |
 | `/produtos` | Cadastro, lista e contexto de produtos acessíveis, com sessão. |
 | `/componentes` | Demonstração visual preservada, com sessão. |
-| `/sign-in/*` | Login. `?motivo=deslogado` mostra o aviso "Você foi deslogado" (ADR_032). |
+| `/sign-in/*` | Login. `?motivo=deslogado` mostra o aviso "Você foi deslogado" (ADR_032); `?redirect_url=<rota>` leva à rota depois do login, se for interna (spec 005). |
 | `/sign-up/*` | Cadastro. |
 | `/equipe` | Convite, lista, cargo e desativação das pessoas da empresa selecionada, só para o administrador. Detalhes em [convite](specs/003-convidar-usuario-empresa/spec.md) e [usuários](specs/004-listar-editar-desativar-usuarios/spec.md). |
 | `/organizacoes/nova/*` | Criação de organização, sem a etapa de convite da plataforma. Convidar alguém fica em `/equipe`. |
@@ -335,7 +340,7 @@ src/
 - `app/providers`: provedores globais, como o da Clerk.
 - `app/routes`: definição das rotas da aplicação.
 - `app/layouts`: estrutura visual compartilhada entre páginas.
-- `features/auth`: telas e etapas de autenticação com Clerk, proteção de rota, botão Sair, tratamento de 401/403 (`useSessionErrorHandler`), aparência e textos da Clerk. O `auth.css` não usa Tailwind: as regras ficam sob classes `lh-`, e a fonte Poppins vale apenas nessas telas.
+- `features/auth`: telas e etapas de autenticação com Clerk, proteção de rota, botão Sair, saída por 401/403 (`useSessionErrorHandler`, sobre `shared/services/sessionRedirect.ts`, que classifica as recusas do Core, valida o destino de volta e garante uma saída só), aparência e textos da Clerk. O `auth.css` não usa Tailwind: as regras ficam sob classes `lh-`, e a fonte Poppins vale apenas nessas telas.
 - `app/layouts/HeaderControls.tsx`: controles específicos do Header, reunindo estado do sistema, período, notificações e identificação do usuário.
 - `features`: funcionalidades organizadas por domínio; componentes, hooks, serviços e tipos específicos ficam junto da funcionalidade que os utiliza.
 - `shared/ui`: componentes visuais reutilizáveis entre funcionalidades.

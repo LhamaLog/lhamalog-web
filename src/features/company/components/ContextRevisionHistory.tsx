@@ -6,6 +6,7 @@ import { ErrorState } from '../../../shared/ui/ErrorState'
 import { LoadingState } from '../../../shared/ui/LoadingState'
 import { useAppliedPreferences } from '../../profile/preferences'
 import { formatRevisionDate, readContextRevision, readContextRevisions, type CompanyContextRevision } from '../contextRevisions'
+import { endsSession } from '../../../shared/services/sessionRedirect'
 
 export function ContextRevisionHistory({ refreshKey }: { refreshKey: number }) {
   const request = useApi()
@@ -26,7 +27,7 @@ export function ContextRevisionHistory({ refreshKey }: { refreshKey: number }) {
     setError('')
     request<unknown>('/api/company/context/revisions', { signal: controller.signal })
       .then((body) => { if (!controller.signal.aborted) setRevisions(readContextRevisions(body)) })
-      .catch((reason) => { if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'Não foi possível carregar o histórico.') })
+      .catch((reason) => { if (!controller.signal.aborted && !endsSession(reason)) setError(reason instanceof Error ? reason.message : 'Não foi possível carregar o histórico.') })
       .finally(() => { if (!controller.signal.aborted) setLoading(false) })
     return () => controller.abort()
   }, [open, refreshKey, reload, request])
@@ -44,6 +45,7 @@ export function ContextRevisionHistory({ refreshKey }: { refreshKey: number }) {
       }
       setSelected(parsed)
     } catch (reason) {
+      if (endsSession(reason)) return
       setDetailError(reason instanceof ApiError && reason.status === 404
         ? 'Revisão de contexto não encontrada.'
         : reason instanceof Error ? reason.message : 'Não foi possível abrir a revisão.')

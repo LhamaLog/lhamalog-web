@@ -16,3 +16,7 @@ Naquela data, o Dockerfile foi reutilizado pelo compose.app.yaml do Core, com AP
 ## Atualização: Clerk local configurada
 
 Em 04/11/2026, o usuário autorizou criar LhamaLog Local e configurar a instância de desenvolvimento no .env ignorado. Tela de login real conferida no localhost:5173. As observações anteriores sobre ausência de chave são históricas; login e operações autenticadas ainda precisam de aceite. Consulte o progresso em lhamalog_docs/planejamento/progresso-empresa-produtos.md.
+
+## Sessão real Clerk (17/11/2026)
+
+Login com segundo fator, logout, troca e criação de organização conferidos com a instância de desenvolvimento e o Core da LLT-163, pelo roteiro E1 a E12 de `specs/005-sessao-encerrada-pelo-core/quickstart.md`. Resultado registrado no PR #7. Isso fecha o aceite de sessão real pendente acima.

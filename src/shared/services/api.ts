@@ -2,11 +2,14 @@ export class ApiError extends Error {
   status: number
   fieldErrors: Record<string, string>
   code: string
-  constructor(message: string, status: number, fieldErrors: Record<string, string> = {}, code = '') {
+  // Mensagem enviada pelo Core, ou vazio. A classificação da recusa usa esta, não o texto de reserva (spec 005).
+  serverMessage: string
+  constructor(message: string, status: number, fieldErrors: Record<string, string> = {}, code = '', serverMessage = '') {
     super(message)
     this.status = status
     this.fieldErrors = fieldErrors
     this.code = code
+    this.serverMessage = serverMessage
   }
 }
 
@@ -19,7 +22,7 @@ function messageFor(status: number, code: string): string {
   if (code === 'last_admin') return 'Não é possível desativar o último administrador.'
   if (code === 'not_admin') return 'Somente o administrador da empresa pode gerenciar os usuários.'
   if (status === 401) return 'Sua sessão expirou. Entre novamente.'
-  if (status === 403) return 'Você não tem acesso. Selecione uma empresa válida.'
+  if (status === 403) return 'Você não tem acesso a esta empresa.'
   return 'Não foi possível concluir a operação. Tente novamente.'
 }
 
@@ -37,8 +40,9 @@ export async function apiRequest<T>(baseUrl: string, path: string, token: string
   const body = await response.json().catch(() => null)
   if (!response.ok) {
     const code = typeof body?.code === 'string' ? body.code : ''
-    const message = usableMessage(body?.message) || messageFor(response.status, code)
-    throw new ApiError(message, response.status, body?.fieldErrors ?? {}, code)
+    const serverMessage = usableMessage(body?.message)
+    const message = serverMessage || messageFor(response.status, code)
+    throw new ApiError(message, response.status, body?.fieldErrors ?? {}, code, serverMessage)
   }
   if (body === null) throw new ApiError('O servidor retornou uma resposta inválida.', response.status)
   return body as T

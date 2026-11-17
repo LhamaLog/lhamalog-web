@@ -2,6 +2,7 @@ import { SignIn, useAuth } from '@clerk/react'
 import { Navigate, useLocation, useSearchParams } from 'react-router-dom'
 import { AuthLayout } from './AuthLayout'
 import { SIGNED_OUT_REASON } from '../hooks/useSessionErrorHandler'
+import { safeReturnPath } from '../../../shared/services/sessionRedirect'
 import { authAppearance } from '../theme/appearance'
 
 export function SignInPage() {
@@ -11,12 +12,15 @@ export function SignInPage() {
   const signedOut = params.get('motivo') === SIGNED_OUT_REASON
   // /sign-in é a primeira etapa; /sign-in/factor-one, /factor-two etc. são as verificações.
   const step = /^\/sign-in\/?$/.test(pathname) ? 'inicio' : 'interna'
+  // Destino depois do login (spec 005): só rota interna; destino externo, malformado ou ausente vira "/".
+  const destination = safeReturnPath(params.get('redirect_url'), window.location.origin)
 
   // Com a sessão já ativa (por exemplo, logo depois do código de segundo fator), o <SignIn> da Clerk não
   // desenha nada e espera redirecionar sozinho; quando isso não acontece, o card fica vazio. Aqui o
-  // redirecionamento é garantido. Uma sessão "pending" não conta como logada e segue para as telas de tarefa.
+  // redirecionamento é garantido, já para o destino. Uma sessão "pending" não conta como logada e segue para as
+  // telas de tarefa.
   if (isLoaded && isSignedIn) {
-    return <Navigate to="/" replace />
+    return <Navigate to={destination} replace />
   }
 
   return (
@@ -31,7 +35,7 @@ export function SignInPage() {
         routing="path"
         path="/sign-in"
         signUpUrl="/sign-up"
-        fallbackRedirectUrl="/"
+        forceRedirectUrl={destination}
         appearance={authAppearance}
       />
     </AuthLayout>

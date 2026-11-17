@@ -2,8 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useAuth, useOrganization, useUser } from '@clerk/react'
 import type { OrganizationInvitationResource, OrganizationMembershipResource, OrganizationResource } from '@clerk/shared/types'
-import { SIGNED_OUT_REASON } from '../../auth/hooks/useSessionErrorHandler'
+import { useSessionErrorHandler } from '../../auth/hooks/useSessionErrorHandler'
 import { ApiError } from '../../../shared/services/api'
+import { classifyRejection } from '../../../shared/services/sessionRedirect'
 import { useApi } from '../../../shared/services/useApi'
 import {
   clerkErrorMessage,
@@ -99,18 +100,19 @@ async function memberEmails(organization: OrganizationResource): Promise<string[
 }
 
 export function TeamPage() {
-  const { orgId, orgRole, signOut } = useAuth()
+  const { orgId, orgRole } = useAuth()
   const { user } = useUser()
   const { organization, isLoaded } = useOrganization()
   const request = useApi()
   const orgIdRef = useRef(orgId)
   const organizationRef = useRef(organization)
   const requestRef = useRef(request)
-  const signOutRef = useRef(signOut)
+  const endSession = useSessionErrorHandler()
+  const endSessionRef = useRef(endSession)
   orgIdRef.current = orgId
   organizationRef.current = organization
   requestRef.current = request
-  signOutRef.current = signOut
+  endSessionRef.current = endSession
   const [email, setEmail] = useState('')
   const [role, setRole] = useState<InviteRole>('org:member')
   const [fieldErrors, setFieldErrors] = useState<{ emailAddress?: string, role?: string }>({})
@@ -154,7 +156,7 @@ export function TeamPage() {
 
   const fail = useCallback(async (reason: unknown, started: string | null | undefined) => {
     if (isClerkSessionExpired(reason)) {
-      await signOutRef.current({ redirectUrl: `/sign-in?motivo=${SIGNED_OUT_REASON}` })
+      await endSessionRef.current(reason, true)
       return
     }
     if (!sameOrganization(started)) return
@@ -177,7 +179,7 @@ export function TeamPage() {
       .catch((reason: unknown) => {
         if (!shouldApplyTeamList({ active, startedOrgId: started, currentOrgId: orgIdRef.current })) return
         if (isClerkSessionExpired(reason)) {
-          void signOutRef.current({ redirectUrl: `/sign-in?motivo=${SIGNED_OUT_REASON}` })
+          void endSessionRef.current(reason, true)
           return
         }
         setListError(clerkErrorMessage(reason))
@@ -323,9 +325,10 @@ export function TeamPage() {
           setBlocked(block)
           return
         }
-        if (reason instanceof ApiError && reason.status === 401) return
+        // O useApi já encerrou a sessão (401 ou 403 de segurança); não mostra erro durante a saída.
+        if (reason instanceof ApiError && classifyRejection(reason.status, reason.code, reason.serverMessage) === 'session') return
         if (isClerkSessionExpired(reason)) {
-          void signOutRef.current({ redirectUrl: `/sign-in?motivo=${SIGNED_OUT_REASON}` })
+          void endSessionRef.current(reason, true)
           return
         }
         setMemberRows([])

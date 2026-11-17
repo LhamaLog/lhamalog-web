@@ -239,3 +239,12 @@
   .lh-auth *,
   .lh-fundo * { transition: none !important; animation: none !important; }
 }
+
+/* Criar organização: aviso acima do formulário da Clerk, na mesma largura (spec 005, FR-008). */
+.lh-criar-organizacao {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  max-width: 28rem;
+}
