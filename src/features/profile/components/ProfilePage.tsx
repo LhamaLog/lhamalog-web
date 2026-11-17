@@ -18,6 +18,7 @@ import { useAppliedPreferences } from '../preferences'
 import { isSupportedTimeZone, timeZoneOptions } from '../timeZones'
 import type { AppliedLanguage, UserProfile } from '../types'
 import { profileFieldErrors } from '../validation'
+import { endsSession } from '../../../shared/services/sessionRedirect'
 
 function languageOf(value: string): AppliedLanguage {
   return value === 'en' ? 'en' : 'pt-BR'
@@ -92,7 +93,7 @@ export function ProfilePage() {
         applyConfirmed(profile)
       })
       .catch((reason) => {
-        if (!current.signal.aborted) setLoadError(reason instanceof Error ? reason.message : text('profile.loadError'))
+        if (!current.signal.aborted && !endsSession(reason)) setLoadError(reason instanceof Error ? reason.message : text('profile.loadError'))
       })
       .finally(() => { if (!current.signal.aborted) setLoading(false) })
     return () => current.abort()
@@ -171,7 +172,7 @@ export function ProfilePage() {
         applyConfirmed(echoed)
       }
     } catch (reason) {
-      if (current.signal.aborted) return
+      if (current.signal.aborted || endsSession(reason)) return
       setError(reason instanceof ApiError ? reason : new ApiError(text('profile.error.save'), 0))
     } finally {
       if (!current.signal.aborted) setSaving(false)

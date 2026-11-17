@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useApi } from '../services/useApi'
+import { endsSession } from '../services/sessionRedirect'
 
 export function useApiResource<T>(path: string) {
   const request = useApi()
@@ -13,7 +14,7 @@ export function useApiResource<T>(path: string) {
     setError('')
     request<T>(path, { signal: controller.signal })
       .then(value => { if (!controller.signal.aborted) setData(value) })
-      .catch(reason => { if (!controller.signal.aborted) setError(reason.message ?? 'Falha ao carregar os dados.') })
+      .catch(reason => { if (!controller.signal.aborted && !endsSession(reason)) setError(reason.message ?? 'Falha ao carregar os dados.') })
       .finally(() => { if (!controller.signal.aborted) setLoading(false) })
     return () => controller.abort()
   }, [path, request, revision])
