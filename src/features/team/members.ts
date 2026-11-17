@@ -47,7 +47,9 @@ export function activeAdminCount(memberships: AdminCountMembership[], core: Core
   const statusByUser = new Map(core.map((member) => [member.userId, member.status]))
   return memberships.filter((membership) => {
     if (!isOrganizationAdmin(membership.role)) return false
-    const status = membership.userId ? statusByUser.get(membership.userId) : undefined
+    const userId = membership.userId?.trim()
+    if (!userId) return false
+    const status = statusByUser.get(userId)
     return status !== 'deactivated'
   }).length
 }

@@ -47,7 +47,7 @@ test('merge keeps a deactivated user and defaults a missing core record to activ
   assert.equal(withoutId.name, 'Sem Id')
 })
 
-test('active admin count ignores deactivated admins and members, and absence counts as active', async () => {
+test('active admin count ignores deactivated admins, members and admins without userId', async () => {
   const { activeAdminCount, lastAdminBlocked, lastAdminMessage } = await import('../src/features/team/members.ts')
   const memberships = [
     { role: 'org:admin', userId: 'user_ana' },
@@ -55,12 +55,13 @@ test('active admin count ignores deactivated admins and members, and absence cou
     { role: 'org:admin', userId: 'user_caio' },
     { role: 'org:member', userId: 'user_dani' },
     { role: 'org:admin', userId: null },
+    { role: 'admin', userId: '   ' },
   ]
   const core = [
     { userId: 'user_ana', status: 'deactivated', lastAccessAt: null },
     { userId: 'user_bia', status: 'active', lastAccessAt: null },
   ]
-  assert.equal(activeAdminCount(memberships, core), 3)
+  assert.equal(activeAdminCount(memberships, core), 2)
   assert.equal(lastAdminBlocked({ adminCount: 1, targetIsActiveAdmin: true, action: 'demote' }), true)
   assert.equal(lastAdminBlocked({ adminCount: 1, targetIsActiveAdmin: true, action: 'deactivate' }), true)
   assert.equal(lastAdminBlocked({ adminCount: 1, targetIsActiveAdmin: false, action: 'deactivate' }), false)

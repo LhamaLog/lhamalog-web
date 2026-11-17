@@ -52,7 +52,7 @@ Página: tamanho 10, começando em 1, no formato já devolvido por `getMembershi
 
 ## Trava do último administrador
 
-A contagem, feita na tela antes da rede da ação, inclui a pessoa quando o cargo sem o prefixo `org:` é `admin` e o `status` no Core não é `deactivated`. Ausência no `GET` conta como ativo. A contagem usa todas as páginas da organização.
+A contagem, feita na tela antes da rede da ação, inclui a pessoa quando o cargo sem o prefixo `org:` é `admin`, há `userId` e o `status` no Core não é `deactivated`. Associação de administrador sem `userId`, ou com `userId` só de espaços, não entra na contagem. Ausência no `GET`, para quem tem `userId`, conta como ativo. A contagem usa todas as páginas da organização, até 100 páginas. Se ainda houver registros além desse limite, a lista pode estar incompleta e a tela avisa.
 
 Entrada da função pura: essa quantidade, e se o alvo entra nela.
 

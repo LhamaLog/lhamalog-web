@@ -118,17 +118,17 @@ São dois momentos diferentes:
 | `/componentes` | Demonstração visual preservada, com sessão. |
 | `/sign-in/*` | Login. `?motivo=deslogado` mostra o aviso "Você foi deslogado" (ADR_032). |
 | `/sign-up/*` | Cadastro. |
-| `/equipe` | Convite de pessoas para a empresa selecionada, só para o administrador. Detalhes em [spec](specs/003-convidar-usuario-empresa/spec.md) e [quickstart](specs/003-convidar-usuario-empresa/quickstart.md). |
+| `/equipe` | Convite, lista, cargo e desativação das pessoas da empresa selecionada, só para o administrador. Detalhes em [convite](specs/003-convidar-usuario-empresa/spec.md) e [usuários](specs/004-listar-editar-desativar-usuarios/spec.md). |
 | `/organizacoes/nova/*` | Criação de organização, sem a etapa de convite da plataforma. Convidar alguém fica em `/equipe`. |
 | `/tarefas/escolher-organizacao/*`, `/tarefas/configurar-mfa/*`, `/tarefas/redefinir-senha/*` | Etapas pós-login da Clerk (session tasks). |
 
 Outros caminhos redirecionam para `/`. O `/*` é necessário porque os componentes da Clerk usam sub-rotas, como `/sign-in/factor-one`.
 
-### Convite para a empresa (`/equipe`)
+### Equipe (`/equipe`)
 
-A especificação está em [specs/003-convidar-usuario-empresa/spec.md](specs/003-convidar-usuario-empresa/spec.md). O roteiro está em [specs/003-convidar-usuario-empresa/quickstart.md](specs/003-convidar-usuario-empresa/quickstart.md).
+Convites: [specs/003-convidar-usuario-empresa/spec.md](specs/003-convidar-usuario-empresa/spec.md) e [quickstart](specs/003-convidar-usuario-empresa/quickstart.md). Lista, cargo e desativação: [specs/004-listar-editar-desativar-usuarios/spec.md](specs/004-listar-editar-desativar-usuarios/spec.md) e [quickstart](specs/004-listar-editar-desativar-usuarios/quickstart.md).
 
-A validade de 7 dias e a ativação dos convites de organização são configuradas no dashboard da Clerk, não neste repositório.
+A validade de 7 dias e a ativação dos convites de organização são configuradas no dashboard da Clerk, não neste repositório. Desativar não remove a pessoa da organização: a tela pede confirmação e grava a marca no Core. A contagem de administradores ignora quem não tem `userId`. Se a carga passar de 100 páginas, a tela avisa que a lista pode estar incompleta.
 
 Passo manual:
 
@@ -136,6 +136,8 @@ Passo manual:
 2. A pessoa aceita pelo e-mail, usando as telas de entrada que já existem (`/sign-in` ou `/sign-up`).
 3. Na lista de pendentes, confira o convite e use revogar ou reenviar.
 4. Um link expirado ou revogado é recusado nessas mesmas telas de entrada.
+5. No bloco de usuários, confira nome, e-mail, cargo, status e último acesso. Salvar cargo troca só entre Administrador e Membro.
+6. Desativar pede confirmação. A pessoa continua na lista como Desativado. Reativar devolve Ativo. O único administrador ativo não pode ser rebaixado nem desativado.
 
 ## Docker na raiz
 

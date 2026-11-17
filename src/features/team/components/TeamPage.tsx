@@ -31,6 +31,12 @@ import { Pagination } from '../../../shared/ui/Pagination'
 import { Select } from '../../../shared/ui/Select'
 
 const pageSize = 10
+const maxPages = 100
+const incompleteListMessage = 'A lista pode estar incompleta.'
+
+function listMayBeIncomplete(total: number): boolean {
+  return total > pageSize * maxPages
+}
 
 function pageTotal(page: { data: unknown[], total_count: number, totalCount?: number }): number {
   return page.total_count ?? page.totalCount ?? page.data.length
@@ -56,7 +62,7 @@ async function allPending(organization: OrganizationResource): Promise<Organizat
     total = pageTotal(result)
     items.push(...result.data)
     page += 1
-  } while ((page - 1) * pageSize < total && page <= 100)
+  } while ((page - 1) * pageSize < total && page <= maxPages)
   return items
 }
 
@@ -74,7 +80,7 @@ async function everyMembership(organization: OrganizationResource): Promise<Orga
     total = pageTotal(result)
     items.push(...result.data)
     page += 1
-  } while ((page - 1) * pageSize < total && page <= 100)
+  } while ((page - 1) * pageSize < total && page <= maxPages)
   return items
 }
 
@@ -90,7 +96,7 @@ async function memberEmails(organization: OrganizationResource): Promise<string[
       if (identifier) emails.push(identifier)
     }
     page += 1
-  } while ((page - 1) * pageSize < total && page <= 100)
+  } while ((page - 1) * pageSize < total && page <= maxPages)
   return emails
 }
 
@@ -371,6 +377,10 @@ export function TeamPage() {
 
   async function changeStatus(row: MemberRow, status: 'active' | 'deactivated') {
     if (!row.userId || busy) return
+    if (status === 'deactivated') {
+      const who = row.name.trim() || row.email.trim() || 'este usuário'
+      if (!window.confirm(`Desativar ${who}? A pessoa continua na empresa, com status Desativado.`)) return
+    }
     const started = orgId
     const path = deactivationPath(row.userId)
     if (!path) {
@@ -480,6 +490,7 @@ export function TeamPage() {
             </table>
           </div>
         ) : null}
+        {listMayBeIncomplete(total) ? <p role="status" className="mt-4 rounded-lg bg-amber-50 p-4 text-sm text-amber-800">{incompleteListMessage}</p> : null}
         {total > pageSize ? <div className="mt-4"><Pagination page={page} pageSize={pageSize} totalItems={total} itemLabel="convites" onPageChange={setPage} /></div> : null}
       </Card>
       <Card>
@@ -535,6 +546,7 @@ export function TeamPage() {
             </table>
           </div>
         ) : null}
+        {listMayBeIncomplete(memberTotal) ? <p role="status" className="mt-4 rounded-lg bg-amber-50 p-4 text-sm text-amber-800">{incompleteListMessage}</p> : null}
         {memberTotal > pageSize ? <div className="mt-4"><Pagination page={memberPage} pageSize={pageSize} totalItems={memberTotal} itemLabel="usuários" onPageChange={setMemberPage} /></div> : null}
       </Card>
     </div>
