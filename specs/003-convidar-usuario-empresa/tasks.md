@@ -70,7 +70,7 @@
 
 ### Implementation for User Story 2
 
-- [x] T007 [P] [US2] Em `src/features/auth/theme/localization.ts`, fazer as telas de entrada já existentes distinguirem convite expirado de convite revogado usando as frases de `invitationOutcomeCopy` em `src/features/team/invitations.ts`: `Este convite expirou e não pode ser usado.` e `Este convite foi revogado e não pode ser usado.` Procurar no pacote `@clerk/localizations` as chaves de erro de convite de organização já presentes e preencher só essas chaves com essas duas frases, sem apagar o restante de `ptBR` já espalhado no arquivo. Não adicionar rota em `src/app/routes/AppRoutes.tsx`. Não definir URL de retorno no `inviteMember`: o dashboard é quem aponta o portal para `/sign-in` e `/sign-up`, como em `specs/003-convidar-usuario-empresa/contracts/team-invitations.md`.
+- [x] T007 [P] [US2] Em `src/features/auth/theme/localization.ts`, fazer as telas de entrada já existentes distinguirem convite expirado de convite revogado usando as frases de `invitationOutcomeCopy` em `src/features/team/invitations.ts`: `Este convite expirou e não pode ser usado.` e `Este convite não é mais válido. Peça um novo convite ao administrador.` Procurar no pacote `@clerk/localizations` as chaves de erro de convite de organização já presentes e preencher só essas chaves com essas duas frases, sem apagar o restante de `ptBR` já espalhado no arquivo. Não adicionar rota em `src/app/routes/AppRoutes.tsx`. Não definir URL de retorno no `inviteMember`: o dashboard é quem aponta o portal para `/sign-in` e `/sign-up`, como em `specs/003-convidar-usuario-empresa/contracts/team-invitations.md`.
 
 **Checkpoint**: US2 não cria tela; o texto dos dois fracassos fica distinto
 
@@ -169,7 +169,7 @@ Task: "frases de expiração e revogação em src/features/auth/theme/localizati
 ## Notes
 
 - O commit de implementação usa `LLT-167 Convidar usuário para a empresa`.
-- T011 está marcado porque o bloqueio foi registrado em `quickstart.md`. O roteiro manual em si não rodou: não há instância Clerk neste ambiente.
+- T011 está marcado. O roteiro manual foi executado em 16/11/2026 por Vinicius Ferrarini com Clerk real e registrado em `quickstart.md`: envio, e-mail, aceite, revogação, reenvio e recusa de link revogado e de link expirado.
 - Revisão do PR: as chaves de `unstable__errors` conferidas em `@clerk/localizations` 4.24.2 e em `@clerk/shared` (`ticket_expired_code`, `ticket_invalid_code`) permanecem. O mapeamento ficou em `invitationTicketErrors`. O menu e a recusa direta de `/equipe` saem de `teamMenuHiddenItems`, `teamPageDenied` e `filterNavItems`, cobertos em `tests/team-invitations.test.mjs`. O README aponta a spec e o quickstart.
 - [P] = arquivos diferentes, sem dependência incompleta
 - Não chamar o Core para convite

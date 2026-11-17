@@ -4,7 +4,7 @@
     "lhamalog-local": {
       "version": "1.0.0",
       "source": "local",
-      "manifest_hash": "sha256:47e267f5308a0fea7d0a451afc8025e5e8e71b3cea70bc9b3355f7b64341badd",
+      "manifest_hash": "sha256:9f01e5c0fbd9474ff90146a3ee13394137986013d0fbff350529488bf3458094",
       "enabled": true,
       "priority": 10,
       "registered_commands": {
@@ -19,7 +19,7 @@
           "speckit-taskstoissues"
         ]
       },
-      "installed_at": "2026-10-31T15:25:50.512345+00:00"
+      "installed_at": "2026-11-12T17:54:56.026521+00:00"
     }
   }
 }

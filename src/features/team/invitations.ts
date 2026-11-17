@@ -63,11 +63,11 @@ export function membershipBlocksInvite(identifiers: string[], email: string): bo
 
 export function invitationOutcomeCopy(kind: 'expired' | 'revoked'): string {
   if (kind === 'expired') return 'Este convite expirou e não pode ser usado.'
-  return 'Este convite foi revogado e não pode ser usado.'
+  return 'Este convite não é mais válido. Peça um novo convite ao administrador.'
 }
 
 // Chaves de unstable__errors em @clerk/shared (localization.d.ts) e em @clerk/localizations 4.24.2.
-// ticket_expired_code: ticket expirado. ticket_invalid_code: ticket inválido, inclusive convite revogado.
+// ticket_expired_code: ticket expirado. ticket_invalid_code: convite inválido, sem distinguir revogação.
 export const invitationTicketErrors = {
   ticket_expired_code: invitationOutcomeCopy('expired'),
   ticket_invalid_code: invitationOutcomeCopy('revoked'),
@@ -94,7 +94,7 @@ export function teamPageDenied(orgRole: string | null | undefined): boolean {
 }
 
 // Chave dos efeitos de /equipe. Usa só o id da organização, o papel, a página e o recarregamento.
-// O objeto organization da Clerk muda de identidade quando getToken roda e não pode entrar na chave.
+// O objeto organization da Clerk muda de identidade e não pode entrar na chave.
 export function teamLoadKey(input: {
   organizationId: string | null | undefined
   orgRole: string | null | undefined

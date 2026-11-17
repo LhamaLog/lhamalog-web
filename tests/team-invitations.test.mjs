@@ -30,7 +30,7 @@ test('administrator is org:admin or admin, and expiry is seven days unless the i
   const explicit = new Date('2026-11-03T00:00:00.000Z')
   assert.equal(invitationExpiry({ id: 'b', emailAddress: 'ana@empresa.com', createdAt: created, expiresAt: explicit }).toISOString(), explicit.toISOString())
   assert.equal(invitationOutcomeCopy('expired'), 'Este convite expirou e não pode ser usado.')
-  assert.equal(invitationOutcomeCopy('revoked'), 'Este convite foi revogado e não pode ser usado.')
+  assert.equal(invitationOutcomeCopy('revoked'), 'Este convite não é mais válido. Peça um novo convite ao administrador.')
   assert.notEqual(invitationOutcomeCopy('expired'), invitationOutcomeCopy('revoked'))
 })
 
@@ -40,7 +40,7 @@ test('ticket errors use the Clerk unstable__errors keys and the Portuguese messa
   assert.equal('ticket_expired_code' in ptBR.unstable__errors, true)
   assert.equal('ticket_invalid_code' in ptBR.unstable__errors, true)
   assert.equal(invitationTicketErrors.ticket_expired_code, 'Este convite expirou e não pode ser usado.')
-  assert.equal(invitationTicketErrors.ticket_invalid_code, 'Este convite foi revogado e não pode ser usado.')
+  assert.equal(invitationTicketErrors.ticket_invalid_code, 'Este convite não é mais válido. Peça um novo convite ao administrador.')
 })
 
 test('Equipe stays in the menu for an admin and the direct page is allowed', async () => {
@@ -62,8 +62,7 @@ test('Equipe stays in the menu for an admin and the direct page is allowed', asy
   assert.equal(organizationProfileNavigation.organizationProfileMode, 'navigation')
   assert.equal(organizationProfileNavigation.organizationProfileUrl, teamPath)
   const first = teamLoadKey({ organizationId: 'org_a', orgRole: 'org:admin', page: 1, reloadKey: 0 })
-  const sameId = teamLoadKey({ organizationId: 'org_a', orgRole: 'org:admin', page: 1, reloadKey: 0 })
-  assert.equal(first, sameId)
+  assert.equal(first, teamLoadKey({ organizationId: 'org_a', orgRole: 'org:admin', page: 1, reloadKey: 0 }))
   assert.equal(teamLoadKey({ organizationId: 'org_a', orgRole: 'admin', page: 1, reloadKey: 0 }), 'org_a\u0000admin\u00001\u00000')
   assert.notEqual(first, teamLoadKey({ organizationId: 'org_b', orgRole: 'org:admin', page: 1, reloadKey: 0 }))
   assert.notEqual(first, teamLoadKey({ organizationId: 'org_a', orgRole: 'org:admin', page: 2, reloadKey: 0 }))

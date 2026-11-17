@@ -58,7 +58,7 @@ Página: tamanho 10, começando em 1, no formato já devolvido por `getInvitatio
 | Pendente utilizável | `Já existe um convite pendente para este e-mail. Use reenviar.` |
 | Lista vazia | `Não há convite pendente.` |
 | Expirado, nas telas de entrada | `Este convite expirou e não pode ser usado.` |
-| Revogado, nas telas de entrada | `Este convite foi revogado e não pode ser usado.` |
+| Revogado ou inválido, nas telas de entrada | `Este convite não é mais válido. Peça um novo convite ao administrador.` |
 | Acesso direto sem ser administrador | `Você não tem acesso. Selecione uma empresa válida.` |
 
 ## O que não é entidade desta história

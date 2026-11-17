@@ -64,13 +64,13 @@ O administrador vê os convites ainda não aceitos, com e-mail, cargo, validade 
 
 **Why this priority**: É critério de aceite explícito. Sem a lista, o administrador não tem como revogar. Sem a recusa, um link antigo continuaria dando acesso.
 
-**Independent Test**: Enviar um convite, vê-lo na lista e revogá-lo. O link revogado é recusado com mensagem de revogação e não cria vínculo. Reenviar um pendente e conferir que só um convite utilizável permanece para aquele e-mail. Um convite com o prazo de 7 dias vencido é recusado com mensagem de expiração, distinta da de revogação.
+**Independent Test**: Enviar um convite, vê-lo na lista e revogá-lo. O link revogado é recusado com "Este convite não é mais válido. Peça um novo convite ao administrador." e não cria vínculo. Reenviar um pendente e conferir que só um convite utilizável permanece para aquele e-mail. Um convite com o prazo de 7 dias vencido é recusado com mensagem de expiração, distinta da frase de convite inválido.
 
 **Acceptance Scenarios**:
 
 1. **Given** convites pendentes da empresa selecionada, **When** o administrador abre Equipe, **Then** a lista mostra e-mail, cargo, validade de 7 dias após a criação e a situação.
 2. **Given** um convite pendente, **When** o administrador o revoga, **Then** ele sai dos convites utilizáveis.
-3. **Given** um convite revogado, **When** a pessoa usa o link antigo, **Then** o aceite é recusado, nenhum vínculo é criado e a mensagem é "Este convite foi revogado e não pode ser usado."
+3. **Given** um convite revogado, **When** a pessoa usa o link antigo, **Then** o aceite é recusado, nenhum vínculo é criado e a mensagem é "Este convite não é mais válido. Peça um novo convite ao administrador."
 4. **Given** um convite cujo prazo de 7 dias acabou, **When** a pessoa tenta aceitar, **Then** o aceite é recusado, nenhum vínculo é criado e a mensagem é "Este convite expirou e não pode ser usado."
 5. **Given** um convite pendente para um e-mail, **When** o administrador reenvia, **Then** o pendente anterior deixa de ser utilizável antes do novo envio e, ao final, existe no máximo um convite utilizável para esse e-mail, com o mesmo cargo.
 6. **Given** a revogação do reenvio funcionou e o novo envio falhou, **When** a resposta chega, **Then** não resta convite utilizável daquela tentativa e o administrador pode tentar de novo.
@@ -89,7 +89,7 @@ O administrador vê os convites ainda não aceitos, com e-mail, cargo, validade 
 - Sessão expirada: a pessoa volta a entrar, como nas configurações da empresa.
 - Acesso negado no envio ou no endereço direto: a pessoa vê "Você não tem acesso. Selecione uma empresa válida." A sessão não é encerrada por essa recusa de negócio.
 - Plataforma indisponível ou resposta ilegível: mensagem de falha, sem convite utilizável criado pela tentativa.
-- Prazo e revogação ao mesmo tempo: se os 7 dias acabaram, a pessoa vê expiração. Se ainda estava no prazo e foi revogado, vê revogação. Nos dois casos não há vínculo.
+- Prazo e revogação ao mesmo tempo: se os 7 dias acabaram, a pessoa vê expiração. Se ainda estava no prazo e foi revogado, vê "Este convite não é mais válido. Peça um novo convite ao administrador." Nos dois casos não há vínculo.
 - Cargo fora de Administrador e Membro: o envio é recusado e o campo é explicado.
 - Validade na lista: 7 dias depois da data de criação do convite. A plataforma é quem recusa depois desse prazo. A tela não oferece outro número de dias.
 - Lista com mais de uma página: o administrador percorre as páginas e nenhum pendente fica fora do alcance só porque não coube na primeira.
@@ -110,7 +110,7 @@ O administrador vê os convites ainda não aceitos, com e-mail, cargo, validade 
 - **FR-009**: O aceite de um convite ainda válido MUST vincular a pessoa somente à empresa daquele convite e MUST aplicar o cargo escolhido no envio. MUST NOT vincular outra empresa nem substituir o cargo por um padrão diferente do escolhido.
 - **FR-010**: Cargo diferente de `org:admin` e `org:member` MUST ser recusado no envio e MUST NOT ser atribuído no aceite no lugar do cargo escolhido.
 - **FR-011**: Convite expirado MUST NOT ser aceito e MUST NOT criar vínculo. A mensagem MUST ser "Este convite expirou e não pode ser usado."
-- **FR-012**: Convite revogado MUST NOT ser aceito e MUST NOT criar vínculo. A mensagem MUST ser "Este convite foi revogado e não pode ser usado." Revogar um convite já aceito MUST NOT desfazer o vínculo.
+- **FR-012**: Convite revogado ou inválido MUST NOT ser aceito e MUST NOT criar vínculo. A mensagem MUST ser "Este convite não é mais válido. Peça um novo convite ao administrador." Revogar um convite já aceito MUST NOT desfazer o vínculo.
 - **FR-013**: A tela MUST listar os convites pendentes da empresa selecionada com e-mail, cargo, validade e situação. A validade exibida MUST ser 7 dias depois da criação. O administrador MUST poder revogar um pendente e reenviá-lo. Reenviar MUST tornar inutilizável cada pendente daquele e-mail antes de criar o próximo. Ao final MUST existir no máximo um convite utilizável para esse e-mail, com o mesmo cargo. Se o novo envio falhar depois da revogação, MUST NOT restar convite utilizável daquela tentativa.
 - **FR-014**: E-mail já vinculado à empresa selecionada, inclusive o e-mail de quem está convidando, MUST NOT receber convite novo. A tela MUST explicar "Esta pessoa já pertence à empresa." A comparação MUST percorrer os membros da empresa, não só a primeira página.
 - **FR-015**: A rota MUST ser `/equipe`, aberta pelo item Equipe do grupo Administração, no mesmo espaço autenticado de `/empresa`, `/produtos` e `/perfil`. O item MUST aparecer só para o administrador da empresa selecionada.
