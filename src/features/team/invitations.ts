@@ -63,17 +63,25 @@ export function membershipBlocksInvite(identifiers: string[], email: string): bo
 
 export function invitationOutcomeCopy(kind: 'expired' | 'revoked'): string {
   if (kind === 'expired') return 'Este convite expirou e não pode ser usado.'
-  return 'Este convite foi revogado e não pode ser usado.'
+  return 'Este convite não é mais válido. Peça um novo convite ao administrador.'
 }
 
 // Chaves de unstable__errors em @clerk/shared (localization.d.ts) e em @clerk/localizations 4.24.2.
 // ticket_expired_code: ticket expirado. ticket_invalid_code: convite inválido, sem distinguir revogação.
 export const invitationTicketErrors = {
   ticket_expired_code: invitationOutcomeCopy('expired'),
-  ticket_invalid_code: 'Este convite não é mais válido. Peça um novo convite ao administrador.',
+  ticket_invalid_code: invitationOutcomeCopy('revoked'),
 } as const
 
 export const teamNavItemId = 'team'
+
+export const teamPath = '/equipe'
+
+// O seletor da organização não abre o perfil padrão da plataforma, onde dá para remover membro e trocar cargo.
+export const organizationProfileNavigation = {
+  organizationProfileMode: 'navigation',
+  organizationProfileUrl: teamPath,
+} as const
 
 export const teamAccessDeniedMessage = 'Você não tem acesso. Selecione uma empresa válida.'
 
@@ -85,7 +93,7 @@ export function teamPageDenied(orgRole: string | null | undefined): boolean {
   return !isOrganizationAdmin(orgRole)
 }
 
-// Chave do efeito da lista de convites. Usa só o id da organização, o papel, a página e o recarregamento.
+// Chave dos efeitos de /equipe. Usa só o id da organização, o papel, a página e o recarregamento.
 // O objeto organization da Clerk muda de identidade e não pode entrar na chave.
 export function teamLoadKey(input: {
   organizationId: string | null | undefined
@@ -98,8 +106,8 @@ export function teamLoadKey(input: {
 }
 
 export function roleLabel(role: string): string {
-  if (role === 'org:admin') return 'Administrador'
-  if (role === 'org:member') return 'Membro'
+  if (role === 'org:admin' || role === 'admin') return 'Administrador'
+  if (role === 'org:member' || role === 'member') return 'Membro'
   return role
 }
 

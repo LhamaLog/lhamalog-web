@@ -1,2 +1,6 @@
 @layer theme, base, clerk, components, utilities;
 @import 'tailwindcss';
+
+@theme {
+  --color-field: #f8f8f8;
+}

@@ -35,7 +35,7 @@ export function Textarea({
           aria-describedby={
             [props['aria-describedby'], error ? `${id}-error` : undefined].filter(Boolean).join(' ') || undefined
           }
-          className={`min-h-28 w-full rounded-lg border bg-white p-3 text-sm text-slate-900 placeholder:text-slate-600 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+          className={`min-h-28 w-full rounded-lg border bg-field p-3 text-sm text-slate-900 placeholder:text-slate-600 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:opacity-70 ${
             maxLength ? 'pb-7' : ''
           } ${
             error

@@ -44,6 +44,29 @@ test('profile validation accepts one and 200 characters and rejects the rest', a
   assert.ok(valid('Ana', 'pt-BR', 'Brasilia').timezone)
 })
 
+test('unsaved empty profile takes the Clerk session name without replacing a typed name', async () => {
+  const { clerkSessionName, fillUnsavedNameIfUntouched, withUnsavedClerkName } = await import('../src/features/profile/clerkName.ts')
+  const empty = { displayName: '', language: 'pt-BR', timezone: 'America/Sao_Paulo', version: null }
+  assert.equal(clerkSessionName({ fullName: ' Ana Souza ' }), 'Ana Souza')
+  assert.equal(clerkSessionName({ fullName: '  ', firstName: 'Ana', lastName: 'Souza' }), 'Ana Souza')
+  assert.equal(clerkSessionName({ firstName: 'Ana', lastName: '' }), 'Ana')
+  assert.equal(clerkSessionName(null), '')
+  const suggested = withUnsavedClerkName(empty, 'Ana Souza')
+  assert.equal(suggested.displayName, 'Ana Souza')
+  assert.equal(suggested.version, null)
+  assert.equal(withUnsavedClerkName({ ...empty, version: 1 }, 'Ana Souza').displayName, '')
+  assert.equal(withUnsavedClerkName({ ...empty, displayName: 'Bruno' }, 'Ana Souza').displayName, 'Bruno')
+  assert.equal(withUnsavedClerkName(empty, '   '), empty)
+  const edited = { ...empty, displayName: 'Jo', language: 'en' }
+  assert.equal(fillUnsavedNameIfUntouched(edited, empty, 'Ana Souza'), null)
+  const late = fillUnsavedNameIfUntouched({ ...empty, language: 'en' }, empty, 'Ana Souza')
+  assert.equal(late.draft.displayName, 'Ana Souza')
+  assert.equal(late.draft.language, 'en')
+  assert.equal(late.baseline.displayName, 'Ana Souza')
+  assert.equal(late.baseline.language, 'pt-BR')
+  assert.equal(late.baseline.version, null)
+})
+
 test('display name splits into Clerk first and last name', async () => {
   const { splitDisplayName } = await import('../src/features/profile/clerkName.ts')
   assert.deepEqual(splitDisplayName('Ana Souza Silva'), { firstName: 'Ana', lastName: 'Souza Silva' })

@@ -10,7 +10,7 @@ import { Input } from '../../../shared/ui/Input'
 import { LoadingState } from '../../../shared/ui/LoadingState'
 import { PageHeader } from '../../../shared/ui/PageHeader'
 import { Select } from '../../../shared/ui/Select'
-import { splitDisplayName } from '../clerkName'
+import { clerkSessionName, fillUnsavedNameIfUntouched, splitDisplayName, withUnsavedClerkName } from '../clerkName'
 import { setAppliedClerkLocale } from '../clerkLocale'
 import { buildProfilePut, cloneProfile, readUserProfile, serverConfirmedProfile, userProfilePath } from '../contract'
 import { profileMessage } from '../messages'
@@ -57,6 +57,13 @@ export function ProfilePage() {
   const [reloadKey, setReloadKey] = useState(0)
   const [now, setNow] = useState(() => new Date())
   const controller = useRef<AbortController | null>(null)
+  const sessionName = clerkSessionName(user)
+  const sessionNameRef = useRef(sessionName)
+  const draftRef = useRef(draft)
+  const baselineRef = useRef(baseline)
+  sessionNameRef.current = sessionName
+  draftRef.current = draft
+  baselineRef.current = baseline
   const text = (key: Parameters<typeof profileMessage>[1]) => profileMessage(language, key)
 
   useEffect(() => () => controller.current?.abort(), [])
@@ -79,8 +86,9 @@ export function ProfilePage() {
           setLoadError(text('profile.loadError'))
           return
         }
-        setDraft(cloneProfile(profile))
-        setBaseline(cloneProfile(profile))
+        const suggested = withUnsavedClerkName(profile, sessionNameRef.current)
+        setDraft(cloneProfile(suggested))
+        setBaseline(cloneProfile(suggested))
         applyConfirmed(profile)
       })
       .catch((reason) => {
@@ -89,6 +97,16 @@ export function ProfilePage() {
       .finally(() => { if (!current.signal.aborted) setLoading(false) })
     return () => current.abort()
   }, [orgId, request, reloadKey, applyConfirmed])
+
+  useEffect(() => {
+    const currentDraft = draftRef.current
+    const currentBaseline = baselineRef.current
+    if (!currentDraft || !currentBaseline) return
+    const filled = fillUnsavedNameIfUntouched(currentDraft, currentBaseline, sessionName)
+    if (!filled) return
+    setDraft(cloneProfile(filled.draft))
+    setBaseline(cloneProfile(filled.baseline))
+  }, [sessionName])
 
   useEffect(() => {
     setNow(new Date())

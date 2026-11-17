@@ -17,3 +17,22 @@ export type InvitationRow = {
   expiresAt: Date | null
   status: InvitationStatus
 }
+
+export const memberStatuses = ['active', 'deactivated'] as const
+
+export type MemberStatus = (typeof memberStatuses)[number]
+
+export type CoreMember = {
+  userId: string
+  status: MemberStatus
+  lastAccessAt: Date | null
+}
+
+export type MemberRow = {
+  userId: string | null
+  name: string
+  email: string
+  role: string
+  status: MemberStatus
+  lastAccessAt: Date | null
+}

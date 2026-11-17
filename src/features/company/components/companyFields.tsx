@@ -143,7 +143,7 @@ export function SystemTags({
   return (
     <div className="flex flex-col gap-2 sm:col-span-2">
       <label htmlFor="company-systems" className="text-sm font-semibold text-slate-900">Sistemas Monitorados</label>
-      <div className="flex min-h-10 flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-white px-2 py-1.5 focus-within:border-[#0C70F2] focus-within:ring-2 focus-within:ring-[#0C70F2]/20">
+      <div className="flex min-h-10 flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-field px-2 py-1.5 focus-within:border-[#0C70F2] focus-within:ring-2 focus-within:ring-[#0C70F2]/20">
         {values.map((value) => (
           <span key={value} className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
             {value}

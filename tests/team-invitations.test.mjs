@@ -30,7 +30,7 @@ test('administrator is org:admin or admin, and expiry is seven days unless the i
   const explicit = new Date('2026-11-03T00:00:00.000Z')
   assert.equal(invitationExpiry({ id: 'b', emailAddress: 'ana@empresa.com', createdAt: created, expiresAt: explicit }).toISOString(), explicit.toISOString())
   assert.equal(invitationOutcomeCopy('expired'), 'Este convite expirou e não pode ser usado.')
-  assert.equal(invitationOutcomeCopy('revoked'), 'Este convite foi revogado e não pode ser usado.')
+  assert.equal(invitationOutcomeCopy('revoked'), 'Este convite não é mais válido. Peça um novo convite ao administrador.')
   assert.notEqual(invitationOutcomeCopy('expired'), invitationOutcomeCopy('revoked'))
 })
 
@@ -44,7 +44,7 @@ test('ticket errors use the Clerk unstable__errors keys and the Portuguese messa
 })
 
 test('Equipe stays in the menu for an admin and the direct page is allowed', async () => {
-  const { teamAccessDeniedMessage, teamLoadKey, teamMenuHiddenItems, teamNavItemId, teamPageDenied } = await import('../src/features/team/invitations.ts')
+  const { organizationProfileNavigation, teamAccessDeniedMessage, teamLoadKey, teamMenuHiddenItems, teamNavItemId, teamPageDenied, teamPath } = await import('../src/features/team/invitations.ts')
   const { filterNavItems } = await import('../src/app/layouts/navVisibility.ts')
   const items = [{ id: 'dashboard' }, { id: teamNavItemId }, { id: 'company' }]
   const adminItems = filterNavItems(items, undefined, teamMenuHiddenItems('org:admin')).map((item) => item.id)
@@ -58,6 +58,9 @@ test('Equipe stays in the menu for an admin and the direct page is allowed', asy
   assert.equal(teamPageDenied('org:member'), true)
   assert.equal(teamPageDenied(undefined), true)
   assert.equal(teamAccessDeniedMessage, 'Você não tem acesso. Selecione uma empresa válida.')
+  assert.equal(teamPath, '/equipe')
+  assert.equal(organizationProfileNavigation.organizationProfileMode, 'navigation')
+  assert.equal(organizationProfileNavigation.organizationProfileUrl, teamPath)
   const first = teamLoadKey({ organizationId: 'org_a', orgRole: 'org:admin', page: 1, reloadKey: 0 })
   assert.equal(first, teamLoadKey({ organizationId: 'org_a', orgRole: 'org:admin', page: 1, reloadKey: 0 }))
   assert.equal(teamLoadKey({ organizationId: 'org_a', orgRole: 'admin', page: 1, reloadKey: 0 }), 'org_a\u0000admin\u00001\u00000')
