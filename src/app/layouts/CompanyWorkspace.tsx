@@ -5,6 +5,7 @@ import { CompanyPage } from '../../features/company/components/CompanyPage'
 import { companySectionFromParam, companySections } from '../../features/company/model'
 import { ProductsPage } from '../../features/products/components/ProductsPage'
 import { ProfilePage } from '../../features/profile/components/ProfilePage'
+import { NotificationPreferences } from '../../features/notificationPreferences/components/NotificationPreferences'
 import { TeamPage } from '../../features/team/components/TeamPage'
 import { organizationProfileNavigation, teamMenuHiddenItems } from '../../features/team/invitations'
 import { setAppliedClerkLocale } from '../../features/profile/clerkLocale'
@@ -91,6 +92,6 @@ function WorkspaceShell() {
       <Link to="/organizacoes/nova" className="rounded-lg px-3 py-2 text-sm font-semibold text-[#0C70F2] hover:bg-blue-50">{text('shell.registerCompany')}</Link>
     </div>
     {!orgId ? <EmptyState title={text('shell.emptyCompanyTitle')} description={text('shell.emptyCompanyDescription')} />
-      : <div key={orgId}>{team ? <TeamPage /> : profile ? <ProfilePage /> : products ? <ProductsPage /> : <CompanyPage organizationId={organization?.id ?? orgId} />}</div>}
+      : <div key={orgId}>{team ? <TeamPage /> : profile ? <div className="space-y-6"><ProfilePage /><NotificationPreferences /></div> : products ? <ProductsPage /> : <CompanyPage organizationId={organization?.id ?? orgId} />}</div>}
   </AppLayout>
 }
