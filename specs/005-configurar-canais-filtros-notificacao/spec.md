@@ -37,7 +37,7 @@ Como usuário autenticado, configurar minhas notificações na empresa ativa.
 - Informou que tipos e severidades ainda não foram decididos.
 - Autorizou estrutura configurável, sem inventar catálogo, deixando filtros específicos de negócio e entrega completa aguardando definição da equipe.
 - Decisão de implementação: Todos é explícito; modo específico vazio é inválido; início com todos os tipos/severidades.
-- A autorização de implementação permite avançar em etapas reportadas; não abrir PR.
+- Vinicius autorizou a implementação em etapas reportadas e, posteriormente, commit, push e abertura dos PRs para Development. O PR do Web permanece aberto para revisão.
 
 ## Requisitos
 - FR-001: armazenar canais e filtros por identidade e empresa derivadas da sessão.
