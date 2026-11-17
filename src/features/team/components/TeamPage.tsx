@@ -13,12 +13,10 @@ import {
   membershipBlocksInvite,
   resendPlan,
   roleLabel,
-  teamAccessDeniedMessage,
   teamLoadKey,
-  teamPageDenied,
 } from '../invitations'
 import { companyMembersPath, deactivationPath, readMemberList } from '../memberContract'
-import { activeAdminCount, isActiveAdmin, localLastAdminGuard, mergeMember, roleToUpdate } from '../members'
+import { activeAdminCount, deactivatedTeamBlock, isActiveAdmin, localLastAdminGuard, mergeMember, roleToUpdate, shouldApplyTeamList, teamListsForCurrentOrganization, teamScreen } from '../members'
 import type { InviteRole, MemberRow } from '../types'
 import { emailFieldError, roleFieldError } from '../validation'
 import { Button } from '../../../shared/ui/Button'
@@ -134,6 +132,21 @@ export function TeamPage() {
   const [roleDraft, setRoleDraft] = useState<Record<string, 'admin' | 'member'>>({})
   const [blocked, setBlocked] = useState('')
   const organizationId = organization?.id ?? null
+  const [listOrgId, setListOrgId] = useState(organizationId)
+  const nextLists = teamListsForCurrentOrganization({
+    previousOrgId: listOrgId,
+    nextOrgId: organizationId,
+    invitations: rows,
+    members: memberRows,
+  })
+  if (nextLists.changed) {
+    setListOrgId(organizationId)
+    setRows(nextLists.invitations)
+    setTotal(0)
+    setMemberRows(nextLists.members)
+    setMemberTotal(0)
+    setRoleDraft({})
+  }
   const invitationKey = teamLoadKey({ organizationId, orgRole, page, reloadKey })
   const memberKey = teamLoadKey({ organizationId, orgRole, page: memberPage, reloadKey: memberReloadKey })
 
@@ -157,12 +170,12 @@ export function TeamPage() {
     setListError('')
     current.getInvitations({ status: ['pending'], initialPage: page, pageSize })
       .then((result) => {
-        if (!active || orgIdRef.current !== started) return
+        if (!shouldApplyTeamList({ active, startedOrgId: started, currentOrgId: orgIdRef.current })) return
         setRows(result.data)
         setTotal(pageTotal(result))
       })
       .catch((reason: unknown) => {
-        if (!active || orgIdRef.current !== started) return
+        if (!shouldApplyTeamList({ active, startedOrgId: started, currentOrgId: orgIdRef.current })) return
         if (isClerkSessionExpired(reason)) {
           void signOutRef.current({ redirectUrl: `/sign-in?motivo=${SIGNED_OUT_REASON}` })
           return
@@ -280,7 +293,7 @@ export function TeamPage() {
       requestRef.current<unknown>(companyMembersPath),
     ])
       .then(([memberships, body]) => {
-        if (!active || orgIdRef.current !== started) return
+        if (!shouldApplyTeamList({ active, startedOrgId: started, currentOrgId: orgIdRef.current })) return
         const core = readMemberList(body)
         if (!core) {
           setMemberRows([])
@@ -303,10 +316,11 @@ export function TeamPage() {
         })))
       })
       .catch((reason: unknown) => {
-        if (!active || orgIdRef.current !== started) return
-        if (reason instanceof ApiError && reason.code === 'user_deactivated') {
+        if (!shouldApplyTeamList({ active, startedOrgId: started, currentOrgId: orgIdRef.current })) return
+        const block = reason instanceof ApiError ? deactivatedTeamBlock(reason) : null
+        if (block !== null) {
           setMemberRows([])
-          setBlocked(reason.message)
+          setBlocked(block)
           return
         }
         if (reason instanceof ApiError && reason.status === 401) return
@@ -370,8 +384,9 @@ export function TeamPage() {
       setMessage(`Cargo atualizado para ${roleLabel(next)}.`)
       setMemberReloadKey((value) => value + 1)
     } catch (reason) {
-      if (reason instanceof ApiError && reason.code === 'user_deactivated' && sameOrganization(started)) {
-        setBlocked(reason.message)
+      const block = reason instanceof ApiError ? deactivatedTeamBlock(reason) : null
+      if (block !== null && sameOrganization(started)) {
+        setBlocked(block)
         return
       }
       await fail(reason, started)
@@ -415,8 +430,9 @@ export function TeamPage() {
       setMemberReloadKey((value) => value + 1)
     } catch (reason) {
       if (!sameOrganization(started)) return
-      if (reason instanceof ApiError && reason.code === 'user_deactivated') {
-        setBlocked(reason.message)
+      const block = reason instanceof ApiError ? deactivatedTeamBlock(reason) : null
+      if (block !== null) {
+        setBlocked(block)
         return
       }
       if (reason instanceof ApiError && reason.code === 'last_admin') {
@@ -432,14 +448,15 @@ export function TeamPage() {
 
   if (!isLoaded || !organization) return <LoadingState label="Carregando equipe..." />
   if (!orgId) return null
-  if (teamPageDenied(orgRole)) {
-    return <p role="alert" className="rounded-lg bg-red-50 p-4 text-sm text-red-700">{teamAccessDeniedMessage}</p>
+  const screen = teamScreen({ orgRole, blockedMessage: blocked })
+  if (screen.mode === 'denied') {
+    return <p role="alert" className="rounded-lg bg-red-50 p-4 text-sm text-red-700">{screen.message}</p>
   }
-  if (blocked) {
+  if (screen.mode === 'deactivated') {
     return (
       <div className="space-y-5">
         <PageHeader title="Equipe" description="Convide uma pessoa para a empresa selecionada. O convite vale 7 dias." />
-        <p role="alert" className="rounded-lg bg-red-50 p-4 text-sm text-red-700">{blocked}</p>
+        <p role="alert" className="rounded-lg bg-red-50 p-4 text-sm text-red-700">{screen.message}</p>
       </div>
     )
   }

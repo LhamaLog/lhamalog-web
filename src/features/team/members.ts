@@ -1,4 +1,4 @@
-import { isOrganizationAdmin } from './invitations'
+import { isOrganizationAdmin, teamAccessDeniedMessage, teamPageDenied } from './invitations'
 import type { CoreMember, MemberRow, MemberStatus } from './types'
 
 export type MemberSource = {
@@ -84,4 +84,44 @@ export function localLastAdminGuard(input: {
 
 export function isActiveAdmin(role: string, status: MemberStatus): boolean {
   return isOrganizationAdmin(role) && status !== 'deactivated'
+}
+
+export type TeamScreen =
+  | { mode: 'denied', message: string, offersActions: false, signOut: false }
+  | { mode: 'deactivated', message: string, offersActions: false, signOut: false }
+  | { mode: 'open', offersActions: true, signOut: false }
+
+export function teamScreen(input: { orgRole: string | null | undefined, blockedMessage: string }): TeamScreen {
+  if (teamPageDenied(input.orgRole)) {
+    return { mode: 'denied', message: teamAccessDeniedMessage, offersActions: false, signOut: false }
+  }
+  if (input.blockedMessage) {
+    return { mode: 'deactivated', message: input.blockedMessage, offersActions: false, signOut: false }
+  }
+  return { mode: 'open', offersActions: true, signOut: false }
+}
+
+export function deactivatedTeamBlock(error: { code: string, message: string }): string | null {
+  if (error.code !== 'user_deactivated') return null
+  return error.message
+}
+
+export function shouldApplyTeamList(input: {
+  active: boolean
+  startedOrgId: string | null | undefined
+  currentOrgId: string | null | undefined
+}): boolean {
+  return input.active && input.currentOrgId === input.startedOrgId
+}
+
+export function teamListsForCurrentOrganization<T, U>(input: {
+  previousOrgId: string | null
+  nextOrgId: string | null
+  invitations: T[]
+  members: U[]
+}): { changed: boolean, invitations: T[], members: U[] } {
+  if (input.previousOrgId === input.nextOrgId) {
+    return { changed: false, invitations: input.invitations, members: input.members }
+  }
+  return { changed: true, invitations: [], members: [] }
 }

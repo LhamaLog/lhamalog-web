@@ -118,6 +118,60 @@ test('two active administrators may be demoted or deactivated, and a changed org
   )
 })
 
+test('Equipe blocks a non-admin and a deactivated user without offering actions or signing out', async () => {
+  const { deactivatedTeamBlock, teamScreen } = await import('../src/features/team/members.ts')
+  const denied = 'Você não tem acesso. Selecione uma empresa válida.'
+  const deactivated = 'Seu acesso a esta empresa foi desativado.'
+  for (const orgRole of ['org:member', 'member', undefined, '']) {
+    const screen = teamScreen({ orgRole, blockedMessage: '' })
+    assert.equal(screen.mode, 'denied')
+    assert.equal(screen.message, denied)
+    assert.equal(screen.offersActions, false)
+    assert.equal(screen.signOut, false)
+    assert.notEqual(screen.message, deactivated)
+  }
+  const open = teamScreen({ orgRole: 'org:admin', blockedMessage: '' })
+  assert.equal(open.mode, 'open')
+  assert.equal(open.offersActions, true)
+  assert.equal(deactivatedTeamBlock({ code: 'not_admin', message: 'Somente o administrador da empresa pode gerenciar os usuários.' }), null)
+  const block = deactivatedTeamBlock({ code: 'user_deactivated', message: deactivated })
+  assert.equal(block, deactivated)
+  const blocked = teamScreen({ orgRole: 'org:admin', blockedMessage: block ?? '' })
+  assert.equal(blocked.mode, 'deactivated')
+  assert.equal(blocked.message, deactivated)
+  assert.notEqual(blocked.message, denied)
+  assert.equal(blocked.offersActions, false)
+  assert.equal(blocked.signOut, false)
+  assert.equal(teamScreen({ orgRole: 'admin', blockedMessage: deactivated }).offersActions, false)
+})
+
+test('switching organization drops the previous invitation and member lists and ignores their late response', async () => {
+  const { shouldApplyTeamList, teamListsForCurrentOrganization } = await import('../src/features/team/members.ts')
+  const invitations = [{ id: 'inv_a', emailAddress: 'ana@empresa-a.com' }]
+  const members = [{ userId: 'user_ana', email: 'ana@empresa-a.com' }]
+  const same = teamListsForCurrentOrganization({
+    previousOrgId: 'org_a',
+    nextOrgId: 'org_a',
+    invitations,
+    members,
+  })
+  assert.equal(same.changed, false)
+  assert.deepEqual(same.invitations, invitations)
+  assert.deepEqual(same.members, members)
+  const switched = teamListsForCurrentOrganization({
+    previousOrgId: 'org_a',
+    nextOrgId: 'org_b',
+    invitations,
+    members,
+  })
+  assert.equal(switched.changed, true)
+  assert.deepEqual(switched.invitations, [])
+  assert.deepEqual(switched.members, [])
+  assert.equal(shouldApplyTeamList({ active: true, startedOrgId: 'org_a', currentOrgId: 'org_b' }), false)
+  assert.equal(shouldApplyTeamList({ active: false, startedOrgId: 'org_b', currentOrgId: 'org_b' }), false)
+  assert.equal(shouldApplyTeamList({ active: true, startedOrgId: 'org_b', currentOrgId: 'org_b' }), true)
+})
+
 test('role update uses the unprefixed identifiers and the member contract has no body', async () => {
   const { roleToUpdate } = await import('../src/features/team/members.ts')
   const { companyMembersPath, deactivationPath, readMember, readMemberList } = await import('../src/features/team/memberContract.ts')
