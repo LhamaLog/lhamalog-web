@@ -1,13 +1,14 @@
-export function formatBytes(value: number, locale = 'pt-BR'): string {
-  if (!Number.isFinite(value) || value < 0) return '0 B'
-  const units = ['B', 'KB', 'MB', 'GB', 'TB']
-  let amount = value
-  let unit = 0
-  while (amount >= 1024 && unit < units.length - 1) {
-    amount /= 1024
-    unit += 1
-  }
-  return `${amount.toLocaleString(locale, { maximumFractionDigits: amount >= 10 ? 0 : 1 })} ${units[unit]}`
+/** 1 GiB = 2^30 bytes */
+export const BYTES_PER_GIB = 1073741824
+
+/**
+ * Formata volume em GiB (base 2^30) no locale informado, com até 2 casas decimais.
+ * Exemplos (pt-BR): 1073741824 → "1 GiB"; 1610612736 → "1,5 GiB"; 0 → "0 GiB".
+ */
+export function formatVolumeGiB(value: number, locale = 'pt-BR'): string {
+  if (!Number.isFinite(value) || value < 0) return '0 GiB'
+  const gib = value / BYTES_PER_GIB
+  return `${gib.toLocaleString(locale, { maximumFractionDigits: 2 })} GiB`
 }
 
 export function formatCount(value: number, locale = 'pt-BR'): string {

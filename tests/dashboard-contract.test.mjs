@@ -24,14 +24,14 @@ const productBody = {
   to: '2026-11-18T00:00:00.000Z',
   dadosConsolidadosAte: '2026-11-18T14:00:00.000Z',
   retentionDays: 30,
-  volumeIngestaoBytes: 10737418240,
+  volumeIngestaoBytes: 10737418240, // 10 GiB = 10 × 2^30
   totals: {
     logs: 1200,
     error: 40,
     warning: 80,
     info: 1080,
     traces: 15,
-    volumeUsedBytes: 524288000,
+    volumeUsedBytes: 1610612736, // 1,5 GiB = 1,5 × 2^30
   },
   series: {
     bucket: 'day',

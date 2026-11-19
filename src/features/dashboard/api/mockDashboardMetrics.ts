@@ -51,14 +51,15 @@ export function mockProductMetrics(input: {
     to: input.to,
     dadosConsolidadosAte: new Date(new Date(input.to).getTime() - 60 * 60 * 1000).toISOString(),
     retentionDays: 30,
-    volumeIngestaoBytes: 10 * 1024 * 1024 * 1024,
+    // Cota 10 GiB e uso 1,5 GiB (múltiplos de 2^30 = 1073741824 bytes)
+    volumeIngestaoBytes: 10 * 1073741824,
     totals: {
       logs: error + warning + info,
       error,
       warning,
       info,
       traces: 12,
-      volumeUsedBytes: 512 * 1024 * 1024,
+      volumeUsedBytes: 1610612736,
     },
     series,
     serviceRanking: [

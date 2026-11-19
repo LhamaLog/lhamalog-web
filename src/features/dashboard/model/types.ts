@@ -14,6 +14,7 @@ export type DashboardScreenState =
   | 'ready'
   | 'filter_invalid'
   | 'forbidden'
+  | 'product_unavailable'
   | 'error'
   | 'session'
 

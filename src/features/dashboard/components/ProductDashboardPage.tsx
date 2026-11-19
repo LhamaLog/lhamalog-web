@@ -28,7 +28,7 @@ import {
   revalidateAfterRetention,
   withRetentionCeiling,
 } from '../model/filterPeriod'
-import { formatBytes, formatCount } from '../model/format'
+import { formatCount, formatVolumeGiB } from '../model/format'
 import { formatBucketLabel, formatInTimeZone, resolvePeriod } from '../model/timezoneBuckets'
 import type { DashboardFilter, ProductMetrics } from '../model/types'
 import { DashboardFilters } from './DashboardFilters'
@@ -53,6 +53,7 @@ export function ProductDashboardPage() {
   const [metrics, setMetrics] = useState<ProductMetrics | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [productUnavailable, setProductUnavailable] = useState(false)
   const [correlationId, setCorrelationId] = useState('')
   const [reloadKey, setReloadKey] = useState(0)
 
@@ -99,6 +100,7 @@ export function ProductDashboardPage() {
     const requestedOrgId = orgId
     setLoading(true)
     setError('')
+    setProductUnavailable(false)
     setCorrelationId('')
     fetchProductMetrics({
       request,
@@ -112,6 +114,7 @@ export function ProductDashboardPage() {
       .then((body) => {
         if (controller.signal.aborted || orgId !== requestedOrgId) return
         setMetrics(body)
+        setProductUnavailable(false)
         const raised = withRetentionCeiling(applied, body.retentionDays)
         const check = revalidateAfterRetention(raised, body.retentionDays)
         if (!check.ok) {
@@ -129,10 +132,19 @@ export function ProductDashboardPage() {
       })
       .catch((reason) => {
         if (controller.signal.aborted || endsSession(reason)) return
+        // Produto inacessível (outra empresa ou MEMBRO sem AcessoProduto): Core responde 404
+        if (reason instanceof ApiError && reason.status === 404) {
+          setProductUnavailable(true)
+          setError('')
+          setMetrics(null)
+          setCorrelationId(reason.correlationId)
+          return
+        }
         const message = reason instanceof Error ? reason.message : dashboardMessage(language, 'dashboard.errorTitle')
         setError(message)
         setCorrelationId(reason instanceof ApiError ? reason.correlationId : '')
         setMetrics(null)
+        setProductUnavailable(false)
       })
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false)
@@ -203,9 +215,16 @@ export function ProductDashboardPage() {
         />
       )}
 
-      {loading && !error && <LoadingState />}
+      {!loading && !error && productUnavailable && (
+        <EmptyState
+          title={dashboardMessage(language, 'dashboard.productNotFoundTitle')}
+          description={dashboardMessage(language, 'dashboard.productNotFoundDescription')}
+        />
+      )}
 
-      {!loading && !error && metrics && (
+      {loading && !error && !productUnavailable && <LoadingState />}
+
+      {!loading && !error && !productUnavailable && metrics && (
         <>
           {metrics.dadosConsolidadosAte && (
             <p className="text-sm text-slate-600">
@@ -227,10 +246,10 @@ export function ProductDashboardPage() {
             <MetricCard title={dashboardMessage(language, 'dashboard.card.traces')} value={formatCount(metrics.totals.traces, locale)} tone="green" />
             <MetricCard
               title={dashboardMessage(language, 'dashboard.card.volume')}
-              value={formatBytes(metrics.totals.volumeUsedBytes, locale)}
+              value={formatVolumeGiB(metrics.totals.volumeUsedBytes, locale)}
               variation={dashboardMessage(language, 'dashboard.volumeOf', {
-                used: formatBytes(metrics.totals.volumeUsedBytes, locale),
-                quota: formatBytes(metrics.volumeIngestaoBytes, locale),
+                used: formatVolumeGiB(metrics.totals.volumeUsedBytes, locale),
+                quota: formatVolumeGiB(metrics.volumeIngestaoBytes, locale),
               })}
               tone="neutral"
             />
