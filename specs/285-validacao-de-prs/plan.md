@@ -59,9 +59,11 @@ specs/285-validacao-de-prs/
 
 ```text
 .github/workflows/validacao-prs.yml
+scripts/pr-validation.mjs
+tests/pr-validation.test.mjs
 ```
 
-O arquivo ainda não existe. A implementação futura cria só esse workflow. As regras de formato que forem puras podem morar num módulo já coberto por `tests/`, sem mudar `package.json`.
+O workflow ainda não existe. A implementação cria esse arquivo e o módulo puro `scripts/pr-validation.mjs`, coberto por `tests/pr-validation.test.mjs`. O workflow chama o módulo para as regras e usa `actions/github-script` só para criar ou atualizar o comentário. `package.json` não ganha dependência.
 
 **Structure Decision**: Um workflow, um job. O comentário é publicado por `actions/github-script` no mesmo job, depois das verificações. Não há segundo workflow, action composta nem segredo.
 

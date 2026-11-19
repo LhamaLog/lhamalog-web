@@ -22,7 +22,7 @@ Decisões fechadas para o workflow. Nenhuma escolha ficou em aberto.
 
 ## 4. Script do comentário
 
-- **Decision**: `actions/github-script` procura os comentários do pull request, acha o que contém o marcador oculto `<!-- llt-285-validacao-prs -->` e chama a atualização. Se não achar, cria o comentário com esse marcador na primeira linha.
+- **Decision**: As regras de branch, título, commit, trecho de erro e texto do comentário ficam em `scripts/pr-validation.mjs`. `actions/github-script` procura os comentários do pull request, acha o que contém o marcador oculto `<!-- llt-285-validacao-prs -->` e chama a atualização. Se não achar, cria o comentário com esse marcador na primeira linha. O script da action não reimplementa as regras.
 - **Rationale**: Atualizar no lugar é a API de comentário do pull request: listar, editar ou criar. O marcador não aparece para quem lê o comentário e não muda quando o texto visível muda.
 - **Alternatives considered**: Bash com `gh api` (aceitável, rejeitado neste plano: paginar comentários e escapar o corpo em shell é mais frágil do que o script da action). Apagar e criar outro comentário a cada push (rejeitado: o pedido é um único comentário atualizado).
 
