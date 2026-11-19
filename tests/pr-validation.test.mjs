@@ -72,6 +72,24 @@ test('a failed install does not run test or build', async () => {
   }
 })
 
+test('a pull request into main checks only install, tests and build', async () => {
+  const { RELEASE_NOTE, buildComment } = await import('../scripts/pr-validation.mjs')
+  const body = buildComment({
+    base: 'main',
+    branch: 'qualquer',
+    title: 'sem formato',
+    commits: [{ sha: 'abc', message: 'mensagem livre', parents: 1 }],
+    commands: passedCommands,
+  })
+  assert.match(body, new RegExp(RELEASE_NOTE.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))
+  assert.match(body, /✅ npm ci/)
+  assert.match(body, /✅ npm test/)
+  assert.match(body, /✅ npm run build/)
+  assert.doesNotMatch(body, /[✅❌] branch/)
+  assert.doesNotMatch(body, /[✅❌] título/)
+  assert.doesNotMatch(body, /[✅❌] commits/)
+})
+
 test('the comment lists six checks and the copy block only includes failures', async () => {
   const { MARKER, buildComment } = await import('../scripts/pr-validation.mjs')
   const clean = buildComment({

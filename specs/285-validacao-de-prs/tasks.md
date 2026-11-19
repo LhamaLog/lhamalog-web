@@ -179,4 +179,5 @@ Task: "Testes das regras em tests/pr-validation.test.mjs"
 - [P] marca arquivos diferentes, sem depender de tarefa incompleta
 - US2 e US3 não levam [P] porque editam o mesmo workflow
 - O job verde e o comentário no GitHub não são provados por `npm test`. T009 confere isso
+- Pull request para `main` pula branch, título e commits: o comentário tem a nota `PR de release (Development → main): só testes e build são verificados` e só as linhas de `npm ci`, `npm test` e `npm run build`. Destino `Development` segue com as seis verificações.
 - Nenhum passo torna esta validação obrigatória para o merge

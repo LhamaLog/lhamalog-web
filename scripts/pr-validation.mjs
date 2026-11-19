@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 
 export const MARKER = '<!-- llt-285-validacao-prs -->'
+export const RELEASE_NOTE = 'PR de release (Development → main): só testes e build são verificados'
 export const BRANCH_FORMAT = 'LLT-XXX-slug'
 export const TITLE_FORMAT = 'LLT-XXX: descricao'
 const BRANCH_PATTERN = /^LLT-(\d+)-([a-z0-9]+(?:-[a-z0-9]+)*)$/
@@ -144,8 +145,10 @@ function fixText(check) {
 }
 
 export function buildComment(input) {
-  const checks = evaluate(input)
+  const release = input.base === 'main'
+  const checks = release ? commandChecks(input.commands) : evaluate(input)
   const lines = [MARKER, '']
+  if (release) lines.push(RELEASE_NOTE, '')
   for (const check of checks) {
     lines.push(`${check.ok ? '✅' : '❌'} ${check.name}${check.detail ? ` — ${check.detail}` : ''}`)
   }
@@ -167,6 +170,7 @@ function readOptional(file) {
 
 export function inputFromEnv(env = process.env) {
   return {
+    base: env.PR_BASE ?? '',
     branch: env.PR_BRANCH ?? '',
     title: env.PR_TITLE ?? '',
     commits: JSON.parse(readFileSync(env.PR_COMMITS_FILE, 'utf8')),

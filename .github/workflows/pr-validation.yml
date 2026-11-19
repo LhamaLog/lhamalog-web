@@ -3,7 +3,7 @@ name: Validação de PRs
 on:
   pull_request:
     types: [opened, synchronize, reopened, edited, ready_for_review]
-    branches: [Development]
+    branches: [Development, main]
 
 permissions:
   contents: read
@@ -94,6 +94,7 @@ jobs:
       - name: Montar o comentário
         if: always()
         env:
+          PR_BASE: ${{ github.base_ref }}
           PR_BRANCH: ${{ steps.meta.outputs.branch || github.head_ref }}
           PR_TITLE: ${{ steps.meta.outputs.title || github.event.pull_request.title }}
           PR_COMMITS_FILE: ${{ runner.temp }}/pr-commits.json

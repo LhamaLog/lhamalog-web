@@ -31,7 +31,7 @@ Quem abre um pull request para Development recebe um único comentário dizendo 
 1. **Given** um pull request novo cujo destino é Development, **When** a validação termina, **Then** há um comentário no pull request e a verificação associada está verde.
 2. **Given** uma ou mais verificações falharam, **When** a validação termina, **Then** o merge não fica bloqueado por esta validação e a verificação continua verde.
 3. **Given** um segundo push no mesmo pull request, **When** a validação roda de novo, **Then** o mesmo comentário é atualizado e não surge um segundo comentário.
-4. **Given** um pull request cujo destino não é Development, **When** ele é aberto ou recebe push, **Then** esta validação não publica comentário.
+4. **Given** um pull request cujo destino não é Development nem main, **When** ele é aberto ou recebe push, **Then** esta validação não publica comentário.
 5. **Given** um pull request em rascunho para Development, **When** ele é aberto, **Then** recebe as mesmas verificações e o mesmo comentário de um pull request pronto.
 6. **Given** um pull request vindo de um fork, **When** ele é aberto contra Development, **Then** esta validação não roda e não publica comentário.
 7. **Given** um comentário já publicado, **When** alguém edita só o título, reabre o pull request ou marca como pronto para revisão, **Then** o mesmo comentário é atualizado sem um push novo.
@@ -113,7 +113,7 @@ O comentário termina com um bloco chamado "Para corrigir com IA". A pessoa copi
 
 ### Functional Requirements
 
-- **FR-001**: A validação MUST rodar em pull requests do próprio repositório cujo destino é Development, nos eventos `opened`, `synchronize`, `reopened`, `edited` e `ready_for_review`. Pull request em rascunho MUST entrar. MUST NOT rodar quando o destino é outro nem quando a origem é um fork.
+- **FR-001**: A validação MUST rodar em pull requests do próprio repositório cujo destino é Development ou main, nos eventos `opened`, `synchronize`, `reopened`, `edited` e `ready_for_review`. Pull request em rascunho MUST entrar. MUST NOT rodar quando o destino é outro nem quando a origem é um fork. Quando o destino é main, a validação MUST pular branch, título e commits, MUST rodar só `npm ci`, `npm test` e `npm run build`, e o comentário MUST ter a nota `PR de release (Development → main): só testes e build são verificados` no topo e só essas três linhas. Destino Development MUST continuar com as seis verificações.
 - **FR-002**: A validação MUST NOT bloquear o merge. A verificação associada MUST terminar verde quando as checagens passam, quando alguma falha e quando o comentário não pôde ser publicado.
 - **FR-003**: O nome da branch MUST ser conferido contra `LLT-XXX-slug`: o prefixo `LLT-`, um ou mais dígitos, um hífen e um slug. O slug usa letras minúsculas, dígitos e hífens, não começa nem termina com hífen e não tem hífen duplicado. Fora disso, o item MUST ficar ❌ e MUST mostrar o nome encontrado e o formato esperado.
 - **FR-004**: O título do pull request MUST ser conferido contra `LLT-XXX: descricao`: o prefixo `LLT-`, um ou mais dígitos, dois-pontos, um único espaço e uma descrição que, sem espaços nas pontas, não fica vazia. Só a primeira linha do título entra. Fora disso, o item MUST ficar ❌ e MUST mostrar o título encontrado.
@@ -159,7 +159,7 @@ O comentário termina com um bloco chamado "Para corrigir com IA". A pessoa copi
 - O comentário é reconhecido por um marcador estável e invisível ao leitor, para que a rodada seguinte edite o mesmo comentário em vez de procurar pelo texto visível.
 - A permissão de escrever no pull request fica declarada no arquivo da validação. Leitura do código é a única outra permissão necessária para obter a branch e os commits.
 - Esta história não cria trava de branch protection, não altera testes, não altera o aplicativo e não publica o site.
-- Pull request cujo destino não é Development fica fora. A história não comenta issues soltas nem pushes diretos em Development.
+- Pull request cujo destino não é Development nem main fica fora. A história não comenta issues soltas nem pushes diretos em Development ou main.
 - O número da branch e o do título são o mesmo. O número de um commit herdado pode ser outro, desde que a primeira linha tenha o formato `LLT-XXX: descricao`.
 - Rascunho entra. Fork fica de fora, porque o time não abre pull request a partir de fork.
 - Além do push, editar o título, reabrir e marcar como pronto para revisão também atualizam o mesmo comentário.
