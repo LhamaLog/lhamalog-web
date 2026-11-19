@@ -16,7 +16,7 @@
 
 ## Path Conventions
 
-- Um workflow: `.github/workflows/validacao-prs.yml`
+- Um workflow: `.github/workflows/pr-validation.yml`
 - Regras puras: `scripts/pr-validation.mjs`
 - Teste: `tests/pr-validation.test.mjs`
 - Sem dependência nova em `package.json`
@@ -26,7 +26,7 @@
 
 **Purpose**: Arquivo único do workflow, ainda sem as seis verificações
 
-- [ ] T001 Criar `.github/workflows/validacao-prs.yml` com um único job. `on.pull_request.types` é exatamente `opened`, `synchronize`, `reopened`, `edited` e `ready_for_review`. `on.pull_request.branches` é só `Development`. `permissions` é só `contents: read` e `pull-requests: write`. O job não roda quando `github.event.pull_request.head.repo.full_name` for diferente de `github.repository`. Não filtrar rascunho. Não criar outro workflow. Não alterar `package.json`.
+- [x] T001 Criar `.github/workflows/pr-validation.yml` com um único job. `on.pull_request.types` é exatamente `opened`, `synchronize`, `reopened`, `edited` e `ready_for_review`. `on.pull_request.branches` é só `Development`. `permissions` é só `contents: read` e `pull-requests: write`. O job não roda quando `github.event.pull_request.head.repo.full_name` for diferente de `github.repository`. Não filtrar rascunho. Não criar outro workflow. Não alterar `package.json`.
 
 ---
 
@@ -36,9 +36,9 @@
 
 **⚠️ CRITICAL**: Nenhuma história começa antes desta fase
 
-- [ ] T002 [P] Escrever `tests/pr-validation.test.mjs` antes de T003, no estilo de `tests/*.test.mjs`. Cobrir, com as regras literais de `specs/285-validacao-de-prs/data-model.md` e de `specs/285-validacao-de-prs/contracts/pr-validation.md`: `LLT-285-validacao-de-prs` é branch válida; `LLT-285`, `LLT-285-`, `LLT-285--slug`, `LLT-285-Validacao` e `feature/LLT-285-validacao` são inválidas e o motivo mostra o nome encontrado e o formato `LLT-XXX-slug`; título `LLT-285: especifica validação de PRs` é válido na branch `LLT-285-validacao-de-prs`; `LLT-285:descricao`, `LLT-285:  descricao` e descrição só com espaços são inválidos; título `LLT-286: outro número` nessa branch é inválido e o motivo mostra `285` e `286`; commit de um pai com primeira linha `LLT-167: convida usuário` é válido nessa branch; commit fora do formato é inválido e o motivo traz o hash completo e a primeira linha; commit com mais de um pai não entra, qualquer que seja a mensagem; lista sem commit de um pai deixa a verificação de commits aprovada; trecho de erro com mais de 30 linhas ou mais de 1500 caracteres é cortado e o texto diz que o trecho foi cortado; se `npm ci` falha, `npm test` e `npm run build` ficam reprovados dizendo que não rodaram; o corpo do comentário começa com `<!-- llt-285-validacao-prs -->`, tem uma linha ✅ ou ❌ para branch, título, commits, `npm ci`, `npm test` e `npm run build`, e termina com `Para corrigir com IA`; sem falhas, o bloco diz `Não há nada para corrigir.`; com falhas, o bloco lista só essas falhas, com encontrado, esperado e o trecho quando houver.
+- [x] T002 [P] Escrever `tests/pr-validation.test.mjs` antes de T003, no estilo de `tests/*.test.mjs`. Cobrir, com as regras literais de `specs/285-validacao-de-prs/data-model.md` e de `specs/285-validacao-de-prs/contracts/pr-validation.md`: `LLT-285-validacao-de-prs` é branch válida; `LLT-285`, `LLT-285-`, `LLT-285--slug`, `LLT-285-Validacao` e `feature/LLT-285-validacao` são inválidas e o motivo mostra o nome encontrado e o formato `LLT-XXX-slug`; título `LLT-285: especifica validação de PRs` é válido na branch `LLT-285-validacao-de-prs`; `LLT-285:descricao`, `LLT-285:  descricao` e descrição só com espaços são inválidos; título `LLT-286: outro número` nessa branch é inválido e o motivo mostra `285` e `286`; commit de um pai com primeira linha `LLT-167: convida usuário` é válido nessa branch; commit fora do formato é inválido e o motivo traz o hash completo e a primeira linha; commit com mais de um pai não entra, qualquer que seja a mensagem; lista sem commit de um pai deixa a verificação de commits aprovada; trecho de erro com mais de 30 linhas ou mais de 1500 caracteres é cortado e o texto diz que o trecho foi cortado; se `npm ci` falha, `npm test` e `npm run build` ficam reprovados dizendo que não rodaram; o corpo do comentário começa com `<!-- llt-285-validacao-prs -->`, tem uma linha ✅ ou ❌ para branch, título, commits, `npm ci`, `npm test` e `npm run build`, e termina com `Para corrigir com IA`; sem falhas, o bloco diz `Não há nada para corrigir.`; com falhas, o bloco lista só essas falhas, com encontrado, esperado e o trecho quando houver.
 
-- [ ] T003 Implementar em `scripts/pr-validation.mjs` as funções puras usadas por `tests/pr-validation.test.mjs`, sem rede e sem importar o aplicativo. Quando o arquivo for executado com `node`, MUST terminar com código 0 mesmo se alguma verificação estiver reprovada, e escrever o corpo do comentário para o workflow ler. Regras: branch `LLT-` + um ou mais dígitos + `-` + slug `[a-z0-9]+(-[a-z0-9]+)*`; título na primeira linha com `LLT-` + dígitos + `:` + um espaço + descrição que não fica vazia depois do `trim`, e número igual ao da branch; commit de um pai no formato `LLT-XXX: descricao` sem exigir o mesmo número; commit com mais de um pai ignorado; trecho final de no máximo 30 linhas e 1500 caracteres, com aviso de que o trecho foi cortado quando passar de um dos limites; resultados de `npm ci`, `npm test` e `npm run build` em que falha de instalação marca os outros dois como não rodados; montagem do comentário em português com o marcador `<!-- llt-285-validacao-prs -->` na primeira linha, seis linhas ✅ ou ❌ e o bloco `Para corrigir com IA`. Não alterar `package.json`.
+- [x] T003 Implementar em `scripts/pr-validation.mjs` as funções puras usadas por `tests/pr-validation.test.mjs`, sem rede e sem importar o aplicativo. Quando o arquivo for executado com `node`, MUST terminar com código 0 mesmo se alguma verificação estiver reprovada, e escrever o corpo do comentário para o workflow ler. Regras: branch `LLT-` + um ou mais dígitos + `-` + slug `[a-z0-9]+(-[a-z0-9]+)*`; título na primeira linha com `LLT-` + dígitos + `:` + um espaço + descrição que não fica vazia depois do `trim`, e número igual ao da branch; commit de um pai no formato `LLT-XXX: descricao` sem exigir o mesmo número; commit com mais de um pai ignorado; trecho final de no máximo 30 linhas e 1500 caracteres, com aviso de que o trecho foi cortado quando passar de um dos limites; resultados de `npm ci`, `npm test` e `npm run build` em que falha de instalação marca os outros dois como não rodados; montagem do comentário em português com o marcador `<!-- llt-285-validacao-prs -->` na primeira linha, seis linhas ✅ ou ❌ e o bloco `Para corrigir com IA`. Não alterar `package.json`.
 
 **Checkpoint**: Regras de formato, trecho e texto do comentário testáveis sem o GitHub
 
@@ -52,7 +52,7 @@
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] Em `.github/workflows/validacao-prs.yml`, fazer checkout do pull request e instalar Node `26.12.1` com `actions/setup-node`. Rodar `node scripts/pr-validation.mjs`, que termina com código 0, para obter o corpo do comentário. Com `actions/github-script`, listar os comentários do pull request, atualizar o que já contém `<!-- llt-285-validacao-prs -->` e criar só se não existir. Isso vale para `opened`, `synchronize`, `reopened`, `edited` e `ready_for_review`, inclusive edição de título sem push. O passo do script e o passo do comentário não podem falhar o job: verificação reprovada ou erro ao publicar terminam com o job verde. Não usar Bash para achar ou editar o comentário. Não declarar permissão além de `contents: read` e `pull-requests: write`.
+- [x] T004 [US1] Em `.github/workflows/pr-validation.yml`, fazer checkout do pull request e instalar Node `26.12.1` com `actions/setup-node`. Rodar `node scripts/pr-validation.mjs`, que termina com código 0, para obter o corpo do comentário. Com `actions/github-script`, listar os comentários do pull request, atualizar o que já contém `<!-- llt-285-validacao-prs -->` e criar só se não existir. Isso vale para `opened`, `synchronize`, `reopened`, `edited` e `ready_for_review`, inclusive edição de título sem push. O passo do script e o passo do comentário não podem falhar o job: verificação reprovada ou erro ao publicar terminam com o job verde. Não usar Bash para achar ou editar o comentário. Não declarar permissão além de `contents: read` e `pull-requests: write`.
 
 **Checkpoint**: US1 comenta uma vez e não trava o merge
 
@@ -66,7 +66,7 @@
 
 ### Implementation for User Story 2
 
-- [ ] T005 [US2] Em `.github/workflows/validacao-prs.yml`, passar para `scripts/pr-validation.mjs` o nome `github.head_ref`, a primeira linha de `github.event.pull_request.title` e os commits do pull request obtidos pela API, com hash completo, primeira linha da mensagem e quantidade de pais. Não usar `git log` para decidir o que é merge. Branch fora de `LLT-XXX-slug` fica ❌ com o nome encontrado e o formato esperado. Título fora de `LLT-XXX: descricao`, ou com número diferente do da branch, fica ❌ e mostra os dois números quando a diferença for o número. Commit de um pai fora do formato fica ❌ com hash completo e primeira linha. Commit com mais de um pai não entra. Lista sem commit de um pai deixa commits ✅.
+- [x] T005 [US2] Em `.github/workflows/pr-validation.yml`, passar para `scripts/pr-validation.mjs` o nome `github.head_ref`, a primeira linha de `github.event.pull_request.title` e os commits do pull request obtidos pela API, com hash completo, primeira linha da mensagem e quantidade de pais. Não usar `git log` para decidir o que é merge. Branch fora de `LLT-XXX-slug` fica ❌ com o nome encontrado e o formato esperado. Título fora de `LLT-XXX: descricao`, ou com número diferente do da branch, fica ❌ e mostra os dois números quando a diferença for o número. Commit de um pai fora do formato fica ❌ com hash completo e primeira linha. Commit com mais de um pai não entra. Lista sem commit de um pai deixa commits ✅.
 
 **Checkpoint**: US2 distingue formato, número compartilhado e merge
 
@@ -80,7 +80,7 @@
 
 ### Implementation for User Story 3
 
-- [ ] T006 [US3] Em `.github/workflows/validacao-prs.yml`, com Node `26.12.1`, executar na raiz `npm ci`, depois `npm test` e `npm run build` somente se a instalação passar. Guardar o código e o final da saída de cada um. Se `npm ci` falhar, não executar os outros dois e marcar os dois como ❌ dizendo que não rodaram. Se a instalação passar, executar teste e compilação mesmo quando um deles falhar. Entregar esses resultados a `scripts/pr-validation.mjs`, que corta o trecho em 30 linhas e 1500 caracteres e, ao cortar, diz que o trecho foi cortado. O job continua verde.
+- [x] T006 [US3] Em `.github/workflows/pr-validation.yml`, com Node `26.12.1`, executar na raiz `npm ci`, depois `npm test` e `npm run build` somente se a instalação passar. Guardar o código e o final da saída de cada um. Se `npm ci` falhar, não executar os outros dois e marcar os dois como ❌ dizendo que não rodaram. Se a instalação passar, executar teste e compilação mesmo quando um deles falhar. Entregar esses resultados a `scripts/pr-validation.mjs`, que corta o trecho em 30 linhas e 1500 caracteres e, ao cortar, diz que o trecho foi cortado. O job continua verde.
 
 **Checkpoint**: US3 mostra os três comandos sem esconder um por causa do outro
 
@@ -94,7 +94,7 @@
 
 ### Implementation for User Story 4
 
-- [ ] T007 [US4] Em `scripts/pr-validation.mjs` e no corpo publicado por `.github/workflows/validacao-prs.yml`, garantir o bloco `Para corrigir com IA` no fim do comentário. Com falha, listar só as falhas daquela rodada, cada uma com o valor encontrado, o valor esperado e o trecho de erro quando existir. Sem falha, o bloco é exatamente `Não há nada para corrigir.` Atualizar o mesmo comentário não pode deixar o bloco da rodada anterior.
+- [x] T007 [US4] Em `scripts/pr-validation.mjs` e no corpo publicado por `.github/workflows/pr-validation.yml`, garantir o bloco `Para corrigir com IA` no fim do comentário. Com falha, listar só as falhas daquela rodada, cada uma com o valor encontrado, o valor esperado e o trecho de erro quando existir. Sem falha, o bloco é exatamente `Não há nada para corrigir.` Atualizar o mesmo comentário não pode deixar o bloco da rodada anterior.
 
 **Checkpoint**: US4 entrega o texto que a pessoa cola
 
@@ -104,7 +104,7 @@
 
 **Purpose**: Conferir que o exemplo não mudou o aplicativo
 
-- [ ] T008 Rodar `npm test` na raiz de `lhamalog-web`. Confirmar que `package.json` não ganhou dependência, que não surgiu workflow além de `.github/workflows/validacao-prs.yml` e que esse arquivo não declara permissão além de `contents: read` e `pull-requests: write`.
+- [x] T008 Rodar `npm test` na raiz de `lhamalog-web`. Confirmar que `package.json` não ganhou dependência, que não surgiu workflow além de `.github/workflows/pr-validation.yml` e que esse arquivo não declara permissão além de `contents: read` e `pull-requests: write`.
 
 - [ ] T009 Executar o roteiro de `specs/285-validacao-de-prs/quickstart.md` quando o workflow estiver no repositório e registrar naquele arquivo o que foi exercitado. Não tornar o check obrigatório no merge, não alterar o aplicativo e não publicar o site.
 
@@ -135,14 +135,14 @@
 ### Parallel Opportunities
 
 - T001 e T002 podem correr juntos
-- US2 e US3 não podem correr juntas: as duas editam `.github/workflows/validacao-prs.yml`
+- US2 e US3 não podem correr juntas: as duas editam `.github/workflows/pr-validation.yml`
 
 ---
 
 ## Parallel Example: Foundation
 
 ```bash
-Task: "Workflow vazio em .github/workflows/validacao-prs.yml"
+Task: "Workflow vazio em .github/workflows/pr-validation.yml"
 Task: "Testes das regras em tests/pr-validation.test.mjs"
 ```
 

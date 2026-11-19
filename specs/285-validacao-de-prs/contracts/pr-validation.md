@@ -1,6 +1,6 @@
 # Contrato: comentário da validação
 
-O workflow `.github/workflows/validacao-prs.yml` é a única superfície. Não há endpoint novo no aplicativo.
+O workflow `.github/workflows/pr-validation.yml` é a única superfície. Não há endpoint novo no aplicativo.
 
 ## Disparo
 

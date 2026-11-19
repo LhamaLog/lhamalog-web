@@ -58,7 +58,7 @@ specs/285-validacao-de-prs/
 ### Source Code (repository root)
 
 ```text
-.github/workflows/validacao-prs.yml
+.github/workflows/pr-validation.yml
 scripts/pr-validation.mjs
 tests/pr-validation.test.mjs
 ```

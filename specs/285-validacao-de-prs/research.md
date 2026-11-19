@@ -4,7 +4,7 @@ Decisões fechadas para o workflow. Nenhuma escolha ficou em aberto.
 
 ## 1. Um workflow, um job
 
-- **Decision**: Um arquivo, `.github/workflows/validacao-prs.yml`, com um job. `on.pull_request.types` é `opened`, `synchronize`, `reopened`, `edited` e `ready_for_review`. `branches` é só `Development`.
+- **Decision**: Um arquivo, `.github/workflows/pr-validation.yml`, com um job. `on.pull_request.types` é `opened`, `synchronize`, `reopened`, `edited` e `ready_for_review`. `branches` é só `Development`.
 - **Rationale**: O pedido é um exemplo único. Vários workflows dividiriam o comentário e a permissão.
 - **Alternatives considered**: Um workflow por verificação (rejeitado: o comentário deixaria de ser único). Incluir `main` (rejeitado: o destino é Development).
 

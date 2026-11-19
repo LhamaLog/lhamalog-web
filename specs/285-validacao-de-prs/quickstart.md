@@ -1,6 +1,6 @@
 # Roteiro: Validação de PRs
 
-Conferir a LLT-285 quando `.github/workflows/validacao-prs.yml` existir. Este passo do Spec Kit não cria o workflow nem abre pull request.
+Conferir a LLT-285 quando `.github/workflows/pr-validation.yml` existir. Este passo do Spec Kit não cria o workflow nem abre pull request.
 
 ## Antes de começar
 
