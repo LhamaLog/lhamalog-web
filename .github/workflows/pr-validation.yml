@@ -1,0 +1,144 @@
+name: Validação de PRs
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited, ready_for_review]
+    branches: [Development, main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  validar:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obter o código
+        uses: actions/checkout@v4
+        continue-on-error: true
+
+      - name: Usar Node 26.12.1
+        if: always()
+        uses: actions/setup-node@v4
+        continue-on-error: true
+        with:
+          node-version: 26.12.1
+          cache: npm
+
+      - name: Ler branch, título e commits
+        if: always()
+        id: meta
+        uses: actions/github-script@v7
+        continue-on-error: true
+        with:
+          script: |
+            const fs = require('node:fs')
+            const pull = context.payload.pull_request
+            const commits = []
+            let page = 1
+            try {
+              while (page > 0) {
+                const { data } = await github.rest.pulls.listCommits({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pull.number,
+                  per_page: 100,
+                  page,
+                })
+                for (const commit of data) {
+                  commits.push({
+                    sha: commit.sha,
+                    message: commit.commit.message,
+                    parents: commit.parents.length,
+                  })
+                }
+                page = data.length === 100 ? page + 1 : 0
+              }
+            } catch (error) {
+              core.warning(String(error))
+            }
+            fs.writeFileSync(`${process.env.RUNNER_TEMP}/pr-commits.json`, JSON.stringify(commits))
+            core.setOutput('branch', pull.head.ref)
+            core.setOutput('title', String(pull.title ?? '').split(/\r?\n/, 1)[0])
+
+      - name: Instalar, testar e compilar
+        if: always()
+        id: npm
+        run: |
+          set +e
+          npm ci > "$RUNNER_TEMP/ci.out" 2>&1
+          ci=$?
+          if [ "$ci" -eq 0 ]; then
+            npm test > "$RUNNER_TEMP/test.out" 2>&1
+            test_code=$?
+            npm run build > "$RUNNER_TEMP/build.out" 2>&1
+            build_code=$?
+            test_ran=1
+            build_ran=1
+          else
+            test_code=1
+            build_code=1
+            test_ran=0
+            build_ran=0
+          fi
+          {
+            echo "ci_code=$ci"
+            echo "test_code=$test_code"
+            echo "build_code=$build_code"
+            echo "test_ran=$test_ran"
+            echo "build_ran=$build_ran"
+          } >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Montar o comentário
+        if: always()
+        env:
+          PR_BASE: ${{ github.base_ref }}
+          PR_BRANCH: ${{ steps.meta.outputs.branch || github.head_ref }}
+          PR_TITLE: ${{ steps.meta.outputs.title || github.event.pull_request.title }}
+          PR_COMMITS_FILE: ${{ runner.temp }}/pr-commits.json
+          CI_CODE: ${{ steps.npm.outputs.ci_code }}
+          TEST_CODE: ${{ steps.npm.outputs.test_code }}
+          BUILD_CODE: ${{ steps.npm.outputs.build_code }}
+          TEST_RAN: ${{ steps.npm.outputs.test_ran }}
+          BUILD_RAN: ${{ steps.npm.outputs.build_ran }}
+          CI_OUT: ${{ runner.temp }}/ci.out
+          TEST_OUT: ${{ runner.temp }}/test.out
+          BUILD_OUT: ${{ runner.temp }}/build.out
+        run: |
+          if [ ! -f "$PR_COMMITS_FILE" ]; then printf '[]' > "$PR_COMMITS_FILE"; fi
+          node scripts/pr-validation.mjs --env "$RUNNER_TEMP/pr-validation-comment.md"
+          exit 0
+
+      - name: Publicar ou atualizar o comentário
+        if: always()
+        continue-on-error: true
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('node:fs')
+            const marker = '<!-- llt-285-validacao-prs -->'
+            const body = fs.readFileSync(`${process.env.RUNNER_TEMP}/pr-validation-comment.md`, 'utf8')
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              per_page: 100,
+            })
+            const existing = comments.find((comment) => String(comment.body ?? '').includes(marker))
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              })
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body,
+              })
+            }
