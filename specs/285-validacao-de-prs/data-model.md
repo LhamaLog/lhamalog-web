@@ -18,7 +18,7 @@ Nada disso é gravado no aplicativo. A rodada lê o pull request, produz seis ve
 | Campo | Regra |
 | --- | --- |
 | Pais | Um pai só. Mais de um pai é merge e não entra. |
-| Mensagem | Só a primeira linha, no formato do título. O número pode ser de outra tarefa. |
+| Mensagem | Só a primeira linha, em `LLT-XXX: descricao` ou `LLT-XXX descricao`. O número pode ser de outra tarefa. |
 | Falha | Hash completo e a primeira linha. |
 
 ## Verificação

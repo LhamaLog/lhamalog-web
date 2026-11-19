@@ -12,7 +12,7 @@
 
 ### Session 2026-11-19
 
-- Q: O mesmo número LLT precisa aparecer na branch, no título e em todos os commits? → A: Branch e título usam o mesmo `LLT-XXX`. Cada commit só precisa do formato `LLT-XXX: descricao`, porque a branch pode herdar commits de outra tarefa.
+- Q: O mesmo número LLT precisa aparecer na branch, no título e em todos os commits? → A: Branch e título usam o mesmo `LLT-XXX`. Cada commit só precisa do formato `LLT-XXX: descricao` ou `LLT-XXX descricao`, porque a branch pode herdar commits de outra tarefa.
 - Q: Pull request em rascunho e pull request vindo de um fork entram nesta validação? → A: Rascunho entra e recebe o mesmo comentário. Fork fica de fora, porque o time não usa fork.
 - Q: Uma edição só do título republica o comentário na hora? → A: Sim. A validação roda em `opened`, `synchronize`, `reopened`, `edited` e `ready_for_review`. Editar o título atualiza o comentário na hora.
 
@@ -98,6 +98,7 @@ O comentário termina com um bloco chamado "Para corrigir com IA". A pessoa copi
 - Pull request sem commit que não seja merge: a verificação de commits fica ✅, porque não há mensagem a recusar.
 - Primeira linha válida e corpo do commit com outro texto: só a primeira linha é conferida.
 - `LLT-285:descricao` sem espaço depois dos dois-pontos, ou com mais de um espaço: título ou commit fica ❌.
+- `LLT-285 descricao`, com um espaço e sem dois-pontos: o commit fica ✅. O título com esse formato fica ❌, porque o título continua exigindo dois-pontos.
 - Descrição só com espaços: fica ❌.
 - Branch `LLT-285-` ou `LLT-285--slug`: fica ❌.
 - Dois pushes seguidos: continua existindo um único comentário.
@@ -117,8 +118,8 @@ O comentário termina com um bloco chamado "Para corrigir com IA". A pessoa copi
 - **FR-002**: A validação MUST NOT bloquear o merge. A verificação associada MUST terminar verde quando as checagens passam, quando alguma falha e quando o comentário não pôde ser publicado.
 - **FR-003**: O nome da branch MUST ser conferido contra `LLT-XXX-slug`: o prefixo `LLT-`, um ou mais dígitos, um hífen e um slug. O slug usa letras minúsculas, dígitos e hífens, não começa nem termina com hífen e não tem hífen duplicado. Fora disso, o item MUST ficar ❌ e MUST mostrar o nome encontrado e o formato esperado.
 - **FR-004**: O título do pull request MUST ser conferido contra `LLT-XXX: descricao`: o prefixo `LLT-`, um ou mais dígitos, dois-pontos, um único espaço e uma descrição que, sem espaços nas pontas, não fica vazia. Só a primeira linha do título entra. Fora disso, o item MUST ficar ❌ e MUST mostrar o título encontrado.
-- **FR-005**: Cada commit do pull request que não é merge MUST ter a primeira linha no formato `LLT-XXX: descricao`, o mesmo formato do título, sem exigir o mesmo número. Commit de merge é o que tem mais de um pai e MUST ser ignorado. Falha MUST incluir o hash completo e a primeira linha da mensagem.
-- **FR-006**: O número `XXX` da branch e o do título MUST ser o mesmo. Título `LLT-286: ...` numa branch `LLT-285-...` MUST ficar ❌ e MUST mostrar os dois números. Os commits MUST NOT precisar repetir esse número: cada um MUST cumprir `LLT-XXX: descricao`, mesmo quando o número veio de outra tarefa.
+- **FR-005**: Cada commit do pull request que não é merge MUST ter a primeira linha no formato `LLT-XXX: descricao` ou `LLT-XXX descricao` (um espaço, sem dois-pontos), sem exigir o mesmo número. O texto esperado no comentário MUST ser `LLT-XXX: descricao ou LLT-XXX descricao`. Commit de merge é o que tem mais de um pai e MUST ser ignorado. Falha MUST incluir o hash completo e a primeira linha da mensagem.
+- **FR-006**: O número `XXX` da branch e o do título MUST ser o mesmo. Título `LLT-286: ...` numa branch `LLT-285-...` MUST ficar ❌ e MUST mostrar os dois números. Os commits MUST NOT precisar repetir esse número: cada um MUST cumprir `LLT-XXX: descricao` ou `LLT-XXX descricao`, mesmo quando o número veio de outra tarefa.
 - **FR-007**: A validação MUST executar `npm ci`, `npm test` e `npm run build` com Node 26.12.1. Cada comando MUST aparecer como item próprio. Se a instalação falha, teste e compilação MUST ficar ❌ dizendo que não rodaram. Se a instalação passa, teste e compilação MUST rodar mesmo quando o outro falha.
 - **FR-008**: Falha de `npm test` ou de `npm run build` MUST citar o comando e um trecho do erro. O trecho MUST ser no máximo 30 linhas e no máximo 1500 caracteres. Se o erro for maior, o comentário MUST dizer que o trecho foi cortado.
 - **FR-009**: A validação MUST publicar um único comentário no pull request e MUST atualizar esse mesmo comentário em `opened`, `synchronize`, `reopened`, `edited` e `ready_for_review`. MUST NOT criar um comentário novo a cada rodada. O comentário MUST estar em português e MUST marcar cada verificação com ✅ ou ❌.
@@ -160,6 +161,6 @@ O comentário termina com um bloco chamado "Para corrigir com IA". A pessoa copi
 - A permissão de escrever no pull request fica declarada no arquivo da validação. Leitura do código é a única outra permissão necessária para obter a branch e os commits.
 - Esta história não cria trava de branch protection, não altera testes, não altera o aplicativo e não publica o site.
 - Pull request cujo destino não é Development nem main fica fora. A história não comenta issues soltas nem pushes diretos em Development ou main.
-- O número da branch e o do título são o mesmo. O número de um commit herdado pode ser outro, desde que a primeira linha tenha o formato `LLT-XXX: descricao`.
+- O número da branch e o do título são o mesmo. O número de um commit herdado pode ser outro, desde que a primeira linha tenha o formato `LLT-XXX: descricao` ou `LLT-XXX descricao`.
 - Rascunho entra. Fork fica de fora, porque o time não abre pull request a partir de fork.
 - Além do push, editar o título, reabrir e marcar como pronto para revisão também atualizam o mesmo comentário.

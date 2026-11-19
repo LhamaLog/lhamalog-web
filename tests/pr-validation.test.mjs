@@ -27,8 +27,10 @@ test('branch accepts LLT-XXX-slug and rejects the known bad names', async () => 
 test('title must match the branch number and the single-space format', async () => {
   const { checkTitle } = await import('../scripts/pr-validation.mjs')
   assert.equal(checkTitle('LLT-285: especifica validação de PRs', '285').ok, true)
-  for (const title of ['LLT-285:descricao', 'LLT-285:  descricao', 'LLT-285:   ']) {
-    assert.equal(checkTitle(title, '285').ok, false)
+  for (const title of ['LLT-285:descricao', 'LLT-285:  descricao', 'LLT-285:   ', 'LLT-285 descricao sem dois-pontos']) {
+    const result = checkTitle(title, '285')
+    assert.equal(result.ok, false)
+    assert.equal(result.expected, 'LLT-XXX: descricao')
   }
   const mismatch = checkTitle('LLT-286: outro número', '285')
   assert.equal(mismatch.ok, false)
@@ -48,6 +50,25 @@ test('commits keep another task number, ignore merges and cite the full hash', a
   const merge = checkCommits([{ sha: hash, message: 'mensagem qualquer', parents: 2 }])
   assert.equal(merge.ok, true)
   assert.equal(checkCommits([]).ok, true)
+})
+
+test('commits accept a colon or a single space and reject a message without a number', async () => {
+  const { COMMIT_FORMAT, buildComment, checkCommits } = await import('../scripts/pr-validation.mjs')
+  const hash = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+  assert.equal(checkCommits([{ sha: hash, message: 'LLT-167: convida usuário', parents: 1 }]).ok, true)
+  assert.equal(checkCommits([{ sha: hash, message: 'LLT-287 aceita o formato com espaço', parents: 1 }]).ok, true)
+  const invalid = checkCommits([{ sha: hash, message: 'descricao sem numero', parents: 1 }])
+  assert.equal(invalid.ok, false)
+  assert.equal(invalid.expected, COMMIT_FORMAT)
+  assert.match(invalid.detail, new RegExp(hash))
+  assert.match(invalid.detail, /descricao sem numero/)
+  const failed = buildComment({
+    branch,
+    title: 'LLT-285: especifica validação de PRs',
+    commits: [{ sha: hash, message: 'descricao sem numero', parents: 1 }],
+    commands: passedCommands,
+  })
+  assert.match(failed.split('Para corrigir com IA')[1], /esperado: LLT-XXX: descricao ou LLT-XXX descricao/)
 })
 
 test('error excerpts stop at 30 lines and 1500 characters', async () => {

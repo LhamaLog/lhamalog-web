@@ -8,7 +8,7 @@
 
 Um único workflow de GitHub Actions roda em pull requests para `Development` nos eventos `opened`, `synchronize`, `reopened`, `edited` e `ready_for_review`. Rascunho entra. Fork fica de fora. O job termina verde mesmo quando uma verificação falha ou o comentário não é publicado.
 
-O workflow confere o nome da branch (`LLT-XXX-slug`), o título (`LLT-XXX: descricao`, com o mesmo número da branch) e a primeira linha de cada commit que não é merge (só o formato). Depois executa `npm ci`, `npm test` e `npm run build` com Node 26.12.1. Um script com `actions/github-script` publica ou atualiza um único comentário, identificado pelo marcador oculto `<!-- llt-285-validacao-prs -->`.
+O workflow confere o nome da branch (`LLT-XXX-slug`), o título (`LLT-XXX: descricao`, com o mesmo número da branch) e a primeira linha de cada commit que não é merge (`LLT-XXX: descricao` ou `LLT-XXX descricao`). Depois executa `npm ci`, `npm test` e `npm run build` com Node 26.12.1. Um script com `actions/github-script` publica ou atualiza um único comentário, identificado pelo marcador oculto `<!-- llt-285-validacao-prs -->`.
 
 ## Technical Context
 

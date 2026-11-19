@@ -5,6 +5,7 @@ export const MARKER = '<!-- llt-285-validacao-prs -->'
 export const RELEASE_NOTE = 'PR de release (Development → main): só testes e build são verificados'
 export const BRANCH_FORMAT = 'LLT-XXX-slug'
 export const TITLE_FORMAT = 'LLT-XXX: descricao'
+export const COMMIT_FORMAT = 'LLT-XXX: descricao ou LLT-XXX descricao'
 const RERUN_COMMANDS = new Set(['test', '/test'])
 const RERUN_ASSOCIATIONS = new Set(['OWNER', 'MEMBER', 'COLLABORATOR'])
 
@@ -46,17 +47,25 @@ export function rerunReaction(comment) {
 }
 
 const BRANCH_PATTERN = /^LLT-(\d+)-([a-z0-9]+(?:-[a-z0-9]+)*)$/
-const TEXT_PATTERN = /^LLT-(\d+): (.*)$/
+const TITLE_PATTERN = /^LLT-(\d+): (.*)$/
+const COMMIT_PATTERN = /^LLT-(\d+)(?:: | )(.*)$/
 
 function firstLine(value) {
   return String(value ?? '').split(/\r?\n/, 1)[0]
 }
 
-function textMatch(value) {
-  const line = firstLine(value)
-  const match = TEXT_PATTERN.exec(line)
+function described(line, pattern) {
+  const match = pattern.exec(line)
   if (!match || match[2].startsWith(' ') || match[2].trim() === '') return null
   return { number: match[1], line }
+}
+
+function textMatch(value) {
+  return described(firstLine(value), TITLE_PATTERN)
+}
+
+function commitMatch(value) {
+  return described(firstLine(value), COMMIT_PATTERN)
 }
 
 export function checkBranch(name) {
@@ -110,17 +119,17 @@ export function checkCommits(commits) {
     const parents = Array.isArray(commit.parents) ? commit.parents.length : Number(commit.parents ?? 0)
     if (parents > 1) continue
     const line = firstLine(commit.message)
-    if (!textMatch(line)) failures.push({ hash: String(commit.sha ?? ''), line })
+    if (!commitMatch(line)) failures.push({ hash: String(commit.sha ?? ''), line })
   }
   if (failures.length === 0) {
-    return { name: 'commits', ok: true, found: '', expected: TITLE_FORMAT, excerpt: '', detail: '' }
+    return { name: 'commits', ok: true, found: '', expected: COMMIT_FORMAT, excerpt: '', detail: '' }
   }
   const detail = failures.map((item) => `${item.hash} ${item.line}`).join('; ')
   return {
     name: 'commits',
     ok: false,
     found: detail,
-    expected: TITLE_FORMAT,
+    expected: COMMIT_FORMAT,
     excerpt: '',
     detail,
   }
