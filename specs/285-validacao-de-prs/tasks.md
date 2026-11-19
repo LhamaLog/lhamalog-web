@@ -106,7 +106,7 @@
 
 - [x] T008 Rodar `npm test` na raiz de `lhamalog-web`. Confirmar que `package.json` não ganhou dependência, que não surgiu workflow além de `.github/workflows/pr-validation.yml` e que esse arquivo não declara permissão além de `contents: read` e `pull-requests: write`.
 
-- [ ] T009 Executar o roteiro de `specs/285-validacao-de-prs/quickstart.md` quando o workflow estiver no repositório e registrar naquele arquivo o que foi exercitado. Não tornar o check obrigatório no merge, não alterar o aplicativo e não publicar o site.
+- [x] T009 Executar o roteiro de `specs/285-validacao-de-prs/quickstart.md` quando o workflow estiver no repositório e registrar naquele arquivo o que foi exercitado. Não tornar o check obrigatório no merge, não alterar o aplicativo e não publicar o site.
 
 ---
 

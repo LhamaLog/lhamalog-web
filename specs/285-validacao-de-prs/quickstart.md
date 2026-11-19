@@ -1,6 +1,15 @@
 # Roteiro: Validação de PRs
 
-Conferir a LLT-285 quando `.github/workflows/pr-validation.yml` existir. Este passo do Spec Kit não cria o workflow nem abre pull request.
+Conferir a LLT-285 quando `.github/workflows/pr-validation.yml` existir.
+
+## Resultado desta entrega
+
+Exercitado em 2026-11-19 no pull request https://github.com/LhamaLog/lhamalog-web/pull/10, destino `Development`:
+
+- `npm test`: passou, 55 testes, neste ambiente (Node 22.23.4; o workflow usa Node 26.12.1).
+- `npm run build`: passou (`tsc --noEmit` e `vite build`).
+- O job `validar` terminou verde. O comentário único começa com `<!-- llt-285-validacao-prs -->` e marcou ✅ em branch, título, commits, `npm ci`, `npm test` e `npm run build`. O bloco `Para corrigir com IA` disse `Não há nada para corrigir.`
+- Não foram exercitados aqui: rascunho, edição só do título, reabertura, pull request de fork, destino diferente de `Development`, commit fora do formato e falha proposital de `npm test`. O workflow não foi marcado como obrigatório para o merge.
 
 ## Antes de começar
 
