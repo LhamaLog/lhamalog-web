@@ -24,7 +24,7 @@ Exercitado em 2026-11-19 no pull request https://github.com/LhamaLog/lhamalog-we
 2. O comentário tem uma linha ✅ ou ❌ para branch, título, commits, `npm ci`, `npm test` e `npm run build`, e o bloco `Para corrigir com IA`. A primeira linha do fonte do comentário é `<!-- llt-285-validacao-prs -->`.
 3. Dar um push. O mesmo comentário muda. Não aparece um segundo.
 4. Editar só o título para outro `LLT-XXX`. O comentário atualiza sem push e o título fica ❌, mostrando os dois números.
-5. Um commit herdado `LLT-167: ...`, que não seja merge, fica ✅ se a primeira linha tiver o formato. Um commit fora do formato fica ❌ com hash completo e a primeira linha. Um merge, com mais de um pai, não entra.
+5. Um commit herdado `LLT-167: ...` ou `LLT-167 ...`, que não seja merge, fica ✅ se a primeira linha tiver um desses formatos. Um commit fora do formato fica ❌ com hash completo e a primeira linha. Um merge, com mais de um pai, não entra.
 6. Uma falha de `npm test` deixa o job verde. O comentário cita `npm test` e um trecho do erro, não o log inteiro. `npm run build` também aparece.
 7. Reabrir ou marcar como pronto para revisão atualiza o mesmo comentário.
 8. Pull request para outro destino, ou aberto a partir de um fork, não recebe esse comentário.

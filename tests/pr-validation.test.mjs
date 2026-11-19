@@ -1,6 +1,8 @@
+import { spawnSync } from 'node:child_process'
 import { register } from 'node:module'
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { fileURLToPath } from 'node:url'
 
 register(new URL('./resolve-ts.mjs', import.meta.url))
 
@@ -25,8 +27,10 @@ test('branch accepts LLT-XXX-slug and rejects the known bad names', async () => 
 test('title must match the branch number and the single-space format', async () => {
   const { checkTitle } = await import('../scripts/pr-validation.mjs')
   assert.equal(checkTitle('LLT-285: especifica validação de PRs', '285').ok, true)
-  for (const title of ['LLT-285:descricao', 'LLT-285:  descricao', 'LLT-285:   ']) {
-    assert.equal(checkTitle(title, '285').ok, false)
+  for (const title of ['LLT-285:descricao', 'LLT-285:  descricao', 'LLT-285:   ', 'LLT-285 descricao sem dois-pontos']) {
+    const result = checkTitle(title, '285')
+    assert.equal(result.ok, false)
+    assert.equal(result.expected, 'LLT-XXX: descricao')
   }
   const mismatch = checkTitle('LLT-286: outro número', '285')
   assert.equal(mismatch.ok, false)
@@ -46,6 +50,25 @@ test('commits keep another task number, ignore merges and cite the full hash', a
   const merge = checkCommits([{ sha: hash, message: 'mensagem qualquer', parents: 2 }])
   assert.equal(merge.ok, true)
   assert.equal(checkCommits([]).ok, true)
+})
+
+test('commits accept a colon or a single space and reject a message without a number', async () => {
+  const { COMMIT_FORMAT, buildComment, checkCommits } = await import('../scripts/pr-validation.mjs')
+  const hash = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+  assert.equal(checkCommits([{ sha: hash, message: 'LLT-167: convida usuário', parents: 1 }]).ok, true)
+  assert.equal(checkCommits([{ sha: hash, message: 'LLT-287 aceita o formato com espaço', parents: 1 }]).ok, true)
+  const invalid = checkCommits([{ sha: hash, message: 'descricao sem numero', parents: 1 }])
+  assert.equal(invalid.ok, false)
+  assert.equal(invalid.expected, COMMIT_FORMAT)
+  assert.match(invalid.detail, new RegExp(hash))
+  assert.match(invalid.detail, /descricao sem numero/)
+  const failed = buildComment({
+    branch,
+    title: 'LLT-285: especifica validação de PRs',
+    commits: [{ sha: hash, message: 'descricao sem numero', parents: 1 }],
+    commands: passedCommands,
+  })
+  assert.match(failed.split('Para corrigir com IA')[1], /esperado: LLT-XXX: descricao ou LLT-XXX descricao/)
 })
 
 test('error excerpts stop at 30 lines and 1500 characters', async () => {
@@ -121,4 +144,87 @@ test('the comment lists six checks and the copy block only includes failures', a
   assert.doesNotMatch(block, /npm ci/)
   assert.doesNotMatch(block, /npm run build/)
   assert.equal(failed.includes('✅ commits'), true)
+})
+
+test('rerun accepts only test and /test, ignoring surrounding whitespace', async () => {
+  const { isRerunCommand } = await import('../scripts/pr-validation.mjs')
+  for (const body of ['test', '/test', ' test ', '\n/test\n', '\t/test\t', 'test\r\n']) {
+    assert.equal(isRerunCommand(body), true, body)
+  }
+  for (const body of ['Test', '/Test', 'testar', 'test por favor', 't e s t', 'testing', '/test now', 'retest', '', '  ', null, '`test`']) {
+    assert.equal(isRerunCommand(body), false, String(body))
+  }
+})
+
+test('rerun permission is owner, member or collaborator', async () => {
+  const { canRequestRerun } = await import('../scripts/pr-validation.mjs')
+  for (const association of ['OWNER', 'MEMBER', 'COLLABORATOR']) {
+    assert.equal(canRequestRerun(association), true, association)
+  }
+  for (const association of ['CONTRIBUTOR', 'NONE', 'FIRST_TIME_CONTRIBUTOR', 'FIRST_TIMER', 'MANNEQUIN', 'owner', 'member', '', null]) {
+    assert.equal(canRequestRerun(association), false, String(association))
+  }
+})
+
+test('bots and the validation action cannot request a rerun', async () => {
+  const { shouldRerun } = await import('../scripts/pr-validation.mjs')
+  const accepted = { body: 'test', association: 'OWNER', user: { type: 'User', login: 'alguem' } }
+  assert.equal(shouldRerun(accepted), true)
+  assert.equal(shouldRerun({ ...accepted, body: ' /test ' }), true)
+  assert.equal(shouldRerun({ ...accepted, user: { type: 'Bot', login: 'github-actions[bot]' } }), false)
+  assert.equal(shouldRerun({ ...accepted, user: { type: 'User', login: 'github-actions[bot]' } }), false)
+  assert.equal(shouldRerun({ ...accepted, user: { type: 'User', login: 'dependabot[bot]' } }), false)
+  assert.equal(shouldRerun({ ...accepted, association: 'CONTRIBUTOR' }), false)
+  assert.equal(shouldRerun({ ...accepted, body: 'testar' }), false)
+  assert.equal(shouldRerun({ body: 'test', association: 'MEMBER' }), true)
+})
+
+test('a passing validation comment uses rocket and a failing one uses -1', async () => {
+  const { buildComment, rerunReaction } = await import('../scripts/pr-validation.mjs')
+  const passed = buildComment({
+    branch,
+    title: 'LLT-285: especifica validação de PRs',
+    commits: [{ sha: 'abc', message: 'LLT-167: convida usuário', parents: 1 }],
+    commands: passedCommands,
+  })
+  assert.equal(rerunReaction(passed), 'rocket')
+  const failed = buildComment({
+    branch,
+    title: 'LLT-285: especifica validação de PRs',
+    commits: [{ sha: 'abc', message: 'LLT-167: convida usuário', parents: 1 }],
+    commands: { ci: { ok: true, output: '' }, test: { ok: false, output: 'falha no teste' }, build: { ok: true, output: '' } },
+  })
+  assert.equal(rerunReaction(failed), '-1')
+  assert.equal(rerunReaction(''), '-1')
+  assert.equal(rerunReaction(null), '-1')
+})
+
+test('the gate command reports rerun and always exits zero', () => {
+  const script = fileURLToPath(new URL('../scripts/pr-validation.mjs', import.meta.url))
+  const accepted = spawnSync(process.execPath, [script, '--gate'], {
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      COMMENT_BODY: ' /test ',
+      AUTHOR_ASSOCIATION: 'COLLABORATOR',
+      AUTHOR_TYPE: 'User',
+      AUTHOR_LOGIN: 'alguem',
+      GITHUB_OUTPUT: '',
+    },
+  })
+  assert.equal(accepted.status, 0)
+  assert.equal(accepted.stdout, 'rerun=true\n')
+  const rejected = spawnSync(process.execPath, [script, '--gate'], {
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      COMMENT_BODY: 'test',
+      AUTHOR_ASSOCIATION: 'NONE',
+      AUTHOR_TYPE: 'User',
+      AUTHOR_LOGIN: 'alguem',
+      GITHUB_OUTPUT: '',
+    },
+  })
+  assert.equal(rejected.status, 0)
+  assert.equal(rejected.stdout, 'rerun=false\n')
 })

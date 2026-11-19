@@ -34,6 +34,6 @@ Decisões fechadas para o workflow. Nenhuma escolha ficou em aberto.
 
 ## 6. Número da branch e do título
 
-- **Decision**: O número extraído de `LLT-XXX-slug` e o número extraído de `LLT-XXX: descricao` precisam ser iguais. O commit só casa `LLT-` + dígitos + `: ` + descrição. Commit de merge, com mais de um pai, é ignorado. A lista de commits vem da API do pull request, não de um `git log` da branch.
+- **Decision**: O número extraído de `LLT-XXX-slug` e o número extraído de `LLT-XXX: descricao` precisam ser iguais. O commit casa `LLT-` + dígitos + (`: ` ou um espaço) + descrição. Commit de merge, com mais de um pai, é ignorado. A lista de commits vem da API do pull request, não de um `git log` da branch.
 - **Rationale**: A branch herda commits de outra tarefa. O título é o que apresenta este pull request.
 - **Alternatives considered**: Exigir o mesmo número nos commits (rejeitado pelo clarify). Conferir só a mensagem que começa com `Merge ` (rejeitado: a spec define merge pelo número de pais).
