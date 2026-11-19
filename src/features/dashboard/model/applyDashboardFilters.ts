@@ -2,6 +2,7 @@ import {
   defaultDashboardFilter,
   isKnownPreset,
   parseSeverities,
+  resolvePresetRange,
   validateDashboardFilter,
 } from './filterPeriod'
 import type { DashboardFilter, PeriodPreset, Severity } from './types'
@@ -40,18 +41,56 @@ function parseDate(value: string | null | undefined): Date | null {
 export function deserializeDashboardQuery(
   query: DashboardQuery,
   base: DashboardFilter = defaultDashboardFilter(),
+  now = new Date(),
 ): DashboardFilter {
   const productIds = asList(query.produto)
   const periodPreset: PeriodPreset = isKnownPreset(query.periodo) ? query.periodo : base.periodPreset
   const severities = parseSeverities(query.tipo)
+  let from = base.from
+  let to = base.to
+  if (periodPreset === 'personalizado') {
+    from = parseDate(query.de)
+    to = parseDate(query.ate)
+  } else {
+    const range = resolvePresetRange(periodPreset, now)
+    if (range) {
+      from = range.from
+      to = range.to
+    }
+  }
   return {
     ...base,
     productIds,
     periodPreset,
-    from: periodPreset === 'personalizado' ? parseDate(query.de) : base.from,
-    to: periodPreset === 'personalizado' ? parseDate(query.ate) : base.to,
+    from,
+    to,
     severities: severities === null ? base.severities : severities,
   }
+}
+
+export type ProductDashboardLoadDecision =
+  | { type: 'idle' }
+  | { type: 'select_default_product', filter: DashboardFilter }
+  | { type: 'fetch', filter: DashboardFilter }
+
+/** Decisão pura: sem produto na URL → 1º autorizado; com produto e intervalo → buscar métricas. */
+export function decideProductDashboardLoad(input: {
+  applied: DashboardFilter
+  authorizedProductIds: string[]
+  memberWithoutProducts: boolean
+}): ProductDashboardLoadDecision {
+  if (input.memberWithoutProducts) return { type: 'idle' }
+  const currentId = input.applied.productIds[0]
+  if (!currentId) {
+    const firstId = input.authorizedProductIds[0]
+    if (!firstId) return { type: 'idle' }
+    return {
+      type: 'select_default_product',
+      filter: { ...input.applied, productIds: [firstId] },
+    }
+  }
+  if (!input.applied.from || !input.applied.to) return { type: 'idle' }
+  return { type: 'fetch', filter: input.applied }
 }
 
 export function serializeDashboardFilter(filter: DashboardFilter, mode: 'product' | 'company' = 'product'): URLSearchParams {
@@ -71,6 +110,11 @@ export function serializeDashboardFilter(filter: DashboardFilter, mode: 'product
     params.set('tipo', filter.severities.join(','))
   }
   return params
+}
+
+/** Evita setSearchParams quando a query já é a desejada (setSearchParams muda de identidade a cada navigate). */
+export function shouldReplaceSearchParams(current: URLSearchParams, next: URLSearchParams): boolean {
+  return current.toString() !== next.toString()
 }
 
 export function applyDashboardFilters(input: {

@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { ApiError } from '../../../shared/services/api'
 import { endsSession } from '../../../shared/services/sessionRedirect'
@@ -20,11 +20,12 @@ import { dashboardMessage } from '../messages'
 import { resolveDashboardVisibility } from '../model/accessVisibility'
 import {
   applyDashboardFilters,
+  decideProductDashboardLoad,
   deserializeDashboardQuery,
   serializeDashboardFilter,
+  shouldReplaceSearchParams,
 } from '../model/applyDashboardFilters'
 import {
-  defaultDashboardFilter,
   revalidateAfterRetention,
   withRetentionCeiling,
 } from '../model/filterPeriod'
@@ -37,6 +38,8 @@ import { MemberEmptyNotice } from './MemberEmptyNotice'
 export function ProductDashboardPage() {
   const { orgId, orgRole } = useAuth()
   const request = useApi()
+  const requestRef = useRef(request)
+  requestRef.current = request
   const { language, timezone } = useAppliedPreferences()
   const [params, setParams] = useSearchParams()
   const [products, setProducts] = useState(isDashboardMockEnabled() ? mockAccessibleProducts : [])
@@ -63,6 +66,28 @@ export function ProductDashboardPage() {
     linkedProductIds: products.map((product) => product.id),
   })
 
+  const authorizedProductIds = visibility.products.map((product) => product.id)
+  const authorizedProductIdsKey = authorizedProductIds.join(',')
+  const appliedProductIdsKey = applied.productIds.join(',')
+  const appliedFromKey = applied.from?.toISOString()
+  const appliedToKey = applied.to?.toISOString()
+  const appliedSeveritiesKey = applied.severities.join(',')
+  const appliedPeriodKey = applied.periodPreset
+
+  // Ajuste durante o render: sem produto → 1º autorizado (docs React).
+  // Separado do efeito de URL/fetch para não acoplar setParams à identidade de request.
+  if (!productsLoading && !visibility.memberWithoutProducts) {
+    const decision = decideProductDashboardLoad({
+      applied,
+      authorizedProductIds,
+      memberWithoutProducts: visibility.memberWithoutProducts,
+    })
+    if (decision.type === 'select_default_product') {
+      setApplied(decision.filter)
+      setDraft(decision.filter)
+    }
+  }
+
   useEffect(() => {
     if (isDashboardMockEnabled()) {
       setProducts(mockAccessibleProducts)
@@ -71,7 +96,7 @@ export function ProductDashboardPage() {
     }
     const controller = new AbortController()
     setProductsLoading(true)
-    request<Array<{ id: string, name: string }>>('/api/products', { signal: controller.signal })
+    requestRef.current<Array<{ id: string, name: string }>>('/api/products', { signal: controller.signal })
       .then((rows) => {
         if (controller.signal.aborted) return
         setProducts(rows.map((row) => ({ id: row.id, name: row.name })))
@@ -84,38 +109,45 @@ export function ProductDashboardPage() {
         if (!controller.signal.aborted) setProductsLoading(false)
       })
     return () => controller.abort()
-  }, [orgId, request])
+  // request via ref: após setParams a identidade de useApi pode mudar a cada render.
+  }, [orgId])
+
+  // URL replace só quando a query serializada difere (sem params/setParams nas deps).
+  useEffect(() => {
+    if (!applied.productIds[0]) return
+    const nextParams = serializeDashboardFilter(applied)
+    if (!shouldReplaceSearchParams(params, nextParams)) return
+    setParams(nextParams, { replace: true })
+  }, [appliedProductIdsKey, appliedPeriodKey, appliedFromKey, appliedToKey, appliedSeveritiesKey])
 
   useEffect(() => {
     if (visibility.memberWithoutProducts) return
-    if (!applied.productIds[0] && visibility.products[0]) {
-      const next = { ...applied, productIds: [visibility.products[0].id] }
-      setApplied(next)
-      setDraft(next)
-      setParams(serializeDashboardFilter(next), { replace: true })
-      return
-    }
-    if (!applied.productIds[0] || !applied.from || !applied.to) return
+    const productId = applied.productIds[0]
+    const from = applied.from
+    const to = applied.to
+    if (!productId || !from || !to) return
+    const filter = applied
     const controller = new AbortController()
     const requestedOrgId = orgId
+    let cancelled = false
     setLoading(true)
     setError('')
     setProductUnavailable(false)
     setCorrelationId('')
     fetchProductMetrics({
-      request,
-      productId: applied.productIds[0],
-      from: applied.from.toISOString(),
-      to: applied.to.toISOString(),
-      severities: applied.severities,
+      request: (path, options) => requestRef.current(path, options),
+      productId,
+      from: from.toISOString(),
+      to: to.toISOString(),
+      severities: filter.severities,
       orgId,
       signal: controller.signal,
     })
       .then((body) => {
-        if (controller.signal.aborted || orgId !== requestedOrgId) return
+        if (cancelled || orgId !== requestedOrgId) return
         setMetrics(body)
         setProductUnavailable(false)
-        const raised = withRetentionCeiling(applied, body.retentionDays)
+        const raised = withRetentionCeiling(filter, body.retentionDays)
         const check = revalidateAfterRetention(raised, body.retentionDays)
         if (!check.ok) {
           setFilterMessage(dashboardMessage(
@@ -125,14 +157,14 @@ export function ProductDashboardPage() {
           ))
           return
         }
-        if (raised.maxPeriodDays !== applied.maxPeriodDays) {
+        if (raised.maxPeriodDays !== filter.maxPeriodDays) {
           setApplied(raised)
           setDraft(raised)
         }
       })
       .catch((reason) => {
-        if (controller.signal.aborted || endsSession(reason)) return
-        // Produto inacessível (outra empresa ou MEMBRO sem AcessoProduto): Core responde 404
+        if (cancelled || endsSession(reason)) return
+        // Produto inacessível (outra empresa ou MEMBRO sem acessoProduto): Core responde 404
         if (reason instanceof ApiError && reason.status === 404) {
           setProductUnavailable(true)
           setError('')
@@ -147,10 +179,23 @@ export function ProductDashboardPage() {
         setProductUnavailable(false)
       })
       .finally(() => {
-        if (!controller.signal.aborted) setLoading(false)
+        if (!cancelled) setLoading(false)
       })
-    return () => controller.abort()
-  }, [applied.productIds.join(','), applied.from?.toISOString(), applied.to?.toISOString(), applied.severities.join(','), orgId, reloadKey, request, visibility.memberWithoutProducts, visibility.products.map((product) => product.id).join(','), language, setParams])
+    return () => {
+      cancelled = true
+      controller.abort()
+    }
+  }, [
+    appliedProductIdsKey,
+    appliedFromKey,
+    appliedToKey,
+    appliedSeveritiesKey,
+    authorizedProductIdsKey,
+    orgId,
+    reloadKey,
+    visibility.memberWithoutProducts,
+    language,
+  ])
 
   function commitFilter(nextDraft: DashboardFilter) {
     const result = applyDashboardFilters({ current: applied, draft: nextDraft })

@@ -15,8 +15,10 @@ const {
 
 const {
   applyDashboardFilters,
+  decideProductDashboardLoad,
   deserializeDashboardQuery,
   serializeDashboardFilter,
+  shouldReplaceSearchParams,
 } = await import('../src/features/dashboard/model/applyDashboardFilters.ts')
 
 test('default filter uses 7d preset and safe 7-day ceiling', () => {
@@ -107,8 +109,99 @@ test('serialize and deserialize keep product period and type query params', () =
     produto: params.get('produto'),
     periodo: params.get('periodo'),
     tipo: params.get('tipo'),
-  }, defaultDashboardFilter(now))
+  }, defaultDashboardFilter(now), now)
   assert.deepEqual(restored.productIds, ['prd_1'])
   assert.equal(restored.periodPreset, '24h')
   assert.deepEqual(restored.severities, ['ERROR', 'WARNING'])
+  assert.equal(restored.from?.toISOString(), new Date(now.getTime() - 86400000).toISOString())
+  assert.equal(restored.to?.toISOString(), now.toISOString())
+})
+
+test('deserialize recalculates from/to for known presets (24h and 30d)', () => {
+  const now = new Date('2026-11-18T12:00:00.000Z')
+  const base = defaultDashboardFilter(now)
+  const hours = deserializeDashboardQuery({
+    produto: 'prd_billing',
+    periodo: '24h',
+    tipo: 'ERROR',
+  }, base, now)
+  assert.equal(hours.periodPreset, '24h')
+  assert.deepEqual(hours.severities, ['ERROR'])
+  assert.equal(Math.round((hours.to - hours.from) / 3600000), 24)
+  assert.notEqual(hours.from?.toISOString(), base.from?.toISOString())
+
+  const month = deserializeDashboardQuery({ periodo: '30d' }, base, now)
+  assert.equal(month.periodPreset, '30d')
+  assert.equal(Math.round((month.to - month.from) / 86400000), 30)
+})
+
+test('30d from URL becomes valid after retentionDays=30 raises the ceiling', () => {
+  const now = new Date('2026-11-18T12:00:00.000Z')
+  const fromUrl = deserializeDashboardQuery({ periodo: '30d' }, defaultDashboardFilter(now), now)
+  assert.equal(fromUrl.maxPeriodDays, SAFE_INITIAL_MAX_PERIOD_DAYS)
+  assert.equal(validateDashboardFilter(fromUrl, now).ok, false)
+  const afterRetention = revalidateAfterRetention(fromUrl, 30, now)
+  assert.equal(afterRetention.ok, true)
+  assert.equal(afterRetention.filter?.periodPreset, '30d')
+  assert.equal(afterRetention.filter?.maxPeriodDays, 30)
+  assert.equal(Math.round((afterRetention.filter.to - afterRetention.filter.from) / 86400000), 30)
+})
+
+test('decideProductDashboardLoad selects first authorized product then fetches', () => {
+  const now = new Date('2026-11-18T12:00:00.000Z')
+  const applied = defaultDashboardFilter(now)
+  assert.equal(decideProductDashboardLoad({
+    applied,
+    authorizedProductIds: [],
+    memberWithoutProducts: false,
+  }).type, 'idle')
+  assert.equal(decideProductDashboardLoad({
+    applied,
+    authorizedProductIds: ['prd_a'],
+    memberWithoutProducts: true,
+  }).type, 'idle')
+
+  const select = decideProductDashboardLoad({
+    applied,
+    authorizedProductIds: ['prd_checkout', 'prd_billing'],
+    memberWithoutProducts: false,
+  })
+  assert.equal(select.type, 'select_default_product')
+  assert.deepEqual(select.filter.productIds, ['prd_checkout'])
+
+  const afterSelect = decideProductDashboardLoad({
+    applied: select.filter,
+    authorizedProductIds: ['prd_checkout', 'prd_billing'],
+    memberWithoutProducts: false,
+  })
+  assert.equal(afterSelect.type, 'fetch')
+  assert.deepEqual(afterSelect.filter.productIds, ['prd_checkout'])
+
+  const serialized = serializeDashboardFilter(select.filter)
+  assert.equal(serialized.get('produto'), 'prd_checkout')
+  assert.equal(serialized.get('periodo'), '7d')
+  assert.equal(
+    shouldReplaceSearchParams(new URLSearchParams(), serialized),
+    true,
+  )
+  assert.equal(
+    shouldReplaceSearchParams(serialized, serializeDashboardFilter(select.filter)),
+    false,
+  )
+
+  const fetch = decideProductDashboardLoad({
+    applied: { ...applied, productIds: ['prd_billing'] },
+    authorizedProductIds: ['prd_checkout', 'prd_billing'],
+    memberWithoutProducts: false,
+  })
+  assert.equal(fetch.type, 'fetch')
+  assert.deepEqual(fetch.filter.productIds, ['prd_billing'])
+})
+
+test('shouldReplaceSearchParams compares query strings stably', () => {
+  const a = new URLSearchParams('produto=prd_checkout&periodo=7d')
+  const b = new URLSearchParams('produto=prd_checkout&periodo=7d')
+  const c = new URLSearchParams('produto=prd_billing&periodo=7d')
+  assert.equal(shouldReplaceSearchParams(a, b), false)
+  assert.equal(shouldReplaceSearchParams(a, c), true)
 })

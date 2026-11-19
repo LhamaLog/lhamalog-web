@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { ApiError } from '../../../shared/services/api'
 import { endsSession } from '../../../shared/services/sessionRedirect'
@@ -48,6 +48,8 @@ function badgeVariant(selo: ImpactBadge): 'danger' | 'warning' | 'success' {
 export function CompanyDashboardPage() {
   const { orgId, orgRole } = useAuth()
   const request = useApi()
+  const requestRef = useRef(request)
+  requestRef.current = request
   const { language, timezone } = useAppliedPreferences()
   const [params, setParams] = useSearchParams()
   const [products, setProducts] = useState(isDashboardMockEnabled() ? mockAccessibleProducts : [])
@@ -82,7 +84,7 @@ export function CompanyDashboardPage() {
     }
     const controller = new AbortController()
     setProductsLoading(true)
-    request<Array<{ id: string, name: string }>>('/api/products', { signal: controller.signal })
+    requestRef.current<Array<{ id: string, name: string }>>('/api/products', { signal: controller.signal })
       .then((rows) => {
         if (controller.signal.aborted) return
         setProducts(rows.map((row) => ({ id: row.id, name: row.name })))
@@ -95,30 +97,34 @@ export function CompanyDashboardPage() {
         if (!controller.signal.aborted) setProductsLoading(false)
       })
     return () => controller.abort()
-  }, [orgId, request])
+  }, [orgId])
 
   useEffect(() => {
     if (visibility.forbidden || visibility.memberWithoutProducts) return
-    if (!applied.from || !applied.to) return
+    const from = applied.from
+    const to = applied.to
+    if (!from || !to) return
+    const filter = applied
     const controller = new AbortController()
     const requestedOrgId = orgId
+    let cancelled = false
     setLoading(true)
     setError('')
     setCorrelationId('')
     setBusinessForbidden(false)
     fetchCompanyMetrics({
-      request,
-      from: applied.from.toISOString(),
-      to: applied.to.toISOString(),
-      productIds: applied.productIds,
-      severities: applied.severities,
+      request: (path, options) => requestRef.current(path, options),
+      from: from.toISOString(),
+      to: to.toISOString(),
+      productIds: filter.productIds,
+      severities: filter.severities,
       orgId,
       signal: controller.signal,
     })
       .then((body) => {
-        if (controller.signal.aborted || orgId !== requestedOrgId) return
+        if (cancelled || orgId !== requestedOrgId) return
         setMetrics(body)
-        const raised = withRetentionCeiling(applied, body.retentionDays)
+        const raised = withRetentionCeiling(filter, body.retentionDays)
         const check = revalidateAfterRetention(raised, body.retentionDays)
         if (!check.ok) {
           setFilterMessage(dashboardMessage(
@@ -128,13 +134,13 @@ export function CompanyDashboardPage() {
           ))
           return
         }
-        if (raised.maxPeriodDays !== applied.maxPeriodDays) {
+        if (raised.maxPeriodDays !== filter.maxPeriodDays) {
           setApplied(raised)
           setDraft(raised)
         }
       })
       .catch((reason) => {
-        if (controller.signal.aborted || endsSession(reason)) return
+        if (cancelled || endsSession(reason)) return
         if (reason instanceof ApiError && reason.status === 403 && (reason.serverMessage || reason.code)) {
           setBusinessForbidden(true)
           setError('')
@@ -147,9 +153,12 @@ export function CompanyDashboardPage() {
         setMetrics(null)
       })
       .finally(() => {
-        if (!controller.signal.aborted) setLoading(false)
+        if (!cancelled) setLoading(false)
       })
-    return () => controller.abort()
+    return () => {
+      cancelled = true
+      controller.abort()
+    }
   }, [
     applied.productIds.join(','),
     applied.from?.toISOString(),
@@ -157,7 +166,6 @@ export function CompanyDashboardPage() {
     applied.severities.join(','),
     orgId,
     reloadKey,
-    request,
     visibility.forbidden,
     visibility.memberWithoutProducts,
     language,
