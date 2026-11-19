@@ -1,10 +1,50 @@
-import { readFileSync, writeFileSync } from 'node:fs'
+import { appendFileSync, readFileSync, writeFileSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 
 export const MARKER = '<!-- llt-285-validacao-prs -->'
 export const RELEASE_NOTE = 'PR de release (Development → main): só testes e build são verificados'
 export const BRANCH_FORMAT = 'LLT-XXX-slug'
 export const TITLE_FORMAT = 'LLT-XXX: descricao'
+const RERUN_COMMANDS = new Set(['test', '/test'])
+const RERUN_ASSOCIATIONS = new Set(['OWNER', 'MEMBER', 'COLLABORATOR'])
+
+export function isRerunCommand(body) {
+  return RERUN_COMMANDS.has(String(body ?? '').trim())
+}
+
+export function canRequestRerun(authorAssociation) {
+  return RERUN_ASSOCIATIONS.has(String(authorAssociation ?? ''))
+}
+
+export function isIgnoredCommentAuthor(user) {
+  if (!user) return false
+  const type = String(user.type ?? '')
+  const login = String(user.login ?? '')
+  if (type === 'Bot') return true
+  if (login === 'github-actions[bot]' || login.endsWith('[bot]')) return true
+  return false
+}
+
+export function shouldRerun(input = {}) {
+  if (isIgnoredCommentAuthor(input.user)) return false
+  if (!canRequestRerun(input.association)) return false
+  return isRerunCommand(input.body)
+}
+
+export function gateFromEnv(env = process.env) {
+  return shouldRerun({
+    body: env.COMMENT_BODY,
+    association: env.AUTHOR_ASSOCIATION,
+    user: { type: env.AUTHOR_TYPE, login: env.AUTHOR_LOGIN },
+  })
+}
+
+export function rerunReaction(comment) {
+  const body = String(comment ?? '')
+  if (body.trim() === '' || body.includes('❌')) return '-1'
+  return 'rocket'
+}
+
 const BRANCH_PATTERN = /^LLT-(\d+)-([a-z0-9]+(?:-[a-z0-9]+)*)$/
 const TEXT_PATTERN = /^LLT-(\d+): (.*)$/
 
@@ -182,12 +222,30 @@ export function inputFromEnv(env = process.env) {
   }
 }
 
+function writeOutput(name, value) {
+  const line = `${name}=${value}\n`
+  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, line)
+  process.stdout.write(line)
+}
+
 function main() {
   try {
-    const output = process.argv[3]
-    const body = buildComment(process.argv[2] === '--env' ? inputFromEnv() : JSON.parse(readFileSync(process.argv[2], 'utf8')))
-    if (output) writeFileSync(output, body)
-    else process.stdout.write(body)
+    if (process.argv[2] === '--gate') {
+      writeOutput('rerun', gateFromEnv() ? 'true' : 'false')
+    } else if (process.argv[2] === '--reaction') {
+      let body = ''
+      try {
+        body = readFileSync(process.env.COMMENT_FILE ?? '', 'utf8')
+      } catch {
+        body = ''
+      }
+      writeOutput('reaction', rerunReaction(body))
+    } else {
+      const output = process.argv[3]
+      const body = buildComment(process.argv[2] === '--env' ? inputFromEnv() : JSON.parse(readFileSync(process.argv[2], 'utf8')))
+      if (output) writeFileSync(output, body)
+      else process.stdout.write(body)
+    }
   } catch (error) {
     process.stderr.write(`${error instanceof Error ? error.message : 'Falha ao montar o comentário.'}\n`)
   }
