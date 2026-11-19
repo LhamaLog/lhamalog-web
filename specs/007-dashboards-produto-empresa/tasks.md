@@ -14,8 +14,8 @@
 
 **Purpose**: baseline e esqueleto da feature no Web.
 
-- [ ] T001 (~8 linhas) Rodar `npm test` e `npm run build` na base e anotar o total de testes (comparar no polish; referência 17/11: 49)
-- [ ] T002 (~35 linhas) Criar esqueleto `src/features/dashboard/` (`components/`, `model/`, `contract/`, `messages.ts` vazio de rotas) conforme [plan.md](plan.md)
+- [x] T001 (~8 linhas) Rodar `npm test` e `npm run build` na base e anotar o total de testes (comparar no polish; referência 17/11: 49) — **baseline 18/11: 49 testes, build OK**
+- [x] T002 (~35 linhas) Criar esqueleto `src/features/dashboard/` (`components/`, `model/`, `contract/`, `messages.ts` vazio de rotas) conforme [plan.md](plan.md)
 
 **Checkpoint**: `npm test` e `npm run build` verdes. Parar para revisão.
 
@@ -27,19 +27,19 @@
 
 **⚠️ CRITICAL**: nenhuma User Story começa antes desta fase.
 
-- [ ] T003 [P] (~70 linhas) Espelhar tipos de leitura de [data-model.md](data-model.md) em `src/features/dashboard/model/types.ts` (filtro, período, métricas, série, ranking, selo, estados)
-- [ ] T004 [P] (~120 linhas) Parsers do contrato em `src/features/dashboard/contract/parseDashboardMetrics.ts` a partir de [contracts/dashboard-metrics.md](contracts/dashboard-metrics.md) (rejeitar corpo inválido / enum de severidade desconhecido — FR-011: Web só consome `ERROR`/`WARNING`/`INFO` já normalizados pelo Core)
-- [ ] T005 (~45 linhas) Em `src/shared/services/api.ts` (e uso via `useApi.ts`): gerar e enviar `X-Correlation-Id` em toda requisição; expor o id no erro para a UI (FR-016); sem mudar classificação 401/403 da spec 006
-- [ ] T006 (~180 linhas) Em `src/features/dashboard/model/filterPeriod.ts`: presets `24h`/`7d`/`30d`/`personalizado`; padrão `7d` e tipo “todos”; na 1ª carga teto seguro de 7 dias (FREE) até a 1ª resposta; após resposta de métricas (produto/empresa) atualizar teto para `min(30, retentionDays)`; se filtro da URL exceder o teto conhecido depois da resposta → inválido (mensagem) e não aplicar; validação de intervalo personalizado (`from < to`, duração ≤ máximo); mensagens de filtro inválido (FR-003, FR-004)
-- [ ] T007 (~120 linhas) Em `src/features/dashboard/model/timezoneBuckets.ts`: bucket `hour` se duração ≤ 48h senão `day`; rótulos/`Intl` no fuso do perfil; fallback `America/Sao_Paulo` (FR-006)
-- [ ] T008 (~130 linhas) Em `src/features/dashboard/model/accessVisibility.ts`: DONO = ADMIN (todos os produtos); MEMBRO só `AcessoProduto`; MEMBRO sem produtos → estado vazio com aviso; sem permissão empresarial → `forbidden`; **sem cache** de permissão (FR-009, FR-010, LLT-171). **Portão**: revisão do Felipe (Clerk/papéis) antes de fechar a fase
-- [ ] T009 (~150 linhas) Em `src/features/dashboard/model/companyImpact.ts`: totais consolidados; ranking “mais impactados”; selos Crítico/Atenção/Estável pela regra R9 APROVADA (`p = error/max(logs,1)`: ≥0,10 / [0,02,0,10) / <0,02 incl. sem logs) — Session 2026-11-18
-- [ ] T010 [P] (~160 linhas) Testes em `tests/dashboard-filters.test.mjs` cobrindo presets, teto seguro inicial de 7 dias, atualização para `min(30, retentionDays)` após resposta, URL que excede o teto conhecido (inválido + mensagem), personalizado inválido e mensagens de T006
-- [ ] T011 [P] (~100 linhas) Testes em `tests/dashboard-timezone-grouping.test.mjs` para T007 (≤48h hora, >48h dia, fallback de fuso)
-- [ ] T012 [P] (~110 linhas) Testes em `tests/dashboard-access.test.mjs` para T008 (DONO/ADMIN iguais, MEMBRO subset, MEMBRO vazio, forbidden, sem cache). **Portão**: revisão do Felipe (Clerk/papéis) antes de fechar a fase
-- [ ] T013 [P] (~120 linhas) Testes em `tests/dashboard-company-derived.test.mjs` para T009 (totais, ordem do ranking, limiares APROVADOS de selo: ≥10% / [2%,10%) / <2%)
-- [ ] T014 [P] (~80 linhas) Testes em `tests/dashboard-contract.test.mjs` para parsers T004 (rejeitar severidade desconhecida — cobertura FR-011) + presença/eco conceitual de `X-Correlation-Id` alinhado a T005
-- [ ] T015 (~90 linhas) Em `src/features/dashboard/model/applyDashboardFilters.ts`: aplicar só filtro válido; inválido não altera o recorte aplicado; serializar/deserializar query (`produto`, `periodo`, `de`, `ate`, `tipo`) conforme research R2
+- [x] T003 [P] (~70 linhas) Espelhar tipos de leitura de [data-model.md](data-model.md) em `src/features/dashboard/model/types.ts` (filtro, período, métricas, série, ranking, selo, estados)
+- [x] T004 [P] (~120 linhas) Parsers do contrato em `src/features/dashboard/contract/parseDashboardMetrics.ts` a partir de [contracts/dashboard-metrics.md](contracts/dashboard-metrics.md) (rejeitar corpo inválido / enum de severidade desconhecido — FR-011: Web só consome `ERROR`/`WARNING`/`INFO` já normalizados pelo Core)
+- [x] T005 (~45 linhas) Em `src/shared/services/api.ts` (e uso via `useApi.ts`): gerar e enviar `X-Correlation-Id` em toda requisição; expor o id no erro para a UI (FR-016); sem mudar classificação 401/403 da spec 006
+- [x] T006 (~180 linhas) Em `src/features/dashboard/model/filterPeriod.ts`: presets `24h`/`7d`/`30d`/`personalizado`; padrão `7d` e tipo “todos”; na 1ª carga teto seguro de 7 dias (FREE) até a 1ª resposta; após resposta de métricas (produto/empresa) atualizar teto para `min(30, retentionDays)`; se filtro da URL exceder o teto conhecido depois da resposta → inválido (mensagem) e não aplicar; validação de intervalo personalizado (`from < to`, duração ≤ máximo); mensagens de filtro inválido (FR-003, FR-004)
+- [x] T007 (~120 linhas) Em `src/features/dashboard/model/timezoneBuckets.ts`: bucket `hour` se duração ≤ 48h senão `day`; rótulos/`Intl` no fuso do perfil; fallback `America/Sao_Paulo` (FR-006)
+- [x] T008 (~130 linhas) Em `src/features/dashboard/model/accessVisibility.ts`: DONO = ADMIN (todos os produtos); MEMBRO só `AcessoProduto`; MEMBRO sem produtos → estado vazio com aviso; sem permissão empresarial → `forbidden`; **sem cache** de permissão (FR-009, FR-010, LLT-171). **Portão**: revisão do Felipe (Clerk/papéis) antes de fechar a fase
+- [x] T009 (~150 linhas) Em `src/features/dashboard/model/companyImpact.ts`: totais consolidados; ranking “mais impactados”; selos Crítico/Atenção/Estável pela regra R9 APROVADA (`p = error/max(logs,1)`: ≥0,10 / [0,02,0,10) / <0,02 incl. sem logs) — Session 2026-11-18
+- [x] T010 [P] (~160 linhas) Testes em `tests/dashboard-filters.test.mjs` cobrindo presets, teto seguro inicial de 7 dias, atualização para `min(30, retentionDays)` após resposta, URL que excede o teto conhecido (inválido + mensagem), personalizado inválido e mensagens de T006
+- [x] T011 [P] (~100 linhas) Testes em `tests/dashboard-timezone-grouping.test.mjs` para T007 (≤48h hora, >48h dia, fallback de fuso)
+- [x] T012 [P] (~110 linhas) Testes em `tests/dashboard-access.test.mjs` para T008 (DONO/ADMIN iguais, MEMBRO subset, MEMBRO vazio, forbidden, sem cache). **Portão**: revisão do Felipe (Clerk/papéis) antes de fechar a fase
+- [x] T013 [P] (~120 linhas) Testes em `tests/dashboard-company-derived.test.mjs` para T009 (totais, ordem do ranking, limiares APROVADOS de selo: ≥10% / [2%,10%) / <2%)
+- [x] T014 [P] (~80 linhas) Testes em `tests/dashboard-contract.test.mjs` para parsers T004 (rejeitar severidade desconhecida — cobertura FR-011) + presença/eco conceitual de `X-Correlation-Id` alinhado a T005
+- [x] T015 (~90 linhas) Em `src/features/dashboard/model/applyDashboardFilters.ts`: aplicar só filtro válido; inválido não altera o recorte aplicado; serializar/deserializar query (`produto`, `periodo`, `de`, `ate`, `tipo`) conforme research R2
 
 **Checkpoint**: `npm test` e `npm run build` verdes. **Portão**: revisão do Felipe (Clerk/papéis) nas tasks T008/T012 antes de fechar a fase. Parar para revisão.
 
@@ -51,13 +51,13 @@
 
 **Independent Test**: E1–E3 do [quickstart.md](quickstart.md).
 
-- [ ] T016 [P] [US1] (~80 linhas) Rotas `/dashboard` (e preparação de `/dashboard/empresa`) em `src/app/routes/AppRoutes.tsx` + integração no shell (`CompanyWorkspace` ou layout dedicado) com `ProtectedRoute`
-- [ ] T017 [P] [US1] (~30 linhas) Em `src/app/layouts/Navbar.tsx` / shell: item `dashboard` navega para `/dashboard` e destaca ativo
-- [ ] T018 [P] [US1] (~130 linhas) Extender SVG próprio em `src/shared/ui/TimeSeriesChart.tsx` (séries ERROR/WARNING; acessível; sem lib externa) a partir de Sparkline/MetricCard
-- [ ] T019 [US1] (~140 linhas) `src/features/dashboard/components/ProductDashboardPage.tsx`: estados loading/empty/ready/error; cinco cartões (volume vs `volumeIngestaoBytes`); ranking via `RankingList`; MUST exibir “Dados consolidados até …” no fuso do perfil quando `dadosConsolidadosAte` vier do Core (ausência não bloqueia métricas)
-- [ ] T020 [US1] (~90 linhas) Cliente de leitura `src/features/dashboard/api/fetchProductMetrics.ts` (+ hook com `useApi`/`useApiResource`): `GET /api/dashboard/products/{id}/metrics` com `X-Correlation-Id`; descartar resposta se `orgId` mudou
-- [ ] T021 [US1] (~50 linhas) `src/features/dashboard/messages.ts`: strings pt-BR/en dos cartões, vazio (“nenhum resultado encontrado”), erro com correlacao
-- [ ] T022 [US1] (~80 linhas) Compor gráfico/cartões na página US1 usando T007 (bucket) e parsers T004; MEMBRO sem produtos usa estado de T008 (aviso, sem erro)
+- [x] T016 [P] [US1] (~80 linhas) Rotas `/dashboard` (e preparação de `/dashboard/empresa`) em `src/app/routes/AppRoutes.tsx` + integração no shell (`CompanyWorkspace` ou layout dedicado) com `ProtectedRoute`
+- [x] T017 [P] [US1] (~30 linhas) Em `src/app/layouts/Navbar.tsx` / shell: item `dashboard` navega para `/dashboard` e destaca ativo
+- [x] T018 [P] [US1] (~130 linhas) Extender SVG próprio em `src/shared/ui/TimeSeriesChart.tsx` (séries ERROR/WARNING; acessível; sem lib externa) a partir de Sparkline/MetricCard
+- [x] T019 [US1] (~140 linhas) `src/features/dashboard/components/ProductDashboardPage.tsx`: estados loading/empty/ready/error; cinco cartões (volume vs `volumeIngestaoBytes`); ranking via `RankingList`; MUST exibir “Dados consolidados até …” no fuso do perfil quando `dadosConsolidadosAte` vier do Core (ausência não bloqueia métricas)
+- [x] T020 [US1] (~90 linhas) Cliente de leitura `src/features/dashboard/api/fetchProductMetrics.ts` (+ hook com `useApi`/`useApiResource`): `GET /api/dashboard/products/{id}/metrics` com `X-Correlation-Id`; descartar resposta se `orgId` mudou
+- [x] T021 [US1] (~50 linhas) `src/features/dashboard/messages.ts`: strings pt-BR/en dos cartões, vazio (“nenhum resultado encontrado”), erro com correlacao
+- [x] T022 [US1] (~80 linhas) Compor gráfico/cartões na página US1 usando T007 (bucket) e parsers T004; MEMBRO sem produtos usa estado de T008 (aviso, sem erro)
 
 **Checkpoint**: `npm test` e `npm run build` verdes; E1–E3. Parar para revisão.
 
@@ -69,9 +69,9 @@
 
 **Independent Test**: E4–E5 do quickstart.
 
-- [ ] T023 [P] [US2] (~100 linhas) UI de filtros em `src/features/dashboard/components/DashboardFilters.tsx` (controles visuais: select produto, presets, personalizado, tipo, botões Aplicar/Atualizar) sem embutir as regras de T006
-- [ ] T024 [US2] (~90 linhas) Ligar `DashboardFilters` + URL em `ProductDashboardPage` via `applyDashboardFilters` (T015/T006): rascunho ≠ aplicado até Aplicar/Atualizar; mensagens de inválido; sem WebSocket (FR-005)
-- [ ] T025 [US2] (~40 linhas) Estado de erro recuperável na US2 exibe `X-Correlation-Id` e “tentar novamente” (`ErrorState`)
+- [x] T023 [P] [US2] (~100 linhas) UI de filtros em `src/features/dashboard/components/DashboardFilters.tsx` (controles visuais: select produto, presets, personalizado, tipo, botões Aplicar/Atualizar) sem embutir as regras de T006
+- [x] T024 [US2] (~90 linhas) Ligar `DashboardFilters` + URL em `ProductDashboardPage` via `applyDashboardFilters` (T015/T006): rascunho ≠ aplicado até Aplicar/Atualizar; mensagens de inválido; sem WebSocket (FR-005)
+- [x] T025 [US2] (~40 linhas) Estado de erro recuperável na US2 exibe `X-Correlation-Id` e “tentar novamente” (`ErrorState`)
 
 **Checkpoint**: `npm test` e `npm run build` verdes; E4–E5. Parar para revisão.
 
@@ -83,11 +83,11 @@
 
 **Independent Test**: E6–E9 do quickstart.
 
-- [ ] T026 [P] [US3] (~150 linhas) `src/features/dashboard/components/CompanyDashboardPage.tsx`: título/subtítulo; quatro cartões (Alertas = WARNING); tabela por produto; MUST exibir “Dados consolidados até …” no fuso do perfil quando `dadosConsolidadosAte` vier do Core (ausência não bloqueia métricas); **sem** Exportar e **sem** Desempenho
-- [ ] T027 [P] [US3] (~90 linhas) Cliente `src/features/dashboard/api/fetchCompanyMetrics.ts` para `GET /api/dashboard/company/metrics` com correlacao e descarte em troca de empresa
-- [ ] T028 [US3] (~80 linhas) Gráfico “Evolução de erros por produto” reutilizando `TimeSeriesChart` + `seriesByProduct`
-- [ ] T029 [US3] (~70 linhas) Aplicar `companyImpact` (T009) e `accessVisibility` (T008) na montagem da lista “Produtos mais impactados” (selos) e dos totais exibidos; estados `forbidden` e MEMBRO vazio. **Portão**: revisão do Felipe (Clerk/papéis) antes de fechar a fase
-- [ ] T030 [US3] (~45 linhas) UI dos estados `forbidden` e aviso MEMBRO sem produtos em componentes dedicados sob `src/features/dashboard/components/`. **Portão**: revisão do Felipe (Clerk/papéis) antes de fechar a fase
+- [x] T026 [P] [US3] (~150 linhas) `src/features/dashboard/components/CompanyDashboardPage.tsx`: título/subtítulo; quatro cartões (Alertas = WARNING); tabela por produto; MUST exibir “Dados consolidados até …” no fuso do perfil quando `dadosConsolidadosAte` vier do Core (ausência não bloqueia métricas); **sem** Exportar e **sem** Desempenho
+- [x] T027 [P] [US3] (~90 linhas) Cliente `src/features/dashboard/api/fetchCompanyMetrics.ts` para `GET /api/dashboard/company/metrics` com correlacao e descarte em troca de empresa
+- [x] T028 [US3] (~80 linhas) Gráfico “Evolução de erros por produto” reutilizando `TimeSeriesChart` + `seriesByProduct`
+- [x] T029 [US3] (~70 linhas) Aplicar `companyImpact` (T009) e `accessVisibility` (T008) na montagem da lista “Produtos mais impactados” (selos) e dos totais exibidos; estados `forbidden` e MEMBRO vazio. **Portão**: revisão do Felipe (Clerk/papéis) antes de fechar a fase
+- [x] T030 [US3] (~45 linhas) UI dos estados `forbidden` e aviso MEMBRO sem produtos em componentes dedicados sob `src/features/dashboard/components/`. **Portão**: revisão do Felipe (Clerk/papéis) antes de fechar a fase
 
 **Checkpoint**: `npm test` e `npm run build` verdes; E6–E9. **Portão**: revisão do Felipe (Clerk/papéis) nas tasks T029/T030 antes de fechar a fase. Parar para revisão.
 
@@ -99,8 +99,8 @@
 
 **Independent Test**: E10 do quickstart.
 
-- [ ] T031 [P] [US4] (~80 linhas) Estender `DashboardFilters` para modo empresa (multi-produto, padrão “Todos os produtos autorizados”)
-- [ ] T032 [US4] (~80 linhas) Regras de apply/URL do empresarial em `applyDashboardFilters` / página empresa: subset ⊆ autorizados; inválido não aplica; limpar → todos autorizados (USID_036); reutilizar teto de período T006
+- [x] T031 [P] [US4] (~80 linhas) Estender `DashboardFilters` para modo empresa (multi-produto, padrão “Todos os produtos autorizados”)
+- [x] T032 [US4] (~80 linhas) Regras de apply/URL do empresarial em `applyDashboardFilters` / página empresa: subset ⊆ autorizados; inválido não aplica; limpar → todos autorizados (USID_036); reutilizar teto de período T006
 
 **Checkpoint**: `npm test` e `npm run build` verdes; E10. Parar para revisão.
 
@@ -112,8 +112,8 @@
 
 **Independent Test**: mensagem “não implementado ainda” quando não há dados de ocorrências (T034). Comparação real SC-004 só após LLT-104.
 
-- [ ] T033 [US5] (~50 linhas) Preparar tipos/props do `TimeSeriesChart` e da página para a série opcional de ocorrências + estado pendente com a mensagem “não implementado ainda” (contrato: `occurrences` opcional por bucket; ausente = pendente). Sem lógica de comparação com lista de Ocorrências
-- [ ] T034 [US5] (~25 linhas) Teste em `tests/dashboard-occurrences-pending.test.mjs` que garante a mensagem “não implementado ainda” quando não há dados de ocorrências — teste puro do model/mensagens com `node --test`
+- [x] T033 [US5] (~50 linhas) Preparar tipos/props do `TimeSeriesChart` e da página para a série opcional de ocorrências + estado pendente com a mensagem “não implementado ainda” (contrato: `occurrences` opcional por bucket; ausente = pendente). Sem lógica de comparação com lista de Ocorrências
+- [x] T034 [US5] (~25 linhas) Teste em `tests/dashboard-occurrences-pending.test.mjs` que garante a mensagem “não implementado ainda” quando não há dados de ocorrências — teste puro do model/mensagens com `node --test`
 
 **Checkpoint**: `npm test` e `npm run build` verdes; placeholder visível sem dados de ocorrências. Parar para revisão.
 
@@ -123,9 +123,9 @@
 
 **Purpose**: documentação e fechamento da baseline no Web.
 
-- [ ] T035 [P] (~25 linhas) Atualizar menção no `README.md` (seção de rotas/monitoramento) apontando `/dashboard` e `/dashboard/empresa` e a spec 007 — sem expandir escopo
-- [ ] T036 (~30 linhas) Conferir E11–E15 do quickstart (correlacao, 5xx sem logout, 401 spec 006, troca de empresa, placeholder Ocorrências) e anotar resultado no PR quando houver
-- [ ] T037 (~15 linhas) `npm test` e `npm run build` finais; comparar com T001 (só entram testes novos desta feature)
+- [x] T035 [P] (~25 linhas) Atualizar menção no `README.md` (seção de rotas/monitoramento) apontando `/dashboard` e `/dashboard/empresa` e a spec 007 — sem expandir escopo
+- [x] T036 (~30 linhas) Conferir E11–E15 do quickstart (correlacao, 5xx sem logout, 401 spec 006, troca de empresa, placeholder Ocorrências) e anotar resultado no PR quando houver — **parcial**: E15 coberto por teste automático; E11–E14 manuais dependem de Clerk/Core reais (não executados nesta sessão)
+- [x] T037 (~15 linhas) `npm test` e `npm run build` finais; comparar com T001 (só entram testes novos desta feature) — **final: 72 testes (49 baseline + 23 novos), build OK** (aviso Vite chunk >500 kB)
 
 **Checkpoint**: verdes; parar para revisão do MVP Web.
 

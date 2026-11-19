@@ -11,6 +11,8 @@ import { organizationProfileNavigation, teamMenuHiddenItems } from '../../featur
 import { setAppliedClerkLocale } from '../../features/profile/clerkLocale'
 import { profileMessage } from '../../features/profile/messages'
 import { UserPreferencesProvider, useAppliedPreferences } from '../../features/profile/preferences'
+import { CompanyDashboardPage } from '../../features/dashboard/components/CompanyDashboardPage'
+import { ProductDashboardPage } from '../../features/dashboard/components/ProductDashboardPage'
 import { EmptyState } from '../../shared/ui/EmptyState'
 import { LoadingState } from '../../shared/ui/LoadingState'
 
@@ -36,22 +38,56 @@ function WorkspaceShell() {
   const products = location.pathname.startsWith('/produtos')
   const profile = location.pathname.startsWith('/perfil')
   const team = location.pathname.startsWith('/equipe')
+  const companyDashboard = location.pathname.startsWith('/dashboard/empresa')
+  const productDashboard = location.pathname === '/dashboard' || (location.pathname.startsWith('/dashboard') && !companyDashboard)
   const section = companySectionFromParam(params.get('secao'))
   const sectionLabel = companySections.find((item) => item.id === section)?.label ?? 'Empresa'
   const companyCrumbs = section === 'overview'
     ? [{ label: text('shell.breadcrumbAdministration') }, { label: 'Configurações da Empresa' }]
     : [{ label: text('shell.breadcrumbAdministration') }, { label: 'Configurações da Empresa', href: '/empresa' }, { label: sectionLabel }]
   const sessionName = user?.fullName || user?.primaryEmailAddress?.emailAddress || text('shell.userFallback')
-  const here = team ? '/equipe' : profile ? '/perfil' : products ? '/produtos' : '/empresa'
+  const here = companyDashboard
+    ? '/dashboard/empresa'
+    : productDashboard
+      ? '/dashboard'
+      : team
+        ? '/equipe'
+        : profile
+          ? '/perfil'
+          : products
+            ? '/produtos'
+            : '/empresa'
+  const activeItem = companyDashboard || productDashboard
+    ? 'dashboard'
+    : team
+      ? 'team'
+      : profile
+        ? 'profile'
+        : products
+          ? 'products'
+          : 'company'
+  const breadcrumbs = companyDashboard
+    ? [{ label: text('shell.breadcrumbDashboard') }, { label: text('shell.breadcrumbCompanyDashboard') }]
+    : productDashboard
+      ? [{ label: text('shell.breadcrumbDashboard') }]
+      : team
+        ? [{ label: text('shell.breadcrumbAdministration') }, { label: text('nav.team') }]
+        : profile
+          ? [{ label: text('shell.breadcrumbAdministration') }, { label: text('shell.breadcrumbProfile') }]
+          : products
+            ? [{ label: text('shell.breadcrumbProducts') }]
+            : companyCrumbs
+
   return <AppLayout
     contentClassName="max-w-none"
     navbar={{
-      activeItem: team ? 'team' : profile ? 'profile' : products ? 'products' : 'company',
+      activeItem,
       productName: 'Produtos da empresa',
       homeHref: '/empresa',
       hiddenItems: teamMenuHiddenItems(orgRole),
       onProductSelect: () => navigate('/produtos'),
       onItemSelect: item => {
+        if (item === 'dashboard') navigate('/dashboard')
         if (item === 'products') navigate('/produtos')
         if (item === 'company') navigate('/empresa')
         if (item === 'profile') navigate('/perfil')
@@ -61,11 +97,7 @@ function WorkspaceShell() {
     header={{
       breadcrumbs: {
         homeHref: '/empresa',
-        items: team
-          ? [{ label: text('shell.breadcrumbAdministration') }, { label: text('nav.team') }]
-          : profile
-          ? [{ label: text('shell.breadcrumbAdministration') }, { label: text('shell.breadcrumbProfile') }]
-          : products ? [{ label: text('shell.breadcrumbProducts') }] : companyCrumbs,
+        items: breadcrumbs,
       },
       user: { name: headerName || sessionName, role: organization?.name ?? '', href: '/perfil' },
       signOutLabel: text('shell.signOut'),
@@ -92,6 +124,13 @@ function WorkspaceShell() {
       <Link to="/organizacoes/nova" className="rounded-lg px-3 py-2 text-sm font-semibold text-[#0C70F2] hover:bg-blue-50">{text('shell.registerCompany')}</Link>
     </div>
     {!orgId ? <EmptyState title={text('shell.emptyCompanyTitle')} description={text('shell.emptyCompanyDescription')} />
-      : <div key={orgId}>{team ? <TeamPage /> : profile ? <div className="space-y-6"><ProfilePage /><NotificationPreferences /></div> : products ? <ProductsPage /> : <CompanyPage organizationId={organization?.id ?? orgId} />}</div>}
+      : <div key={orgId}>
+        {companyDashboard ? <CompanyDashboardPage />
+          : productDashboard ? <ProductDashboardPage />
+            : team ? <TeamPage />
+              : profile ? <div className="space-y-6"><ProfilePage /><NotificationPreferences /></div>
+                : products ? <ProductsPage />
+                  : <CompanyPage organizationId={organization?.id ?? orgId} />}
+      </div>}
   </AppLayout>
 }

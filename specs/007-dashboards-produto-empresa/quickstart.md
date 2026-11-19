@@ -19,7 +19,9 @@ Esperado: todos os testes passam (baseline 49 em 17/11 + novos testes de filtro/
 
 ## Preparar o mock (opcional)
 
-Se o Core 011 ainda não estiver disponível, subir um stub em `http://localhost:8080` que responda:
+**Mock embutido no Web** (recomendado enquanto o Core 011 não existir): no `.env`, defina `VITE_DASHBOARD_MOCK=true` (documentado em `.env.example`) e reinicie `npm run dev`. O cliente em `src/features/dashboard/api/` passa a usar fixtures locais alinhadas a [contracts/dashboard-metrics.md](contracts/dashboard-metrics.md). Em produção deixe a variável ausente ou `false`.
+
+**Stub externo** (alternativa): subir um stub em `http://localhost:8080` que responda:
 
 - `GET /api/dashboard/products/{id}/metrics`
 - `GET /api/dashboard/company/metrics`

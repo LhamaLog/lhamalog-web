@@ -113,6 +113,8 @@ São dois momentos diferentes:
 
 `VITE_API_URL` é a origem vista pelo navegador, com esquema, host e porta, sem caminho. O padrão `http://localhost:8080` aponta para a API do Core publicada na mesma máquina. Não use o nome interno de um contêiner: o browser não resolve a rede do Docker.
 
+Para desenvolver os dashboards sem o endpoint do Core (spec 007 / LLT-159), defina `VITE_DASHBOARD_MOCK=true` no `.env` (veja `.env.example`) e reinicie o `npm run dev`. Com o mock desligado, `/dashboard` e `/dashboard/empresa` chamam o Core real.
+
 ## Rotas
 
 | Caminho | Tela |
@@ -120,6 +122,8 @@ São dois momentos diferentes:
 | `/` | Redireciona para `/empresa`. |
 | `/empresa` | Dados, endereço e contexto da empresa ativa, com sessão. |
 | `/produtos` | Cadastro, lista e contexto de produtos acessíveis, com sessão. |
+| `/dashboard` | Dashboard por produto (monitoramento). Spec [007](specs/007-dashboards-produto-empresa/spec.md). |
+| `/dashboard/empresa` | Dashboard da empresa (visão multiproduto). Spec [007](specs/007-dashboards-produto-empresa/spec.md). |
 | `/componentes` | Demonstração visual preservada, com sessão. |
 | `/sign-in/*` | Login. `?motivo=deslogado` mostra o aviso "Você foi deslogado" (ADR_032); `?redirect_url=<rota>` leva à rota depois do login, se for interna (spec 006). |
 | `/sign-up/*` | Cadastro. |
