@@ -37,9 +37,8 @@
 ## R6. Fonte de dados e agregação (contrato com o Core)
 
 - **Decision**: o Web consome só o endpoint de consulta do Core (FR-013: fonte/contrato do Web; OpenObserve só via Core + fatos de uso). Job SSID_011 e consulta híbrida ficam em FR-014 / Core: resposta = agregados já consolidados **mais** contagem na hora do intervalo ainda não consolidado; volume = fatos de uso; campo de negócio `dadosConsolidadosAte` — quando presente, a UI MUST exibir no fuso do perfil. Job no MVP lê **logs** no OpenObserve (não Ocorrências — LLT-104 inexistente), com frequência padrão a cada **1h** configurável por propriedade (cron ou intervalo). **Nesta entrega** = multi-repositório: Web (spec 007) + Core (spec 011 em `lhamalog-core/specs/011-consulta-metricas-dashboard`, branch `LLT-145-consulta-metricas-dashboard`).
-- **Rationale**: clarifications 2026-11-18; ADR_141 (Web ↔ Core); ADR_166 mantém agregações no MVP; frequência fechada pelo Michel (18/11, 21:39).
+- **Rationale**: clarifications 2026-11-18; ADR_141 (Web ↔ Core); ADR_166 mantém agregações no MVP; frequência fechada pelo Michel (18/11, 21:39); **A1 CONFIRMADO** pelo Michel (18/11, 22:02): job lê logs agora e passa a ler Ocorrências depois da LLT-104; interpretação híbrida confirmada.
 - **Alternatives considered**: Web → OpenObserve direto (proibido); só consulta na hora sem job (rejeitado na clarification); só agregados sem intervalo aberto (atraso na hora corrente); frequência fixa sem propriedade (impede ajuste operacional).
-- **Marca**: interpretação híbrida do job SSID_011 permanece **[A CONFIRMAR com Michel]** (detalhe operacional na spec 011 do Core); contexto: Ocorrências no Web ficam pendentes com “não implementado ainda” até a LLT-104; o contrato do Web já exige `dadosConsolidadosAte` quando aplicável.
 
 ## R7. `X-Correlation-Id`
 
@@ -80,3 +79,15 @@
 - **Decision** (Michel 18/11, 21:38): no MVP o gráfico de linhas MUST estar pronto para receber valores de ocorrências (props, tipos e campo opcional `occurrences` no contrato). Sem dados, a série fica em estado **pendente** e a UI mostra “não implementado ainda”. A comparação real dashboard ↔ lista de Ocorrências (SC-004 / critério LLT-222) continua condicionada à LLT-104. Cartões/criticidade usam Logs ERROR / Logs WARNING (ADR_170). Tasks T033/T034 entram no MVP (Phase 7), sem lógica de comparação.
 - **Rationale**: FR-008 / SC-004; clarifications Session 2026-11-18.
 - **Alternatives considered**: manter US5 totalmente bloqueada (atrasa o encaixe do gráfico); inventar lista de ocorrências no Web (fora de escopo); comparar totais sem a LLT-104 (sem fonte confiável).
+
+## R13. Volume em bytes (API) e GiB na UI (2^30)
+
+- **Decision** (Michel 18/11, 22:02): a API trafega `volumeUsedBytes` e `volumeIngestaoBytes` como inteiros em **bytes**; a tela exibe em **GiB** (1 GiB = 2^30 = 1073741824 bytes), com `toLocaleString` no locale do usuário, até 2 casas decimais e sufixo `GiB` (função pura `formatVolumeGiB` no model). Exemplos de contrato usam múltiplos exatos de 2^30 (sem misturar 10^9).
+- **Rationale**: FR-001; evita ambiguidade GB decimal vs GiB binário; alinhado ao locale do perfil.
+- **Alternatives considered**: formatação automática B/KB/MB/GB mista (confunde cota do plano); GB = 10^9 (mistura base 10 com cota binária).
+
+## R14. Produto inacessível → 404
+
+- **Decision** (Michel 18/11, 22:02): produto inacessível (outra empresa / tenant diferente do token, ou MEMBRO sem AcessoProduto / produto inexistente) → Core responde **404** no `GET .../products/{id}/metrics` (não 403). O Web trata 404 como estado `product_unavailable` (“produto não encontrado/sem acesso”) sem métricas. 403 de segurança continua na spec 006; 403 de negócio permanece para o dashboard empresarial sem permissão.
+- **Rationale**: FR-009 / FR-012 / LLT-158; evita confundir falta de produto com logout de segurança.
+- **Alternatives considered**: 403 de negócio para produto inacessível (rejeitado pelo Michel); mapear 404 como erro genérico recuperável (pior UX / foge do estado dedicado).

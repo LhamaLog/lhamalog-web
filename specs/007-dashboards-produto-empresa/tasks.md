@@ -27,7 +27,7 @@
 
 **⚠️ CRITICAL**: nenhuma User Story começa antes desta fase.
 
-- [x] T003 [P] (~70 linhas) Espelhar tipos de leitura de [data-model.md](data-model.md) em `src/features/dashboard/model/types.ts` (filtro, período, métricas, série, ranking, selo, estados)
+- [x] T003 [P] (~70 linhas) Espelhar tipos de leitura de [data-model.md](data-model.md) em `src/features/dashboard/model/types.ts` (filtro, período, métricas, série, ranking, selo, estados) — **ajuste 18/11 22:02**: estado `product_unavailable`
 - [x] T004 [P] (~120 linhas) Parsers do contrato em `src/features/dashboard/contract/parseDashboardMetrics.ts` a partir de [contracts/dashboard-metrics.md](contracts/dashboard-metrics.md) (rejeitar corpo inválido / enum de severidade desconhecido — FR-011: Web só consome `ERROR`/`WARNING`/`INFO` já normalizados pelo Core)
 - [x] T005 (~45 linhas) Em `src/shared/services/api.ts` (e uso via `useApi.ts`): gerar e enviar `X-Correlation-Id` em toda requisição; expor o id no erro para a UI (FR-016); sem mudar classificação 401/403 da spec 006
 - [x] T006 (~180 linhas) Em `src/features/dashboard/model/filterPeriod.ts`: presets `24h`/`7d`/`30d`/`personalizado`; padrão `7d` e tipo “todos”; na 1ª carga teto seguro de 7 dias (FREE) até a 1ª resposta; após resposta de métricas (produto/empresa) atualizar teto para `min(30, retentionDays)`; se filtro da URL exceder o teto conhecido depois da resposta → inválido (mensagem) e não aplicar; validação de intervalo personalizado (`from < to`, duração ≤ máximo); mensagens de filtro inválido (FR-003, FR-004)
@@ -54,9 +54,9 @@
 - [x] T016 [P] [US1] (~80 linhas) Rotas `/dashboard` (e preparação de `/dashboard/empresa`) em `src/app/routes/AppRoutes.tsx` + integração no shell (`CompanyWorkspace` ou layout dedicado) com `ProtectedRoute`
 - [x] T017 [P] [US1] (~30 linhas) Em `src/app/layouts/Navbar.tsx` / shell: item `dashboard` navega para `/dashboard` e destaca ativo
 - [x] T018 [P] [US1] (~130 linhas) Extender SVG próprio em `src/shared/ui/TimeSeriesChart.tsx` (séries ERROR/WARNING; acessível; sem lib externa) a partir de Sparkline/MetricCard
-- [x] T019 [US1] (~140 linhas) `src/features/dashboard/components/ProductDashboardPage.tsx`: estados loading/empty/ready/error; cinco cartões (volume vs `volumeIngestaoBytes`); ranking via `RankingList`; MUST exibir “Dados consolidados até …” no fuso do perfil quando `dadosConsolidadosAte` vier do Core (ausência não bloqueia métricas)
+- [x] T019 [US1] (~140 linhas) `src/features/dashboard/components/ProductDashboardPage.tsx`: estados loading/empty/ready/error; cinco cartões (volume vs `volumeIngestaoBytes`); ranking via `RankingList`; MUST exibir “Dados consolidados até …” no fuso do perfil quando `dadosConsolidadosAte` vier do Core (ausência não bloqueia métricas) — **ajuste 18/11 22:02**: volume via `formatVolumeGiB` (2^30); 404 → `product_unavailable` sem métricas
 - [x] T020 [US1] (~90 linhas) Cliente de leitura `src/features/dashboard/api/fetchProductMetrics.ts` (+ hook com `useApi`/`useApiResource`): `GET /api/dashboard/products/{id}/metrics` com `X-Correlation-Id`; descartar resposta se `orgId` mudou
-- [x] T021 [US1] (~50 linhas) `src/features/dashboard/messages.ts`: strings pt-BR/en dos cartões, vazio (“nenhum resultado encontrado”), erro com correlacao
+- [x] T021 [US1] (~50 linhas) `src/features/dashboard/messages.ts`: strings pt-BR/en dos cartões, vazio (“nenhum resultado encontrado”), erro com correlacao — **ajuste 18/11 22:02**: mensagens `productNotFound*`
 - [x] T022 [US1] (~80 linhas) Compor gráfico/cartões na página US1 usando T007 (bucket) e parsers T004; MEMBRO sem produtos usa estado de T008 (aviso, sem erro)
 
 **Checkpoint**: `npm test` e `npm run build` verdes; E1–E3. Parar para revisão.
@@ -125,7 +125,7 @@
 
 - [x] T035 [P] (~25 linhas) Atualizar menção no `README.md` (seção de rotas/monitoramento) apontando `/dashboard` e `/dashboard/empresa` e a spec 007 — sem expandir escopo
 - [x] T036 (~30 linhas) Conferir E11–E15 do quickstart (correlacao, 5xx sem logout, 401 spec 006, troca de empresa, placeholder Ocorrências) e anotar resultado no PR quando houver — **parcial**: E15 coberto por teste automático; E11–E14 manuais dependem de Clerk/Core reais (não executados nesta sessão)
-- [x] T037 (~15 linhas) `npm test` e `npm run build` finais; comparar com T001 (só entram testes novos desta feature) — **final: 72 testes (49 baseline + 23 novos), build OK** (aviso Vite chunk >500 kB)
+- [x] T037 (~15 linhas) `npm test` e `npm run build` finais; comparar com T001 (só entram testes novos desta feature) — **ajuste Michel 18/11 22:02**: `formatVolumeGiB` + `tests/dashboard-volume-format.test.mjs`; mock/fixtures em bytes (2^30); docs A1 confirmado / volume GiB / 404 produto; checklist **16/16**; **77 testes, build OK**
 
 **Checkpoint**: verdes; parar para revisão do MVP Web.
 
@@ -138,9 +138,9 @@
 - [ ] T038 [P] (~100 linhas) *(core)* Controladores `GET .../products/{id}/metrics` e `GET .../company/metrics` conforme [contracts/dashboard-metrics.md](contracts/dashboard-metrics.md) (LLT-159)
 - [ ] T039 [P] (~120 linhas) *(core)* Adapter de contagem no OpenObserve (por severidade, produto, serviço, período)
 - [ ] T040 [P] (~80 linhas) *(core)* Leitura dos fatos de uso (`/internal/usage-facts`) para volume/traces aceitos
-- [ ] T041 (~200 linhas) *(core)* Job SSID_011 / ADR_166: agregados por tenant, produto, severidade, serviço e hora a partir de **logs** (não Ocorrências no MVP); propriedade de configuração da frequência (cron ou intervalo) com **padrão a cada 1h**
-- [ ] T042 (~150 linhas) *(core)* Serviço de consulta híbrida: agregados consolidados + contagem na hora do intervalo aberto; preencher `dadosConsolidadosAte`
-- [ ] T043 (~120 linhas) *(core)* Regras de acesso no Core: tenant do token; DONO/ADMIN todos; MEMBRO AcessoProduto; cross-tenant 403/404 (LLT-158). **Portão**: revisão do Felipe (Clerk/papéis) antes de fechar a fase
+- [ ] T041 (~200 linhas) *(core)* Job SSID_011 / ADR_166: agregados por tenant, produto, severidade, serviço e hora a partir de **logs** (não Ocorrências no MVP; **A1 CONFIRMADO** Michel 18/11, 22:02 — Ocorrências após LLT-104); propriedade de configuração da frequência (cron ou intervalo) com **padrão a cada 1h**
+- [ ] T042 (~150 linhas) *(core)* Serviço de consulta híbrida (**A1 CONFIRMADO**): agregados consolidados + contagem na hora do intervalo aberto; preencher `dadosConsolidadosAte`
+- [ ] T043 (~120 linhas) *(core)* Regras de acesso no Core: tenant do token; DONO/ADMIN todos; MEMBRO AcessoProduto; produto inacessível → **404** (não 403; LLT-158; Michel 18/11, 22:02). **Portão**: revisão do Felipe (Clerk/papéis) antes de fechar a fase
 - [ ] T044 [P] (~60 linhas) *(core)* Documentar contrato LLT-159 na spec 011 do Core (espelho do markdown do Web)
 - [ ] T045 [P] (~110 linhas) *(core)* Plumbing de query/count OpenObserve + eco de `X-Correlation-Id` nos filtros HTTP; mapeamento ADR_170 (erro→ERROR, aviso→WARNING, info→INFO) antes de devolver enums ao Web
 - [ ] T046 (~100 linhas) *(core)* Testes de autorização/isolamento (DONO/ADMIN/MEMBRO/outro tenant). **Portão**: revisão do Felipe (Clerk/papéis) antes de fechar a fase

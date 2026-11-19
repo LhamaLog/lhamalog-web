@@ -33,12 +33,13 @@
 ## Notes
 
 - Revalidação 2026-11-18 (`$speckit-clarify`, sessão não interativa com respostas do dono Michel Bocchi Junior): 16/16 itens passam; zero marcadores `[NEEDS CLARIFICATION]` restantes. Clarifications registradas em `### Session 2026-11-18`.
-- Premissas incorporadas na clarificação: fonte MVP = OpenObserve (via Core) + `/internal/usage-facts`; job SSID_011 nesta entrega multi-repositório (híbrido consolidado + intervalo aberto) com conflito LLT-104 registrado e interpretação [A CONFIRMAR com Michel]; DONO = ADMIN no dashboard; MEMBRO sem produtos = tela vazia com aviso; dashboard igual em todos os planos (só `retentionDays`); Core/LLT-159 na spec 011 do Core (Michel; branch `LLT-145-consulta-metricas-dashboard`); Felipe revisa Clerk/papéis; OK do Michel no chat substitui restrições de commit/push/deps em Assumptions.
+- Premissas incorporadas na clarificação: fonte MVP = OpenObserve (via Core) + `/internal/usage-facts`; job SSID_011 nesta entrega multi-repositório (híbrido consolidado + intervalo aberto) com conflito LLT-104 registrado; DONO = ADMIN no dashboard; MEMBRO sem produtos = tela vazia com aviso; dashboard igual em todos os planos (só `retentionDays`); Core/LLT-159 na spec 011 do Core (Michel; branch `LLT-145-consulta-metricas-dashboard`); Felipe revisa Clerk/papéis; OK do Michel no chat substitui restrições de commit/push/deps em Assumptions.
 - Premissas anteriores mantidas: ADR_141, ADR_170, ADR_131, ADR_123/140/122 + LLT-171/158, X-Correlation-Id, ADR_166 (exportação fora), SVG próprios, branch/commits ADR_148.
 - Atualização 18/11 21:38–21:39 (Michel): (1) numeração Core 009→011; (2) US5 vira placeholder no MVP (série opcional `occurrences` + estado pendente + “não implementado ainda”; SC-004 real ainda depende da LLT-104); (3) job SSID_011 com frequência padrão 1h configurável. Checklist continua **16/16**.
 - Menções a Core, ADR, cabeçalho `X-Correlation-Id`, campos de negócio (`service.name`, `volumeIngestaoBytes`, `retentionDays`, “dados consolidados até”, `occurrences` opcional, tenant) descrevem contrato e domínio já adotados; não são escolha de stack do Web. Caminho `src/shared/ui` e “sem Recharts” fixam a decisão do dono de estender SVG próprios.
-- Revalidação pós-`$speckit-analyze` (18/11): correções U1/I1/I2/C2/A3/U2/D1/I3/U3/G1/A2 aplicadas nos artefatos; A1 permanece [A CONFIRMAR com Michel] (com contexto de Ocorrências pendentes no Web); checklist continua **16/16**.
-- Próximo passo recomendado: `$speckit-implement` (após OK do dono) ou nova rodada de analyze se necessário.
+- Revalidação pós-`$speckit-analyze` (18/11): correções U1/I1/I2/C2/A3/U2/D1/I3/U3/G1/A2 aplicadas nos artefatos.
+- Atualização 18/11 22:02 (Michel): (1) **A1 CONFIRMADO** — job SSID_011 lê logs agora e Ocorrências após LLT-104; zero marcas `[A CONFIRMAR]` restantes; (2) volume API em bytes / UI em GiB (2^30); (3) produto inacessível → 404 (não 403). Checklist continua **16/16**.
+- Próximo passo recomendado: fechar Phase 9 no Core (spec 011) ou nova rodada de analyze se necessário.
 
 ### Resultado por item
 
@@ -48,7 +49,7 @@
 | Focused on user value | Passa | US1–US5 centradas em visualizar/filtrar dashboards do cliente |
 | Written for non-technical stakeholders | Passa | Tom pt-BR alinhado à spec 006 |
 | All mandatory sections completed | Passa | Cabeçalho, Clarifications, User Stories, Edge Cases, FR, Entities, SC, Assumptions, Dependências |
-| No [NEEDS CLARIFICATION] markers remain | Passa | 0 marcadores após Session 2026-11-18 (8 Q→A registradas; selos APROVADOS; Ocorrências/frequência job) |
+| No [NEEDS CLARIFICATION] markers remain | Passa | 0 marcadores após Session 2026-11-18 (11 Q→A; A1 confirmado 22:02; volume GiB; 404 produto; zero `[A CONFIRMAR]`) |
 | Requirements testable | Passa | FR-001–FR-016 verificáveis por cenário Given/When/Then |
 | Success criteria measurable | Passa | SC-001–SC-009 com percentuais/contagens |
 | Success criteria technology-agnostic | Passa | Sem framework/linguagem/banco nos SC |

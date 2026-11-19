@@ -26,7 +26,7 @@ Esperado: todos os testes passam (baseline 49 em 17/11 + novos testes de filtro/
 - `GET /api/dashboard/products/{id}/metrics`
 - `GET /api/dashboard/company/metrics`
 
-com JSON válido do contrato, header `X-Correlation-Id` ecoado, e os status 400/401/403/404 dos cenários abaixo.
+com JSON válido do contrato (volume em bytes, múltiplos de 2^30 nos exemplos), header `X-Correlation-Id` ecoado, e os status 400/401/403/404 dos cenários abaixo. Produto inacessível = **404** (não 403).
 
 ## Roteiro manual (PowerShell + navegador)
 
@@ -40,7 +40,7 @@ Abrir `http://localhost:5173`, entrar na Clerk e selecionar a empresa de teste.
 
 | Item | Passo | Esperado | Requisito |
 |---|---|---|---|
-| E1 | Navbar → Dashboard (`/dashboard`) com produto acessível; período padrão | Cinco cartões (incl. volume vs cota), gráfico ERROR/WARNING, ranking até 5 serviços; opcional “dados consolidados até” | US1, FR-001 |
+| E1 | Navbar → Dashboard (`/dashboard`) com produto acessível; período padrão | Cinco cartões (incl. volume vs cota em **GiB**, 2^30), gráfico ERROR/WARNING, ranking até 5 serviços; opcional “dados consolidados até” | US1, FR-001 |
 | E2 | Período ≤ 48h vs > 48h | Buckets por hora vs por dia; rótulos no fuso do perfil | FR-006, SC-005 |
 | E3 | Produto sem dados no período | “nenhum resultado encontrado”; sem números inventados | US1 |
 | E4 | Alterar período/tipo, Aplicar; recarregar | URL mantém filtros; métricas no recorte | US2, FR-004 |
@@ -55,6 +55,7 @@ Abrir `http://localhost:5173`, entrar na Clerk e selecionar a empresa de teste.
 | E13 | Forçar 401 (revogar sessão) | Fluxo spec 006 (“Você foi deslogado”) | spec 006 |
 | E14 | Trocar empresa com fetch em andamento | Resposta da empresa anterior descartada | edge |
 | E15 | Gráfico sem dados de ocorrências (campo ausente) | Indicador/legenda de Ocorrências em estado pendente com “não implementado ainda” | US5, FR-008, SC-004 |
+| E16 | Forçar 404 no `GET .../products/{id}/metrics` (produto de outro tenant ou sem Acesso) | Estado “produto não encontrado/sem acesso”; **sem métricas**; sessão mantida (não é 403 de segurança) | FR-009, FR-012 |
 
 Registrar no PR como `Item | Data | Resultado | Observação`, sem token, e-mail real ou `org_id` real.
 

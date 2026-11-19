@@ -35,8 +35,8 @@ Combinação aplicada (ou candidata na UI) antes/depois de Aplicar.
 | `logsError` | Contagem ERROR |
 | `logsWarning` | Contagem WARNING |
 | `tracesReceived` | Traces no período |
-| `volumeUsedBytes` | Volume usado (fatos de uso) |
-| `volumeIngestaoBytes` | Cota de volume de ingestão do plano (ADR_131) para comparação no cartão |
+| `volumeUsedBytes` | Volume usado no período em **bytes** (inteiro; fatos de uso). UI: GiB (÷ 2^30), locale do usuário, até 2 casas + sufixo `GiB` |
+| `volumeIngestaoBytes` | Cota de volume de ingestão do plano em **bytes** (inteiro; ADR_131). UI: mesma formatação GiB (2^30) para comparação no cartão |
 | `series` | Ver **Série temporal** |
 | `serviceRanking` | Até 5 serviços (`service.name`) por `logsError` desc |
 | `dadosConsolidadosAte` | Instantâneo até quando os intervalos estão consolidados |
@@ -98,6 +98,7 @@ Derivado **no Web** a partir das linhas `perProduct` se o Core não enviar selo;
 | `pendente` (Ocorrências) | Campo/série `occurrences` ausente ou explicitamente pendente | Indicador/legenda de Ocorrências no gráfico com “não implementado ainda” (convive com `ready` das demais séries) |
 | `filter_invalid` | Tentativa de aplicar filtro inválido | Mensagem; dados aplicados inalterados |
 | `forbidden` | Sem permissão ao dashboard empresarial (403 negócio ou guarda local) | Mensagem de restrição; zero métricas |
+| `product_unavailable` | 404 no endpoint por produto (produto inexistente, outro tenant ou MEMBRO sem AcessoProduto) | “Produto não encontrado/sem acesso”; zero métricas (não 403) |
 | `error` | Rede / 5xx / corpo inválido | Erro + tentar novamente + `X-Correlation-Id` |
 | `session` | 401 / 403 segurança | Spec 006 (encerra sessão) |
 

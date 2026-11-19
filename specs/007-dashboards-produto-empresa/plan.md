@@ -113,10 +113,10 @@ lhamalog-core/specs/011-consulta-metricas-dashboard/   # outra metade desta entr
 ## O que a spec 011 do Core precisa entregar (para o Web)
 
 1. **Contrato LLT-159** alinhado a [contracts/dashboard-metrics.md](contracts/dashboard-metrics.md): `GET` métricas por produto e da empresa; parâmetros de período/produto(s)/severidade; campos `dadosConsolidadosAte`, `retentionDays`, `volumeIngestaoBytes`; série/campo opcional `occurrences` por bucket (ausente = pendente no Web); erros 400/401/403/404; eco de `X-Correlation-Id`.
-2. **Consulta híbrida**: agregados já consolidados pelo job + contagem na hora no OpenObserve só do intervalo ainda aberto; volume via fatos de uso (`/internal/usage-facts`).
-3. **Job SSID_011 / ADR_166**: agregação periódica por tenant, produto, severidade (ERROR/WARNING/INFO), serviço e hora a partir dos logs (não Ocorrências no MVP; LLT-104 depois). Frequência: padrão a cada **1 hora**, configurável por propriedade (cron ou intervalo) para poder mudar depois (decisão Michel 18/11, 21:39).
-4. **Autorização no Core**: `tenantId` do token; DONO/ADMIN = todos os produtos; MEMBRO = AcessoProduto; outra empresa → 403/404 (LLT-158). **Portão**: revisão do Felipe (Clerk/papéis) antes de fechar.
-5. **Campos de plano** necessários ao filtro: `retentionDays` e `volumeIngestaoBytes` (volume de ingestão, ADR_131) no payload de métricas.
+2. **Consulta híbrida** (**A1 CONFIRMADO**, Michel 18/11, 22:02): agregados já consolidados pelo job + contagem na hora no OpenObserve só do intervalo ainda aberto; volume via fatos de uso (`/internal/usage-facts`).
+3. **Job SSID_011 / ADR_166**: agregação periódica por tenant, produto, severidade (ERROR/WARNING/INFO), serviço e hora a partir dos **logs** no MVP (**CONFIRMADO** Michel 18/11, 22:02; Ocorrências depois da LLT-104). Frequência: padrão a cada **1 hora**, configurável por propriedade (cron ou intervalo) para poder mudar depois (decisão Michel 18/11, 21:39).
+4. **Autorização no Core**: `tenantId` do token; DONO/ADMIN = todos os produtos; MEMBRO = AcessoProduto; produto inacessível (outra empresa ou MEMBRO sem AcessoProduto) → **404** no endpoint por produto (não 403; LLT-158; Michel 18/11, 22:02). **Portão**: revisão do Felipe (Clerk/papéis) antes de fechar.
+5. **Campos de plano** necessários ao filtro: `retentionDays` e `volumeIngestaoBytes` em **bytes** (inteiros; ADR_131) no payload de métricas; a UI Web formata em GiB (2^30).
 6. **Mapeamento ADR_170** no Core (erro→ERROR, aviso→WARNING, info→INFO); payload só com enums normalizados.
 7. Testes de contrato e isolamento no Core.
 
