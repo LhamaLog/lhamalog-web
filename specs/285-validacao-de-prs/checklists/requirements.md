@@ -13,8 +13,8 @@
 
 ## Requirement Completeness
 
-- [ ] Não restam marcadores [NEEDS CLARIFICATION]
-- [ ] Requisitos são testáveis e não ambíguos
+- [x] Não restam marcadores [NEEDS CLARIFICATION]
+- [x] Requisitos são testáveis e não ambíguos
 - [x] Critérios de sucesso são mensuráveis
 - [x] Critérios de sucesso são agnósticos de tecnologia (sem detalhes de implementação)
 - [x] Todos os cenários de aceite estão definidos
@@ -24,7 +24,7 @@
 
 ## Feature Readiness
 
-- [ ] Todos os requisitos funcionais têm critérios de aceite claros
+- [x] Todos os requisitos funcionais têm critérios de aceite claros
 - [x] Os cenários de usuário cobrem os fluxos principais
 - [x] A funcionalidade atende aos resultados mensuráveis definidos em Critérios de Sucesso
 - [x] Detalhes de implementação não vazam para a especificação
@@ -32,5 +32,5 @@
 ## Notes
 
 - Revisão 1 (2026-11-19): a especificação registra o comportamento pedido. GitHub Actions, `npm`, Node 26.12.1 e a permissão `pull-requests: write` são o comportamento aprovado, no mesmo critério da LLT-174: o nome da ferramenta é a regra, não uma escolha em aberto.
-- Três marcadores ficaram para o clarify: o mesmo número LLT em branch, título e commits (FR-006); rascunho e fork (FR-012); atualizar o comentário quando só o título muda (FR-013). FR-006, FR-012 e FR-013 ainda não têm cenário de aceite fechado.
+- Clarify de 2026-11-19: branch e título compartilham o mesmo `LLT-XXX`; commits só precisam do formato; rascunho entra e fork fica de fora; os eventos são `opened`, `synchronize`, `reopened`, `edited` e `ready_for_review`.
 - Itens incompletos exigem atualização da especificação antes de `$speckit-plan`.
