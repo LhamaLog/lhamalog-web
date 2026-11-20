@@ -23,6 +23,8 @@ export type Product = {
   createdAt: string
   context: ProductContext
   version: number
+  // Set while the product is archived (Core specs/002-editar-arquivar-produto); null when active.
+  archivedAt?: string | null
   // TODO: read when present. GET /api/products does not guarantee these fields yet.
   environment?: string
   owner?: string
@@ -36,12 +38,10 @@ export type Product = {
 export type ProductUiDraft = {
   productType: string
   environment: string
-  team: string
-  criticality: string
-  project: string
-  service: string
-  logLevel: string
-  active: boolean
+  // Fields of the Figma that the Core does not store yet (LLT-123, F1).
+  owner: string
+  teamEmail: string
+  tags: string[]
   otelEndpoint: string
   otelProtocol: string
   otelService: string
@@ -64,12 +64,9 @@ export function emptyProductDraft(): ProductUiDraft {
   return {
     productType: '',
     environment: '',
-    team: '',
-    criticality: '',
-    project: '',
-    service: '',
-    logLevel: 'INFO',
-    active: true,
+    owner: '',
+    teamEmail: '',
+    tags: [],
     otelEndpoint: '',
     otelProtocol: 'OTLP/HTTP',
     otelService: '',

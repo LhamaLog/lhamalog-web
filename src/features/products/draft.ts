@@ -7,6 +7,11 @@ function asString(value: unknown, fallback: string) {
   return typeof value === 'string' ? value : fallback
 }
 
+function asTags(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  return value.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter(Boolean)
+}
+
 function asBoolean(value: unknown, fallback: boolean) {
   return typeof value === 'boolean' ? value : fallback
 }
@@ -18,12 +23,9 @@ export function normalizeProductDraft(value: unknown): ProductUiDraft {
   return {
     productType: asString(parsed.productType, empty.productType),
     environment: asString(parsed.environment, empty.environment),
-    team: asString(parsed.team, empty.team),
-    criticality: asString(parsed.criticality, empty.criticality),
-    project: asString(parsed.project, empty.project),
-    service: asString(parsed.service, empty.service),
-    logLevel: asString(parsed.logLevel, empty.logLevel) || empty.logLevel,
-    active: asBoolean(parsed.active, empty.active),
+    owner: asString(parsed.owner, empty.owner),
+    teamEmail: asString(parsed.teamEmail, empty.teamEmail),
+    tags: asTags(parsed.tags),
     otelEndpoint: asString(parsed.otelEndpoint, empty.otelEndpoint),
     otelProtocol: asString(parsed.otelProtocol, empty.otelProtocol) || empty.otelProtocol,
     otelService: asString(parsed.otelService, empty.otelService),

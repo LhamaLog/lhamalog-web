@@ -3,6 +3,7 @@ type DistributionBarsProps = {
   items: {
     label: string
     value: number
+    formattedValue?: string
     color?: 'blue' | 'amber' | 'navy'
   }[]
 }
@@ -37,7 +38,7 @@ export function DistributionBars({ items, locale = 'pt-BR' }: DistributionBarsPr
                 <span className={`block h-full rounded-full ${color}`} style={{ width: `${width}%` }} />
               </span>
               <span className="text-right font-bold tabular-nums text-[#083B7A]">
-                {item.value.toLocaleString(locale)}
+                {item.formattedValue ?? item.value.toLocaleString(locale)}
               </span>
             </dd>
           </div>

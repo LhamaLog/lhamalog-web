@@ -2,7 +2,8 @@ import { Card } from '../../../shared/ui/Card'
 import { MetricCard } from '../../../shared/ui/MetricCard'
 
 type SummaryMetric = {
-  value: number
+  // A string such as "—" when the value is unknown (spec 009, F1).
+  value: number | string
   variation?: string
   trend?: number[]
 }

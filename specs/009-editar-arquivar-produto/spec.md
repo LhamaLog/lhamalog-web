@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-19
 
-**Status**: Draft (pré-preenchida; passa por clarify e analyze no Claude Code)
+**Status**: Clarify e analyze feitos em 2026-11-20
 
 **Input**: lado Web da LLT-123. Duas fontes:
 
@@ -19,18 +19,34 @@
 
 ## Clarifications
 
-- **F1** [NEEDS CLARIFICATION]: O que fazer com os dados do Figma que o Core não tem? Tipo, ambiente, responsável, e-mail da equipe, tags, status de integração, último log e os indicadores.
-  - **Recomendação:** a tela fica igual ao Figma. Os campos de cadastro sem Core vão para o rascunho local (`sessionStorage`), como já é feito hoje, com a nota "Ainda não é salvo no servidor".
-  - Os indicadores sem API mostram estado neutro, sem número inventado. Exemplos: status "Sem integração" no cartão, último log "Nenhum log recebido", painéis com "—".
-- **F6** [NEEDS CLARIFICATION]: Arquivar e ver arquivados não estão no Figma.
-  - **Recomendação:** "Arquivados" como opção dentro de "Filtros" (Situação: Ativos ou Arquivados).
-  - "Arquivar" e "Desarquivar" como botão secundário no rodapé da tela de edição, só para admin.
-- **F7** [NEEDS CLARIFICATION]: Como fica a tela de edição, já que o Figma só mostra o cadastro?
-  - **Recomendação:** a mesma tela, com o título "Editar produto" e o botão "Salvar alterações".
-- **W1** [NEEDS CLARIFICATION]: Quando a pessoa altera os dados gerais **e** o contexto, o salvar faz duas chamadas (gerais e depois contexto). E se a segunda falhar?
-  - **Recomendação:** avisar "Os dados gerais foram salvos, mas o contexto não. Confira e salve de novo." e manter o formulário aberto com a `version` nova.
-- **W2** [NEEDS CLARIFICATION]: Quem vê arquivar e desarquivar?
-  - **Recomendação:** quem tem o cargo admin na Clerk (`orgRole`), que é o mesmo critério do Core. Quando a LLT-120 do Web entrar, troca por `can('PRODUCTS_ARCHIVE')`.
+### Session 2026-11-20
+
+Respostas do Pedro: segue a recomendação em todas (F1, F6, F7, W1, W2 e as novas N1 a N3, que saíram da leitura das imagens).
+
+- Q (F1): O que fazer com os dados do Figma que o Core não tem (tipo, ambiente, responsável, e-mail da equipe, tags, status de integração, último log e indicadores)? → A: A tela fica igual ao Figma. Os campos de cadastro sem Core vão para o rascunho local (`sessionStorage`, como o `draft.ts` já faz), com a nota "Tipo, ambiente, responsável, e-mail e tags ainda não são salvos no servidor: ficam guardados só neste navegador." Os indicadores sem API mostram estado neutro, sem número inventado: status "Sem integração" no cartão, último log "Nenhum log recebido", painéis com "—" e sem setas de variação.
+- Q (F6): Onde ficam arquivar e ver arquivados, que não estão no Figma? → A: "Situação: Ativos ou Arquivados" dentro de "Filtros". "Arquivar" e "Desarquivar" como botão secundário no rodapé da tela de edição, só para admin.
+- Q (F7): Como fica a tela de edição? → A: A mesma tela do cadastro, com o título "Editar produto" e o botão "Salvar alterações".
+- Q (W1): Os dados gerais salvam e o contexto falha. O que fazer? → A: Avisar "Os dados gerais foram salvos, mas o contexto não. Confira e salve de novo." e manter o formulário aberto com a `version` nova.
+- Q (W2): Quem vê arquivar e desarquivar? → A: Quem tem o cargo admin na Clerk (`orgRole`), o mesmo critério do Core. Quando a LLT-120 do Web entrar, troca por `can('PRODUCTS_ARCHIVE')`.
+- Q (N1): Quais opções em "Tipo de produto"? → A: As do Figma: "Aplicação web", "API / Serviço", "Aplicativo", "Microsserviço", "Job / Batch", mais "Outro". Um rascunho antigo com valor fora da lista aparece como "Outro", com o texto gravado.
+- Q (N2): Quais opções em "Área" (gravada no `category` do Core)? → A: A caixa de seleção que já existe, com as áreas que a empresa já usa nos produtos dela e "Outro" para texto livre. O Core aceita qualquer texto de até 200 caracteres; nada muda no Core.
+- Q (N3): De onde vem a lista de "Responsável pelo produto"? → A: Das pessoas da organização, lidas com `organization.getMemberships`, a mesma chamada da Equipe (nenhuma chamada nova à Clerk). O rascunho local guarda o nome mostrado (F1). Sem acesso à lista, vira campo de texto.
+
+### Ajustes do analyze (2026-11-20)
+
+- **A1:** a lista pagina de 6 em 6, igual ao Figma ("Mostrando 1 - 6 de 24").
+- **A2:** a confirmação de arquivar e desarquivar usa `window.confirm`, no mesmo padrão da desativação na Equipe. Não há diálogo em `shared/ui` e o Figma não mostra essa tela.
+- **A3:** o `normalizeProductDraft` ignora chaves antigas do rascunho; o `team` antigo não é migrado para o `owner`. A chave de armazenamento continua `v1`.
+- **A5:** o seletor "Últimos 7 dias" aparece desabilitado, com "—" (F1).
+- **A6:** toda lógica nova fica em `.ts` puro (`productView.ts`, `productEdit.ts`), porque o `node --test` não carrega `.tsx`.
+- **A8:** a renomeação da spec da LLT-120 do Web (005 para 007) é feita na branch dela, não nesta.
+
+### Decisões da implementação, registradas no analyze final (T018, 2026-11-20)
+
+- **U3 (desdobramento da F1):** no cadastro, tipo, ambiente e responsável são obrigatórios. Na edição, eles não bloqueiam o salvamento, porque um produto salvo em outro navegador não tem rascunho local aqui. Os campos do Core e o formato do e-mail continuam validados.
+- **U4:** as tags têm limite de 10 itens, cada um com até 30 caracteres. Espaços nas pontas saem, e tags repetidas (sem diferenciar maiúsculas) são ignoradas.
+- **I1:** a paginação usa o `Pagination` compartilhado, que mostra "Mostrando 1–6 de N". O Figma mostra "1 - 6". Fica assim para não mudar a Equipe.
+- **I3:** o painel de filtros entrou como prop opcional do `ProductsView` (`filters`), e não no `ProductsHeader`. Os estados de carregando, vazio e erro entraram pela prop `listState`.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -78,12 +94,12 @@ Como pessoa da empresa, quero cadastrar e editar os dados do produto na tela do 
    - Responsável pelo produto \*;
    - E-mail da equipe;
    - Versão atual;
-   - Tags, com "+ Adicionar".
+   - Tags, com "+ Adicionar" (até 10 tags de até 30 caracteres, U4).
 
    Cada campo traz o texto de ajuda do Figma. A lateral é "Sobre o cadastro" + "Boas práticas", e o rodapé traz a nota, Cancelar e Salvar.
 2. **Given** os campos que não estão no Figma (Criticidade, Projeto, Aplicação principal, Nível de log padrão, Produto ativo), **When** a aba abre, **Then** eles não aparecem.
 3. **Given** o topo da tela, **When** abre, **Then** aparece "← Voltar para produtos" à direita, como no Figma.
-4. **Given** os campos sem Core (F1), **When** a pessoa salva, **Then** eles vão para o rascunho local e o resto vai para o Core.
+4. **Given** os campos sem Core (F1), **When** a pessoa salva, **Then** eles vão para o rascunho local e o resto vai para o Core. Na edição, os obrigatórios locais não bloqueiam o salvamento (U3).
 
 ---
 
@@ -95,8 +111,8 @@ Como pessoa da empresa, quero cadastrar e editar os dados do produto na tela do 
 2. **Given** só os dados gerais mudaram, **When** salva, **Then** o Web envia só `PUT /api/products/{id}` com `{name, description, category, productVersion, version}`.
 3. **Given** só o contexto mudou, **When** salva, **Then** o Web envia só `PUT .../context` (spec 008).
 4. **Given** os dois mudaram, **When** salva, **Then** o Web envia os gerais, depois o contexto, com a `version` encadeada (W1).
-5. **Given** nada mudou no Core, **When** salva, **Then** o Web não chama o Core. Só o rascunho local é atualizado, e aparece "Nenhuma alteração para salvar no servidor." quando for o caso.
-6. **Given** o Core responde 409 de versão, **When** chega, **Then** aparece a mensagem do Core e o botão "Recarregar produto". A frase extra antiga ("Volte à lista e abra o produto novamente.") sai.
+5. **Given** nada mudou no Core, **When** salva, **Then** o Web não chama o Core. Só o rascunho local é atualizado. Se algum campo local mudou, a tela volta para a lista com "Produto X salvo neste navegador.". Se nada mudou, a tela fica aberta com "Nenhuma alteração para salvar no servidor." (U2).
+6. **Given** o Core responde 409 de versão, **When** chega, **Then** aparece a mensagem do Core e o botão "Recarregar produto". A frase extra antiga ("Volte à lista e abra o produto novamente.") sai. Ela já não existia no código desta branch (I5). "Recarregar produto" busca o produto de novo e põe os dados atuais do servidor no formulário, mantendo o rascunho local.
 
 ---
 
@@ -108,7 +124,7 @@ Como pessoa da empresa, quero cadastrar e editar os dados do produto na tela do 
 2. **Given** a confirmação, **When** confirma, **Then** o Web envia `POST /api/products/{id}/archive` com `{version}`, volta para a lista e mostra "Produto X arquivado.".
 3. **Given** "Filtros > Situação: Arquivados", **When** aplica, **Then** a lista usa `GET /api/products?archived=true`, e os cartões mostram o selo "Arquivado em dd/mm/aaaa".
 4. **Given** um produto arquivado aberto, **When** a tela abre, **Then** aparece o aviso "Este produto está arquivado. Desarquive para editar.", os campos ficam desabilitados, o Salvar some e, para admin, aparece "Desarquivar" no rodapé.
-5. **Given** "Desarquivar", **When** confirma, **Then** o Web envia `POST .../unarchive` com `{version}` e mostra "Produto X desarquivado.".
+5. **Given** "Desarquivar", **When** confirma ("Desarquivar X? O produto volta para a lista de ativos e pode ser editado de novo."), **Then** o Web envia `POST .../unarchive` com `{version}`, volta para a lista e mostra "Produto X desarquivado." (I4).
 6. **Given** quem não é admin, **When** a tela abre, **Then** os botões de arquivo não aparecem. Um 403 com código mostra a mensagem do Core e mantém a sessão.
 
 ### Edge Cases
@@ -122,7 +138,7 @@ Como pessoa da empresa, quero cadastrar e editar os dados do produto na tela do 
 ### Functional Requirements
 
 - **FR-W01**: A página `/produtos` MUST usar os componentes da demonstração do Vinicius (`ProductsView` e afins), ligados aos dados do Core, e MUST deixar de usar a `ProductTable`. A `ProductTable` pode ser apagada se não sobrar uso.
-- **FR-W02**: Os dados sem Core MUST seguir F1, sem número inventado. Uma função pura MUST montar as props dos componentes a partir do produto do Core e do rascunho local.
+- **FR-W02**: Os dados sem Core MUST seguir F1, sem número inventado. A lista MUST paginar de 6 em 6 (A1). Uma função pura MUST montar as props dos componentes a partir do produto do Core e do rascunho local.
 - **FR-W03**: A aba "Informações do produto" MUST seguir `02-produto-informacoes.png`. Os campos fora do Figma MUST sair, e o tipo do rascunho local MUST ganhar `owner`, `teamEmail` e `tags`.
 - **FR-W04**: A edição MUST enviar só as partes alteradas (`changedParts`), com `version` encadeada (W1).
 - **FR-W05**: Arquivar, desarquivar e a situação Arquivados MUST seguir F6 e W2.

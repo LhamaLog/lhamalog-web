@@ -16,15 +16,18 @@ A lista de produtos passa a seguir o Figma, reaproveitando os componentes que o 
 ```text
 src/features/products/
 ├── types.ts                 # + archivedAt; ProductUiDraft: + owner, teamEmail, tags; − criticality, project, service, logLevel, active
-├── productView.ts           # NOVO: toCardProps(product, draft), summaryFrom(products), filtros, paginação (F1, sem inventar número)
-├── productEdit.ts           # NOVO: changedParts, isArchived, generalFieldErrors, canArchive(orgRole), caminhos
+├── productView.ts           # NOVO: toCardProps, summaryFrom, filtros, paginação de 6, productsPath, sidePanelsFrom (F1, sem inventar número)
+├── productEdit.ts           # NOVO: changedParts, saveEdits, setArchived, formFieldErrors, addTag, ownerOptions, canArchive(orgRole), caminhos e textos
+├── useOwnerOptions.ts       # NOVO: pessoas da organização com getMemberships, a mesma chamada da Equipe (N3)
 └── components/
     ├── ProductsPage.tsx     # passa a montar o ProductsView com dados do Core; Filtros com Situação (F6)
-    ├── ProductsHeader.tsx   # (Vinicius) + props para o contador e o painel de filtros, se faltar
-    ├── ProductCard.tsx      # (Vinicius) + selo "Arquivado em", se faltar
-    ├── ProductForm.tsx      # aba Informações igual ao Figma; Voltar no topo; rodapé do Figma; Arquivar/Desarquivar; só leitura
-    ├── TagsField.tsx        # NOVO: tags com "+ Adicionar" (pode reaproveitar o ChipListField da 178)
-    └── ProductTable.tsx     # sai, se não sobrar uso
+    ├── ProductsView.tsx     # (Vinicius) + props opcionais filters e listState (painel de filtros e estados da lista)
+    ├── ProductCard.tsx      # (Vinicius) + props opcionais onOpen (seta e clique) e archivedLabel; environment aceita null
+    ├── ProductsSummary.tsx  # (Vinicius) valor aceita texto ("—")
+    ├── ProductsByEnvironment.tsx # (Vinicius) valores aceitam null ("—")
+    ├── ProductForm.tsx      # aba Informações igual ao Figma, com o TagsField interno; rodapé; Arquivar/Desarquivar; só leitura
+    └── ProductTable.tsx     # apagada (sem uso)
+src/shared/ui/DistributionBars.tsx # + formattedValue opcional
 tests/
 ├── product-view.test.mjs    # NOVO
 └── product-edit.test.mjs    # NOVO
@@ -43,6 +46,6 @@ tests/
 
 | Risco | Mitigação |
 |---|---|
-| Rascunho local guarda dados que o time pode achar que estão no servidor | nota visível "Ainda não é salvo no servidor" e lista de pendências para o Core (F1) |
+| Rascunho local guarda dados que o time pode achar que estão no servidor | nota visível na aba ("ainda não são salvos no servidor: ficam guardados só neste navegador") e lista de pendências para o Core (F1) |
 | Mudar componentes da demonstração quebra a `/componentes` | props novas opcionais; conferir `/componentes` no roteiro manual |
 | Duas chamadas no salvar | ordem fixa e mensagem de salvamento parcial (W1) |

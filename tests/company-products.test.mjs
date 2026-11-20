@@ -38,8 +38,8 @@ test('filled values are checked and an incomplete company can still be saved', a
   assert.equal(facts.completion.total, 10)
 })
 
-test('product list filters, metrics and create requirements use api fields only', async () => {
-  const { filterProducts, occurrenceText, productFieldErrors, productMetrics, statusTone } = await import('../src/features/products/productListModel.ts')
+test('product list filters and metrics use api fields only, and old draft keys are dropped', async () => {
+  const { filterProducts, occurrenceText, productMetrics, statusTone } = await import('../src/features/products/productListModel.ts')
   const { normalizeProductDraft } = await import('../src/features/products/draft.ts')
   const products = [
     product({ id: '1', name: 'Payment Service', category: 'Financeiro', status: 'Saudável', environment: 'production', sla: 99.98 }),
@@ -58,17 +58,10 @@ test('product list filters, metrics and create requirements use api fields only'
   assert.ok(Math.abs(metrics.availability - ((99.98 + 98.7) / 2)) < 0.001)
   assert.match(occurrenceText('não é data'), /não é data/)
   assert.match(occurrenceText(new Date(Date.now() - 3 * 86400000).toISOString()), /há 3 dias/)
-  const draft = normalizeProductDraft({ environment: 'Produção' })
-  assert.equal(draft.logLevel, 'INFO')
-  assert.deepEqual(productFieldErrors({ editing: false, name: '', category: 'Financeiro', draft }), {
-    name: 'Informe o nome do produto.',
-    productType: 'Selecione o tipo de produto.',
-    team: 'Informe a equipe responsável.',
-    criticality: 'Selecione a criticidade.',
-    project: 'Informe o projeto.',
-    service: 'Informe a aplicação principal.',
-  })
-  assert.deepEqual(productFieldErrors({ editing: true, name: '', category: '', draft: normalizeProductDraft({}) }), {})
+  // Fields that left the screen (spec 009, analyze A3) are dropped from an old draft; the rest is kept.
+  const draft = normalizeProductDraft({ environment: 'Produção', team: 'Squad', criticality: 'Alta', project: 'P', service: 'S', logLevel: 'WARN', active: false })
+  assert.equal(draft.environment, 'Produção')
+  assert.deepEqual(['team', 'criticality', 'project', 'service', 'logLevel', 'active'].filter((key) => key in draft), [])
 })
 
 function product(partial) {
