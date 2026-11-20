@@ -12,6 +12,8 @@ export const checkoutPath = '/api/billing/checkout'
 export const NO_ORDER_CODE = 'no_order'
 export const COMPANY_NAME_MIN = 2
 export const COMPANY_NAME_MAX = 120
+// Com o pedido pendente, a tela consulta o Core de novo até a confirmação do gateway chegar pelo webhook.
+export const ORDER_POLL_MS = 5000
 
 const STATUSES: OrderStatus[] = ['PENDING', 'PAID', 'CANCELED']
 
@@ -92,6 +94,11 @@ export function planScreenState(order: Order | null, isAdmin: boolean): PlanScre
   return isAdmin
     ? { situation, canPurchase: true, purchaseDisabledReason: '' }
     : { situation, canPurchase: false, purchaseDisabledReason: 'Somente o administrador da empresa pode contratar um plano.' }
+}
+
+// Só vale esperar a confirmação de um pedido pendente que ainda não liberou o acesso.
+export function shouldPollOrder(order: Order | null): boolean {
+  return order !== null && order.status === 'PENDING' && !order.subscriptionActive
 }
 
 export function planLabel(plans: Plan[], code: string): string {

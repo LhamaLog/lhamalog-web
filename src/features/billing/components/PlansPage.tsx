@@ -13,8 +13,8 @@ import { LoadingState } from '../../../shared/ui/LoadingState'
 import { PageHeader } from '../../../shared/ui/PageHeader'
 import { isOrganizationAdmin } from '../../team/invitations'
 import {
-  NO_ORDER_CODE, checkoutPath, checkoutPayload, companyNameError, formatMonthlyPrice, isHttpUrl, orderPath,
-  planLabel, planScreenState, plansPath, readCheckout, readOrder, readPlans,
+  NO_ORDER_CODE, ORDER_POLL_MS, checkoutPath, checkoutPayload, companyNameError, formatMonthlyPrice, isHttpUrl, orderPath,
+  planLabel, planScreenState, plansPath, readCheckout, readOrder, readPlans, shouldPollOrder,
 } from '../model'
 import type { Order, Plan } from '../model'
 
@@ -76,6 +76,24 @@ function PlansScreen() {
     })
     return () => controller.abort()
   }, [request, reload])
+
+  // Pedido pendente: a confirmação chega pelo webhook, às vezes depois de a pessoa voltar do pagamento.
+  // Consulta o pedido de novo até o acesso ser liberado; falhas pontuais só esperam a próxima rodada.
+  const polling = shouldPollOrder(order)
+  useEffect(() => {
+    if (!polling) return
+    const controller = new AbortController()
+    const timer = window.setInterval(() => {
+      request<unknown>(orderPath, { signal: controller.signal }).then(value => {
+        const parsed = readOrder(value)
+        if (parsed && !controller.signal.aborted) setOrder(parsed)
+      }).catch(() => undefined)
+    }, ORDER_POLL_MS)
+    return () => {
+      window.clearInterval(timer)
+      controller.abort()
+    }
+  }, [polling, request])
 
   if (loading) return <LoadingState label="Carregando planos..." />
   if (loadError || !plans) return <ErrorState description={loadError} onRetry={() => setReload(value => value + 1)} />

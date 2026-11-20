@@ -71,3 +71,12 @@ test('subscription_required notifies listeners and stays a business refusal (no 
   assert.equal(redirect.isSubscriptionRequired(null), false)
   assert.equal(session.classifyRejection(403, 'subscription_required', 'Sua empresa ainda não tem um plano ativo.'), 'keep')
 })
+
+test('only a pending order that has not released access is polled', () => {
+  const pending = { orderId: 'o1', plan: 'STARTER', status: 'PENDING', paymentUrl: 'http://localhost:8080/x', subscriptionActive: false }
+  assert.equal(model.shouldPollOrder(pending), true)
+  assert.equal(model.shouldPollOrder({ ...pending, subscriptionActive: true }), false)
+  assert.equal(model.shouldPollOrder({ ...pending, status: 'PAID', subscriptionActive: true }), false)
+  assert.equal(model.shouldPollOrder({ ...pending, status: 'CANCELED' }), false)
+  assert.equal(model.shouldPollOrder(null), false)
+})
