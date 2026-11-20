@@ -39,7 +39,7 @@
 
 - [X] T010 [P] README: trocar o texto de "sem Tenant, 403 e logout" pelo fluxo de contratação e citar a tela `/plano`
 - [X] T011 Rodar `npm test` e `npm run build` — 2026-11-18: 56 testes, 0 falhas; build ok (o aviso de chunk acima de 500 kB já existia)
-- [ ] T012 Roteiro P1–P8 do quickstart com o Core da spec 010 e a Clerk real — 2026-11-18, conta admin `+clerk_test` e a organização "Teste C sem Tenant" (reiniciada sem plano): P1–P7 passaram (redirecionamento para `/plano` sem logout; nome inválido sem chamada ao Core; checkout abre o simulador; pendente com "Continuar pagamento"; empresa liberada; plano ativo sem "Contratar"). P8 (membro) não rodou no navegador: coberto por `planScreenState` em `tests/billing.test.mjs` e pelo `not_admin` do Core
+- [x] T012 Roteiro P1–P8 do quickstart com o Core da spec 010 e a Clerk real — 2026-11-18, conta admin `+clerk_test` e a organização "Teste C sem Tenant" (reiniciada sem plano): P1–P7 passaram (redirecionamento para `/plano` sem logout; nome inválido sem chamada ao Core; checkout abre o simulador; pendente com "Continuar pagamento"; empresa liberada; plano ativo sem "Contratar"). P8 em 2026-11-20, com o Core e o Web da branch atualizada: conta `+clerk_test` como `org:member` da organização nova "Teste D sem Tenant (P8)", sem Tenant; `/empresa` levou a `/plano` sem logout (Core registrou `access.denied.subscription_required`, nenhuma revogação), aviso "Somente o administrador da empresa pode contratar um plano." e os cinco botões "Contratar" e o campo do nome desativados: passou
 
 ## Dependencies
 
