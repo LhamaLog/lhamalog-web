@@ -372,6 +372,14 @@ import { Button } from '../shared/ui/Button'
 
 `shared/ui` recebe dados e eventos; regras de negócio e acesso a dados pertencem às funcionalidades. Os dados ilustrativos e as interações locais atuais ficam em `App.tsx`.
 
+## Validação de pull requests
+
+O workflow `.github/workflows/pr-validation.yml` comenta em pull requests para `Development` e `main`. O comentário é único, reconhecido pelo marcador `<!-- llt-285-validacao-prs -->`, e a verificação não bloqueia o merge. Em pull request para `main`, o comentário só mostra `npm ci`, `npm test` e `npm run build`. Pull request de fork não roda.
+
+Para repetir essa validação, uma pessoa com associação `OWNER`, `MEMBER` ou `COLLABORATOR` comenta `test` ou `/test` na conversa do pull request. Espaços e quebras só nas pontas não mudam o comando. `test por favor`, um comentário em issue, um comentário editado, um bot e um fork não disparam a reexecução. O comentário `test` recebe 👀 quando a rodada começa. No fim, recebe o foguete se todos os itens passaram ou o polegar para baixo se algum falhou. O comentário de validação é atualizado no lugar; não surge um segundo.
+
+Limitação: um workflow disparado por comentário (`issue_comment`) usa a versão do arquivo que está na branch padrão (`main`). O comando `test` só funciona de verdade depois que esta alteração chega em `main`. Enquanto o arquivo novo existir só na branch do pull request ou em `Development`, comentar `test` não reexecuta a validação.
+
 ## Conferência manual
 
 Depois de iniciar a aplicação:
