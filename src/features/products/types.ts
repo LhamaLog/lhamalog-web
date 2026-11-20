@@ -1,10 +1,16 @@
+export type Personality = 'SIMPLE' | 'STANDARD' | 'DETAILED'
+
+// Same fields as the Core product context (lhamalog-core specs/009-contexto-produto).
 export type ProductContext = {
-  problemSolved: string
-  targetAudience: string
-  differentiators: string
-  keywords: string
-  restrictions: string
+  functionalDescription: string
+  personality: Personality
+  responseLanguage: string
+  architecture: string[]
+  scope: string[]
+  sensitiveData: string[]
 }
+
+export type ContextListField = 'architecture' | 'scope' | 'sensitiveData'
 
 export type Product = {
   id: string
@@ -43,12 +49,15 @@ export type ProductUiDraft = {
   otelEnabled: boolean
 }
 
-export const emptyProductContext: ProductContext = {
-  problemSolved: '',
-  targetAudience: '',
-  differentiators: '',
-  keywords: '',
-  restrictions: '',
+export function emptyProductContext(): ProductContext {
+  return {
+    functionalDescription: '',
+    personality: 'STANDARD',
+    responseLanguage: 'pt-BR',
+    architecture: [],
+    scope: [],
+    sensitiveData: [],
+  }
 }
 
 export function emptyProductDraft(): ProductUiDraft {

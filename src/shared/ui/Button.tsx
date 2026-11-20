@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 
 type ButtonProps = ComponentPropsWithoutRef<'button'> & {
-  variant?: 'primary' | 'outline' | 'soft'
+  variant?: 'primary' | 'outline' | 'soft' | 'secondary'
   size?: 'small' | 'normal' | 'icon'
   fullWidth?: boolean
 }
@@ -15,6 +15,9 @@ const variants = {
 
   soft:
     'border-transparent bg-blue-50 text-[#0C70F2] enabled:hover:bg-blue-100',
+
+  secondary:
+    'border-transparent bg-slate-100 text-[#083B7A] enabled:hover:bg-slate-200',
 }
 
 const sizes = {
