@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-19
 
-**Status**: Draft (pré-preenchida)
+**Status**: Clarify feito em 2026-11-20
 
 **Input**: lado Web da LLT-177. O erro aparece embaixo do campo "Nome do produto", no estilo de erro de campo da tela do Figma (`C:\Users\Pedro\Desktop\LhamaLog\LLT-produto-telas-web\figma\02-produto-informacoes.png`). O Core está mergeado (PR #7, `specs/006-nome-unico-produto`). O contrato está em `contracts/core-api.md`, que é cópia de leitura.
 
@@ -12,11 +12,14 @@
 
 Quando o nome já existe, o Core responde 409 com "Já existe um produto com este nome nesta empresa. Ele pode estar arquivado." O Web mostra essa mensagem no topo do formulário e cola a frase genérica de 409 ("Volte à lista e abra o produto novamente."). Isso confunde, porque o problema é só o nome.
 
+Atualização de 2026-11-20 (depois da LLT-123): a frase genérica já não existe no código. Agora o 409 de nome aparece no topo com o botão "Recarregar produto" da spec 009, que também não serve para esse caso.
+
 ## Clarifications
 
-- **W1** [NEEDS CLARIFICATION]: O Core não manda `code` nessa recusa, só a mensagem. Como o Web reconhece o 409 de nome?
-  - **Recomendação:** comparar a mensagem do Core (`serverMessage`) com o texto fixo do contrato, numa função pura com teste.
-  - Registrar como pendência para o Core: acrescentar `code: "product_name_in_use"` numa tarefa futura. Esta branch não muda o Core.
+### Session 2026-11-20
+
+- Q (W1): O Core não manda `code` nessa recusa, só a mensagem. Como o Web reconhece o 409 de nome? → A: Pela mensagem. Uma função pura compara a mensagem do Core (`serverMessage`) com o texto fixo do contrato, com teste. Fica como pendência para o Core acrescentar `code: "product_name_in_use"` numa tarefa futura. Esta branch não muda o Core.
+- Q (N1): Quando o nome é recusado, que texto aparece no topo, além do erro embaixo do campo nome? → A: "Nada foi salvo: confira o nome do produto." Vale para o cadastro e para a edição (US1.6).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -46,7 +49,7 @@ Como pessoa cadastrando ou editando um produto, quero saber na hora, no próprio
 
 - **FR-W01**: Uma função pura `isNameInUse(error)` MUST reconhecer o 409 de nome pela mensagem fixa do contrato (W1).
 - **FR-W02**: No cadastro e na edição, o 409 de nome MUST virar erro do campo `name`, MUST abrir a aba "Informações do produto" e MUST NOT mostrar a frase genérica nem "Recarregar produto".
-- **FR-W03**: Editar o campo nome MUST limpar o erro do campo.
+- **FR-W03**: Editar o campo nome MUST limpar o erro do campo. O aviso do topo ("Nada foi salvo: confira o nome do produto.") também some (U2, analyze de 2026-11-20).
 - **FR-W04**: Na edição com duas partes, a recusa de nome MUST impedir o envio do contexto.
 
 ## Success Criteria *(mandatory)*
