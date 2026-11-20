@@ -34,7 +34,7 @@ O detalhamento das entregas e das definições pendentes está em [docs/planejam
 
 ## Pré-requisitos
 
-- Git, para clonar o ramo `dev/developer`.
+- Git, para clonar o ramo `Development`.
 - Node.js 26.12.1, com npm, somente para `npm run dev`, `npm test` e `npm run build` fora do Docker.
 - Docker, para o caminho recomendado abaixo. O comando é `docker compose` (plugin v2).
 - GNU Make (opcional), para `make up`, `make down`, `make logs` e `make status`. Os comandos diretos continuam disponíveis sem ele.
@@ -52,7 +52,7 @@ No Ubuntu, use o [Docker Engine](https://docs.docker.com/engine/install/ubuntu/)
 ## Obter o código
 
 ```bash
-git clone --branch dev/developer https://github.com/LhamaLog/lhamalog-web.git
+git clone --branch Development https://github.com/LhamaLog/lhamalog-web.git
 cd lhamalog-web
 ```
 
