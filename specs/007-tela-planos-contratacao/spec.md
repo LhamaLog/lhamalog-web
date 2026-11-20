@@ -83,7 +83,7 @@ A tela mostra a situação do pedido mais recente: pagamento pendente (com o lin
 - **FR-003**: A tela MUST ter o campo "Nome da empresa", preenchido com o nome da organização ativa, validado com 2 a 120 caracteres sem espaços nas pontas antes de chamar o Core.
 - **FR-004**: "Contratar" MUST chamar `POST /api/billing/checkout` com o plano e o nome e, em sucesso, levar o navegador ao `paymentUrl` (só http ou https).
 - **FR-005**: Recusas do Core MUST aparecer na tela com a mensagem dele, sem encerrar a sessão.
-- **FR-006**: A tela MUST mostrar a situação do pedido mais recente (`GET /api/billing/order`): nenhum, pendente (com "Continuar pagamento"), cancelado ou pago com plano ativo (com "Ir para a empresa" e sem "Contratar").
+- **FR-006**: A tela MUST mostrar a situação do pedido mais recente (`GET /api/billing/order`): nenhum, pendente (com "Continuar pagamento" e atualizada sozinha até a confirmação chegar) ou pago com plano ativo (com "Ir para a empresa" e sem "Contratar"). Um pedido cancelado aparece como "nenhum", com "Contratar" de novo: no Core, só um pedido mais novo cancela o anterior, então o mais recente não fica cancelado na prática.
 - **FR-007**: Só o administrador da organização MUST ver "Contratar" ativo; os demais veem o aviso de que só o administrador contrata.
 - **FR-008**: Qualquer chamada ao Core que receba `subscription_required` MUST levar a pessoa a `/plano`, sem encerrar a sessão (a regra da spec 006 continua: 403 com código é recusa de negócio).
 - **FR-009**: A tela MUST dizer que, por enquanto, o pagamento abre o simulador do Asaas e nenhum valor é cobrado.
