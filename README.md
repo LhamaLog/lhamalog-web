@@ -14,7 +14,7 @@ A aplicação exige login. Sem sessão ativa, `/` redireciona para `/sign-in`; d
 
 - Telas de autenticação com componentes da Clerk (ADR_023) e visual do LhamaLog: login, cadastro, etapas pós-login (escolher ou criar organização, configurar MFA e redefinir senha) e criação de organização. Sessão `pending` conta como deslogada (ADR_024, ADR_032).
 - Botão **Sair** no Header, ao lado da identificação do usuário. Nas telas integradas, o Header mostra o nome do perfil (ou da sessão) e o nome da empresa ativa; só a demonstração `/componentes` usa dados fixos.
-- Sessão encerrada pelo Core (spec 006, ADR_032): 401 e 403 de segurança (sem `code` e sem mensagem do Core) encerram a sessão uma vez só, mesmo com várias chamadas recusadas ao mesmo tempo, e levam ao login com "Você foi deslogado". Depois de entrar, a pessoa volta à rota em que estava (só rotas internas). 403 com `code` ou mensagem do Core é recusa de negócio e mantém a pessoa na tela. A tela de criar organização avisa que a empresa nova só dá acesso depois da contratação de um plano (LLT-157).
+- Sessão encerrada pelo Core (spec 006, ADR_032): 401 e 403 de segurança (sem `code` e sem mensagem do Core) encerram a sessão uma vez só, mesmo com várias chamadas recusadas ao mesmo tempo, e levam ao login com "Você foi deslogado". Depois de entrar, a pessoa volta à rota em que estava (só rotas internas). 403 com `code` ou mensagem do Core é recusa de negócio e mantém a pessoa na tela. A tela de criar organização avisa que a empresa nova só dá acesso depois da contratação de um plano; `403 subscription_required` leva à tela `/plano` (spec 007).
 
 - Campos, botões, checkbox, badges para status e tags, avatar, busca, cartões, paginação e barra de progresso.
 - Navbar com recolhimento no desktop e menu em telas pequenas, Header e Footer compostos pelo AppLayout.
@@ -34,7 +34,7 @@ O detalhamento das entregas e das definições pendentes está em [docs/planejam
 
 ## Pré-requisitos
 
-- Git, para clonar o ramo `dev/developer`.
+- Git, para clonar o ramo `Development`.
 - Node.js 26.12.1, com npm, somente para `npm run dev`, `npm test` e `npm run build` fora do Docker.
 - Docker, para o caminho recomendado abaixo. O comando é `docker compose` (plugin v2).
 - GNU Make (opcional), para `make up`, `make down`, `make logs` e `make status`. Os comandos diretos continuam disponíveis sem ele.
@@ -52,7 +52,7 @@ No Ubuntu, use o [Docker Engine](https://docs.docker.com/engine/install/ubuntu/)
 ## Obter o código
 
 ```bash
-git clone --branch dev/developer https://github.com/LhamaLog/lhamalog-web.git
+git clone --branch Development https://github.com/LhamaLog/lhamalog-web.git
 cd lhamalog-web
 ```
 
@@ -102,7 +102,15 @@ Sem a chave publicável, a página não inicia e o console mostra `Falta VITE_CL
 
 ### Login e organização de teste
 
-Enquanto o fluxo de compra não cria o Tenant (LLT-157), o login só funciona com uma organização que tenha Tenant no Core. Sem ele, toda chamada à API responde 403 e o usuário é deslogado. Cada desenvolvedor cria o próprio login e a própria organização na instância de desenvolvimento da Clerk e registra o `org_id` no `.env` do Core (`DEV_TENANT_CLERK_ORG_ID`). Passo a passo no README do `lhamalog-core`, seção "Login e organização de teste (enquanto não há fluxo de compra)".
+Cada desenvolvedor cria o próprio login e a própria organização na instância de desenvolvimento da Clerk, pelo `/sign-up` (um e-mail com `+clerk_test` aceita o código `424242`). Uma organização nova ainda não tem plano: o Core responde 403 `subscription_required` e o Web leva a pessoa a `/plano`, **sem deslogar**.
+
+Para liberar a empresa (LLT-289, spec 007; Core na spec 010 do `lhamalog-core`):
+
+1. Em `/plano`, confira o nome da empresa e clique em **Contratar** em um plano (só o administrador da organização contrata).
+2. O navegador abre a página de pagamento. Enquanto a cobrança real não existe, é o **simulador local do Asaas** no Core, e nenhum valor é cobrado: clique em **Simular pagamento**.
+3. Clique em **Voltar ao LhamaLog**. A empresa abre com acesso liberado.
+
+O atalho antigo continua valendo: o `org_id` em `DEV_TENANT_CLERK_ORG_ID` no `.env` do Core cria a empresa já liberada ao subir a API (README do `lhamalog-core`, seção "Login e organização de teste").
 
 ### Build do Vite e execução do contêiner
 
@@ -123,6 +131,7 @@ São dois momentos diferentes:
 | `/componentes` | Demonstração visual preservada, com sessão. |
 | `/sign-in/*` | Login. `?motivo=deslogado` mostra o aviso "Você foi deslogado" (ADR_032); `?redirect_url=<rota>` leva à rota depois do login, se for interna (spec 006). |
 | `/sign-up/*` | Cadastro. |
+| `/plano` | Planos do Core, contratação e situação do pedido (pagamento pelo simulador do Asaas enquanto a cobrança real não existe). Recusas `subscription_required` de qualquer tela levam para cá. Detalhes em [planos](specs/007-tela-planos-contratacao/spec.md). |
 | `/equipe` | Convite, lista, cargo e desativação das pessoas da empresa selecionada, só para o administrador. Detalhes em [convite](specs/003-convidar-usuario-empresa/spec.md) e [usuários](specs/004-listar-editar-desativar-usuarios/spec.md). |
 | `/organizacoes/nova/*` | Criação de organização, sem a etapa de convite da plataforma. Convidar alguém fica em `/equipe`. |
 | `/tarefas/escolher-organizacao/*`, `/tarefas/configurar-mfa/*`, `/tarefas/redefinir-senha/*` | Etapas pós-login da Clerk (session tasks). |

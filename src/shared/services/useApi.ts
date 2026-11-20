@@ -3,6 +3,7 @@ import { useAuth } from '@clerk/react'
 import { readPublicConfig } from '../config'
 import { ApiError, apiRequest, tokenMatchesOrganization } from './api'
 import { classifyRejection, signOutOnce } from './sessionRedirect'
+import { isSubscriptionRequired, notifySubscriptionRequired } from './subscriptionRedirect'
 
 export function useApi() {
   const { getToken, orgId, signOut } = useAuth()
@@ -24,6 +25,8 @@ export function useApi() {
       if (error instanceof ApiError && classifyRejection(error.status, error.code, error.serverMessage) === 'session') {
         await signOutOnce(signOut)
       }
+      // Empresa sem plano: recusa de negócio (a sessão fica); o CompanyWorkspace leva à tela de planos (spec 007).
+      if (isSubscriptionRequired(error)) notifySubscriptionRequired()
       throw error
     }
   }, [getToken, orgId, signOut])

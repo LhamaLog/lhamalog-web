@@ -1,4 +1,5 @@
 import { OrganizationSwitcher, useAuth, useOrganization, useUser } from '@clerk/react'
+import { useEffect } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { AppLayout } from './AppLayout'
 import { CompanyPage } from '../../features/company/components/CompanyPage'
@@ -7,6 +8,8 @@ import { ProductsPage } from '../../features/products/components/ProductsPage'
 import { ProfilePage } from '../../features/profile/components/ProfilePage'
 import { NotificationPreferences } from '../../features/notificationPreferences/components/NotificationPreferences'
 import { TeamPage } from '../../features/team/components/TeamPage'
+import { PlansPage } from '../../features/billing/components/PlansPage'
+import { onSubscriptionRequired } from '../../shared/services/subscriptionRedirect'
 import { organizationProfileNavigation, teamMenuHiddenItems } from '../../features/team/invitations'
 import { setAppliedClerkLocale } from '../../features/profile/clerkLocale'
 import { profileMessage } from '../../features/profile/messages'
@@ -36,17 +39,22 @@ function WorkspaceShell() {
   const products = location.pathname.startsWith('/produtos')
   const profile = location.pathname.startsWith('/perfil')
   const team = location.pathname.startsWith('/equipe')
+  const plan = location.pathname.startsWith('/plano')
+  // Empresa sem plano: qualquer recusa subscription_required leva à tela de planos (spec 007).
+  useEffect(() => onSubscriptionRequired(() => {
+    if (!window.location.pathname.startsWith('/plano')) navigate('/plano', { replace: true })
+  }), [navigate])
   const section = companySectionFromParam(params.get('secao'))
   const sectionLabel = companySections.find((item) => item.id === section)?.label ?? 'Empresa'
   const companyCrumbs = section === 'overview'
     ? [{ label: text('shell.breadcrumbAdministration') }, { label: 'Configurações da Empresa' }]
     : [{ label: text('shell.breadcrumbAdministration') }, { label: 'Configurações da Empresa', href: '/empresa' }, { label: sectionLabel }]
   const sessionName = user?.fullName || user?.primaryEmailAddress?.emailAddress || text('shell.userFallback')
-  const here = team ? '/equipe' : profile ? '/perfil' : products ? '/produtos' : '/empresa'
+  const here = plan ? '/plano' : team ? '/equipe' : profile ? '/perfil' : products ? '/produtos' : '/empresa'
   return <AppLayout
     contentClassName="max-w-none"
     navbar={{
-      activeItem: team ? 'team' : profile ? 'profile' : products ? 'products' : 'company',
+      activeItem: plan ? 'plan' : team ? 'team' : profile ? 'profile' : products ? 'products' : 'company',
       productName: 'Produtos da empresa',
       homeHref: '/empresa',
       hiddenItems: teamMenuHiddenItems(orgRole),
@@ -56,12 +64,15 @@ function WorkspaceShell() {
         if (item === 'company') navigate('/empresa')
         if (item === 'profile') navigate('/perfil')
         if (item === 'team') navigate('/equipe')
+        if (item === 'plan') navigate('/plano')
       },
     }}
     header={{
       breadcrumbs: {
         homeHref: '/empresa',
-        items: team
+        items: plan
+          ? [{ label: text('shell.breadcrumbAdministration') }, { label: text('nav.plan') }]
+          : team
           ? [{ label: text('shell.breadcrumbAdministration') }, { label: text('nav.team') }]
           : profile
           ? [{ label: text('shell.breadcrumbAdministration') }, { label: text('shell.breadcrumbProfile') }]
@@ -92,6 +103,6 @@ function WorkspaceShell() {
       <Link to="/organizacoes/nova" className="rounded-lg px-3 py-2 text-sm font-semibold text-[#0C70F2] hover:bg-blue-50">{text('shell.registerCompany')}</Link>
     </div>
     {!orgId ? <EmptyState title={text('shell.emptyCompanyTitle')} description={text('shell.emptyCompanyDescription')} />
-      : <div key={orgId}>{team ? <TeamPage /> : profile ? <div className="space-y-6"><ProfilePage /><NotificationPreferences /></div> : products ? <ProductsPage /> : <CompanyPage organizationId={organization?.id ?? orgId} />}</div>}
+      : <div key={orgId}>{plan ? <PlansPage /> : team ? <TeamPage /> : profile ? <div className="space-y-6"><ProfilePage /><NotificationPreferences /></div> : products ? <ProductsPage /> : <CompanyPage organizationId={organization?.id ?? orgId} />}</div>}
   </AppLayout>
 }
