@@ -113,6 +113,8 @@ São dois momentos diferentes:
 
 `VITE_API_URL` é a origem vista pelo navegador, com esquema, host e porta, sem caminho. O padrão `http://localhost:8080` aponta para a API do Core publicada na mesma máquina. Não use o nome interno de um contêiner: o browser não resolve a rede do Docker.
 
+`VITE_OTLP_ENDPOINT` é opcional: o endereço do receptor OTLP (o `lhamalog-collector`) que a aba "Integração OpenTelemetry" do produto mostra e usa no exemplo de configuração da aplicação. Não é segredo. Aceita `http` ou `https`, com caminho, sem usuário, senha, parâmetros ou âncora; a barra final é removida. Sem valor, a aba mostra "Endereço ainda não configurado.". Um valor inválido impede a página de abrir, com a mensagem do erro, como acontece com o `VITE_API_URL`. Vale nos dois momentos acima: no Vite e no `/config.js` do contêiner. No perfil local, o Coletor recebe OTLP/HTTP em `http://localhost:4328`.
+
 ## Rotas
 
 | Caminho | Tela |

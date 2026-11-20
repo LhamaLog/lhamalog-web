@@ -88,11 +88,12 @@ test('texts of the archive flow come from the spec', async () => {
 
 test('the local draft keeps the new Figma fields and drops nothing it can still use', async () => {
   const { normalizeProductDraft } = await import('../src/features/products/draft.ts')
-  const draft = normalizeProductDraft({ productType: 'API / Serviço', environment: 'Produção', owner: 'Mariana', teamEmail: 'a@b.com', tags: ['pagamentos', 3, ' backend '], otelService: 'svc' })
+  const draft = normalizeProductDraft({ productType: 'API / Serviço', environment: 'Produção', owner: 'Mariana', teamEmail: 'a@b.com', tags: ['pagamentos', 3, ' backend '], otelTraces: true })
   assert.equal(draft.owner, 'Mariana')
   assert.equal(draft.teamEmail, 'a@b.com')
   assert.deepEqual(draft.tags, ['pagamentos', 'backend'])
-  assert.equal(draft.otelService, 'svc')
+  // The OpenTelemetry tab keeps traces in the draft (spec 011); its old fields left with the LLT-179.
+  assert.equal(draft.otelTraces, true)
   assert.deepEqual(normalizeProductDraft({}).tags, [])
 })
 

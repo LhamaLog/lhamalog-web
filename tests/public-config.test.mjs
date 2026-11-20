@@ -39,3 +39,17 @@ test('api url must be a browser origin', () => {
   assert.throws(() => resolvePublicConfig({ clerkPublishableKey: publishable, apiUrl: 'http://localhost:8080/api' }, {}), /sem caminho/)
   assert.throws(() => resolvePublicConfig({ clerkPublishableKey: publishable, apiUrl: 'javascript:alert(1)' }, {}), /http ou https/)
 })
+
+test('the OTLP endpoint is optional, runtime first, without the trailing slash (F4, N4)', () => {
+  assert.equal(resolvePublicConfig({ clerkPublishableKey: publishable }, {}).otlpEndpoint, '')
+  assert.equal(resolvePublicConfig({ clerkPublishableKey: publishable, otlpEndpoint: 'https://otlp.example.com/' }, { otlpEndpoint: 'http://localhost:4328' }).otlpEndpoint, 'https://otlp.example.com')
+  assert.equal(resolvePublicConfig({ clerkPublishableKey: publishable, otlpEndpoint: ' ' }, { otlpEndpoint: 'http://localhost:4328' }).otlpEndpoint, 'http://localhost:4328')
+  assert.equal(resolvePublicConfig({ clerkPublishableKey: publishable, otlpEndpoint: 'https://example.com/otlp' }, {}).otlpEndpoint, 'https://example.com/otlp')
+})
+
+test('the OTLP endpoint must be http or https, without user, password, query or hash', () => {
+  assert.throws(() => resolvePublicConfig({ clerkPublishableKey: publishable, otlpEndpoint: 'ftp://otlp.example.com' }, {}), /VITE_OTLP_ENDPOINT/)
+  assert.throws(() => resolvePublicConfig({ clerkPublishableKey: publishable, otlpEndpoint: 'https://user:secret@otlp.example.com' }, {}), /usuário ou senha/)
+  assert.throws(() => resolvePublicConfig({ clerkPublishableKey: publishable, otlpEndpoint: 'https://otlp.example.com/?a=1' }, {}), /VITE_OTLP_ENDPOINT/)
+  assert.throws(() => resolvePublicConfig({ clerkPublishableKey: publishable, otlpEndpoint: 'não é url' }, {}), /VITE_OTLP_ENDPOINT/)
+})

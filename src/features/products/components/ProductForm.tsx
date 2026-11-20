@@ -8,7 +8,6 @@ import { Card } from '../../../shared/ui/Card'
 import { Input } from '../../../shared/ui/Input'
 import { Select } from '../../../shared/ui/Select'
 import { Textarea } from '../../../shared/ui/Textarea'
-import { Toggle } from '../../../shared/ui/Toggle'
 import { loadProductDraft, moveProductDraft, saveProductDraft } from '../draft'
 import { environmentLabel } from '../productListModel'
 import {
@@ -34,11 +33,15 @@ import { cleanContext, contextFieldErrors, firstTabWithError, readProductContext
 import type { ProductTab } from '../context'
 import { isNameInUse, nameInUseErrors, nameInUseNotice } from '../productErrors'
 import { useOwnerOptions } from '../useOwnerOptions'
+import { activeSignals } from '../otelSnippet'
+import { readPublicConfig } from '../../../shared/config'
+import { ApiKeyField } from './ApiKeyField'
+import { ConnectionStatusPanel } from './ConnectionStatusPanel'
+import { OtelConnectionCard } from './OtelConnectionCard'
 import { endsSession } from '../../../shared/services/sessionRedirect'
 import { NewItemInput } from './NewItemInput'
 import { ProductContextFields } from './ProductContextFields'
 
-const protocols = ['OTLP/HTTP', 'OTLP/gRPC']
 
 // Icons of the fields of 02-produto-informacoes.png.
 const fieldIcons = {
@@ -88,10 +91,12 @@ export function ProductForm(props: FormProps) {
   const owners = useOwnerOptions()
   // Same rule as the Core for archive and unarchive (W2). Reading orgRole changes nothing in the Clerk setup.
   const { orgRole } = useAuth()
-  return <ProductEditor {...props} request={request} owners={owners} admin={canArchive(orgRole)} />
+  // Address of the OTLP receiver (spec 011, F4). Empty when VITE_OTLP_ENDPOINT is not set.
+  const otlpEndpoint = readPublicConfig().otlpEndpoint
+  return <ProductEditor {...props} request={request} owners={owners} admin={canArchive(orgRole)} otlpEndpoint={otlpEndpoint} />
 }
 
-export function ProductEditor({ product, onSaved, onCancel, request, areas = [], owners = null, admin = false }: FormProps & { request: ProductRequest; owners?: string[] | null; admin?: boolean }) {
+export function ProductEditor({ product, onSaved, onCancel, request, areas = [], owners = null, admin = false, otlpEndpoint = '' }: FormProps & { request: ProductRequest; owners?: string[] | null; admin?: boolean; otlpEndpoint?: string }) {
   const [tab, setTab] = useState<ProductTab>('info')
   const [name, setName] = useState(product?.name ?? '')
   const [description, setDescription] = useState(product?.description ?? '')
@@ -105,6 +110,8 @@ export function ProductEditor({ product, onSaved, onCancel, request, areas = [],
   // The product as the Core last returned it: the version and the baseline of changedParts (W1 and reload).
   const [base, setBase] = useState(product)
   const [notice, setNotice] = useState('')
+  // Badge of the "Status da conexão" panel, reported by the API key field (spec 011, F1).
+  const [connection, setConnection] = useState<'waiting' | 'none' | 'unknown'>('unknown')
   const pending = useRef(false)
   const controller = useRef<AbortController | null>(null)
   const editing = Boolean(product)
@@ -298,30 +305,27 @@ export function ProductEditor({ product, onSaved, onCancel, request, areas = [],
           )}
           {tab === 'context' && <ProductContextFields context={context} errors={errors} onChange={(next) => { setContext(next); setLocalErrors({}) }} />}
           {tab === 'otel' && (
-            <Section number="1" title="Integração OpenTelemetry" description="Prepare o envio de sinais do serviço. Estes dados ainda não são enviados ao salvar.">
-              <div className="rounded-lg bg-blue-50 p-3 text-sm text-[#083B7A]">A coleta só passa a valer quando a API de integração existir. Até lá, os valores ficam guardados neste navegador.</div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Input id="product-otel-endpoint" label="Endpoint do coletor" compact maxLength={300} placeholder="https://otel.exemplo.com/v1/logs" value={draft.otelEndpoint} onChange={(event) => patchDraft({ otelEndpoint: event.target.value })} />
-                <Select id="product-otel-protocol" label="Protocolo" value={draft.otelProtocol} onChange={(event) => patchDraft({ otelProtocol: event.target.value })}>
-                  {protocols.map((protocol) => <option key={protocol} value={protocol}>{protocol}</option>)}
-                </Select>
-                <Input id="product-otel-service" label="Nome do serviço" compact maxLength={200} value={draft.otelService} onChange={(event) => patchDraft({ otelService: event.target.value })} />
-                <div className="sm:col-span-2">
-                  <Textarea id="product-otel-headers" label="Cabeçalhos" maxLength={2000} placeholder="Authorization=Bearer ..." value={draft.otelHeaders} onChange={(event) => patchDraft({ otelHeaders: event.target.value })} />
-                </div>
-                <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 px-3 py-2 sm:col-span-2">
-                  <span className="text-sm font-semibold text-slate-900">Coleta ativa</span>
-                  <Toggle label="Coleta ativa" checked={draft.otelEnabled} onChange={(otelEnabled) => patchDraft({ otelEnabled })} />
-                </div>
-              </div>
-            </Section>
+            <OtelConnectionCard
+              endpoint={otlpEndpoint}
+              productName={name}
+              traces={draft.otelTraces}
+              logLevel={draft.otelLogLevel}
+              onTracesChange={(otelTraces) => patchDraft({ otelTraces })}
+              onLogLevelChange={(otelLogLevel) => patchDraft({ otelLogLevel })}
+              apiKey={<ApiKeyField productId={base?.id} productName={base?.name ?? name} archived={archived} admin={admin} request={request} onConnectionChange={setConnection} />}
+            />
           )}
         </fieldset>
         </div>
         <aside className="space-y-4 lg:sticky lg:top-4">
           {tab === 'info' && <InfoHelp />}
           {tab === 'context' && <ContextHelp />}
-          {tab === 'otel' && <OtelHelp />}
+          {tab === 'otel' && (
+            <>
+              <ConnectionStatusPanel state={connection} signals={activeSignals(draft.otelTraces)} />
+              <OtelHelp />
+            </>
+          )}
         </aside>
       </div>
       <Card className="flex flex-wrap items-center justify-between gap-4 px-6">
@@ -541,8 +545,9 @@ function ContextHelp() {
 
 function OtelHelp() {
   return (
-    <HelpCard title="OpenTelemetry" tone="blue">
-      <p className="text-sm text-slate-600">Use o endpoint OTLP do coletor e o nome do serviço como ele aparece nos sinais. A tela guarda a configuração localmente até a API de integração ficar disponível.</p>
+    <HelpCard title="Boas práticas" tone="amber">
+      <p className="text-sm text-[#0C70F2]">Siga estas recomendações para uma integração segura e estável.</p>
+      <CheckList items={['Guarde a chave de API em local seguro.', 'Prefira variáveis de ambiente a valores fixos no código.', 'Teste a conexão depois de configurar.', 'Mascare dados sensíveis dos logs.']} />
     </HelpCard>
   )
 }

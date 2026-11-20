@@ -1,5 +1,6 @@
 import { emptyProductDraft } from './types'
 import type { ProductUiDraft } from './types'
+import { logLevels } from './otelSnippet'
 
 const storageKey = (id: string) => `lhamalog.productDraft.v1:${id}`
 
@@ -26,11 +27,8 @@ export function normalizeProductDraft(value: unknown): ProductUiDraft {
     owner: asString(parsed.owner, empty.owner),
     teamEmail: asString(parsed.teamEmail, empty.teamEmail),
     tags: asTags(parsed.tags),
-    otelEndpoint: asString(parsed.otelEndpoint, empty.otelEndpoint),
-    otelProtocol: asString(parsed.otelProtocol, empty.otelProtocol) || empty.otelProtocol,
-    otelService: asString(parsed.otelService, empty.otelService),
-    otelHeaders: asString(parsed.otelHeaders, empty.otelHeaders),
-    otelEnabled: asBoolean(parsed.otelEnabled, empty.otelEnabled),
+    otelTraces: asBoolean(parsed.otelTraces, empty.otelTraces),
+    otelLogLevel: logLevels.find((level) => level === parsed.otelLogLevel) ?? empty.otelLogLevel,
   }
 }
 
