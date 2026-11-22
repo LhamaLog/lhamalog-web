@@ -37,7 +37,7 @@ export function CompanyWorkspace() {
   )
 }
 
-// Team screen with its tabs (LLT-120, spec 005 W1/W2): people (LLT-167/168), notification roles and permissions.
+// Team screen with its tabs (LLT-120, spec 012 W1/W2): people (LLT-167/168), notification roles and permissions.
 function TeamSection({ tab }: { tab: TeamTab }) {
   return (
     <div className="space-y-5">

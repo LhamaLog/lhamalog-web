@@ -7,7 +7,7 @@ import { accessCatalogPath, accessRoles, readCatalog } from '../accessContract'
 import { matrixNote, permissionLabel, roleLabel } from '../labels'
 import { useAccess } from '../useAccess'
 
-// Read-only matrix of what each access role can do (spec 005, US7, W2). ADR_123 has no custom access roles,
+// Read-only matrix of what each access role can do (spec 012, US7, W2). ADR_123 has no custom access roles,
 // so there is nothing to edit here.
 export function PermissionsMatrix() {
   const access = useAccess()

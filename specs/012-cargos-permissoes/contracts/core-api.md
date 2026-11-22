@@ -1,4 +1,4 @@
-> **Cópia de leitura.** A fonte da verdade é `lhamalog-core/specs/011-cargos-permissoes/contracts/api.md`, na branch `LLT-120-cargos-permissoes` do Core. Esta cópia foi atualizada em 18/11/2026, depois do clarify do Core, que mudou a origem do Dono (C1). Se divergir, vale o arquivo do Core.
+> **Cópia de leitura.** A fonte da verdade é `lhamalog-core/specs/011-cargos-permissoes/contracts/api.md`, na branch `LLT-120-cargos-permissoes` do Core. Esta cópia foi atualizada em 22/11/2026, no estado final da Parte A (depois do merge da `Development` com a LLT-289): a única mudança desde 18/11 é que organização sem Tenant recebe 403 `subscription_required`, sem logout, e que o Dono nasce pela compra. Nenhuma rota nem código de erro mudou. Se divergir, vale o arquivo do Core.
 
 # Contrato: Cargos e permissões (Core)
 
@@ -9,7 +9,8 @@ Este é o contrato do Web, a fonte da verdade do que ele consulta. Todas as rota
 | Situação | Status | Corpo |
 |---|---|---|
 | Sem JWT | 401 | comportamento atual do filtro |
-| Sem empresa ativa, sem Tenant ou Tenant inativo | 403 | `{"error":"forbidden"}`, com revogação das sessões (camada de segurança da LLT-163) |
+| Sem empresa ativa ou Tenant inativo | 403 | `{"error":"forbidden"}`, com revogação das sessões (camada de segurança da LLT-163) |
+| Organização sem Tenant (ainda não contratou plano) | 403 | `{"code":"subscription_required","message":...}`, **sem** revogar a sessão (LLT-289, spec 010, FR-006). O Web leva à tela de planos |
 | Pessoa desativada nesta empresa (LLT-168) | 403 | `{"message":"Seu acesso a esta empresa foi desativado.","code":"user_deactivated"}` |
 | Papel sem a permissão | 403 | `{"message":"Somente o Dono ou um Administrador pode fazer esta ação.","code":"not_admin"}` |
 | Corpo inválido | 400 | `{"message":"Confira os campos informados.","fieldErrors":{...}}` |
@@ -58,7 +59,7 @@ Exige `MEMBERS_VIEW`, ou seja, Dono ou Administrador.
 }
 ```
 
-`ownerUserId` é o `clerkUserId` do `member` DONO ativo da empresa, ou `null` se não houver (o fluxo de compra ainda não existe; ver `quickstart.md` para marcar o Dono à mão no ambiente local).
+`ownerUserId` é o `clerkUserId` do `member` DONO ativo da empresa, ou `null` se não houver. Desde a LLT-289, o Dono é quem comprou o plano. A organização de desenvolvimento (`DEV_TENANT_CLERK_ORG_ID`) nasce sem Dono, e o `quickstart.md` mostra como marcar um à mão nela.
 
 ---
 

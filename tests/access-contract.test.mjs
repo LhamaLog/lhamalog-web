@@ -58,6 +58,29 @@ test('a Core without LLT-120 falls back to the Clerk role with the same permissi
   assert.equal(accessFallback(null).role, 'MEMBER')
 })
 
+test('a failed access/me becomes legacy on 404, unsubscribed on subscription_required and error otherwise', async () => {
+  const { accessFailureStatus, teamMenuHidden } = await import('../src/features/access/accessContract.ts')
+  assert.equal(accessFailureStatus({ status: 404, code: '' }), 'legacy')
+  // Company without a plan (LLT-289): the plans screen takes over; no access error on top of it.
+  assert.equal(accessFailureStatus({ status: 403, code: 'subscription_required' }), 'unsubscribed')
+  assert.equal(accessFailureStatus({ status: 403, code: 'not_admin' }), 'error')
+  assert.equal(accessFailureStatus({ status: 500, code: '' }), 'error')
+  assert.equal(accessFailureStatus(new Error('rede')), 'error')
+  assert.equal(accessFailureStatus(null), 'error')
+  assert.deepEqual(teamMenuHidden({ status: 'unsubscribed', permissions: [] }), ['team'])
+})
+
+test('the Team page opens by the MEMBERS_VIEW permission of the Core, not by the Clerk role', async () => {
+  const { teamPageGate } = await import('../src/features/access/accessContract.ts')
+  assert.equal(teamPageGate({ status: 'loading', permissions: [] }), 'loading')
+  assert.equal(teamPageGate({ status: 'ready', permissions: ['MEMBERS_VIEW'] }), 'open')
+  assert.equal(teamPageGate({ status: 'legacy', permissions: ['MEMBERS_VIEW'] }), 'open')
+  assert.equal(teamPageGate({ status: 'ready', permissions: ['COMPANY_VIEW', 'PRODUCTS_CREATE'] }), 'denied')
+  // After an error or without a plan, the workspace already shows why; the page offers no management.
+  assert.equal(teamPageGate({ status: 'error', permissions: [] }), 'hidden')
+  assert.equal(teamPageGate({ status: 'unsubscribed', permissions: [] }), 'hidden')
+})
+
 test('the team menu shows only when access is known and allows it', async () => {
   const { teamMenuHidden } = await import('../src/features/access/accessContract.ts')
   assert.deepEqual(teamMenuHidden({ status: 'ready', permissions: ['MEMBERS_VIEW'] }), [])

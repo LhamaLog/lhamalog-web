@@ -15,7 +15,7 @@ export function teamTabFromPath(pathname: string): TeamTab {
   return 'people'
 }
 
-// Tabs of the Team screen (spec 005, W1 and W2). Each tab shows only for who has its permission.
+// Tabs of the Team screen (spec 012, W1 and W2). Each tab shows only for who has its permission.
 export function TeamTabs({ active }: { active: TeamTab }) {
   const access = useAccess()
   const visible = tabs.filter((tab) => access.can(tab.permission))

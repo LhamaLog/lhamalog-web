@@ -1,4 +1,4 @@
-// Owner and invitation rules of the Team screen (spec 005, US2 and US3). Pure functions.
+// Owner and invitation rules of the Team screen (spec 012, US2 and US3). Pure functions.
 import type { AccessRole } from '../access/accessContract'
 import { roleLabel } from './invitations'
 import type { InviteRole } from './types'

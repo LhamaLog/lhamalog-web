@@ -27,7 +27,7 @@ export type AccessCatalog = {
 }
 
 // ready: Core answered. legacy: Core without LLT-120 (access/me 404), Clerk role used. error: no management allowed.
-export type AccessStatus = 'loading' | 'ready' | 'legacy' | 'error'
+export type AccessStatus = 'loading' | 'ready' | 'legacy' | 'unsubscribed' | 'error'
 
 type Json = Record<string, unknown>
 
@@ -103,6 +103,24 @@ const adminPermissions = [
 export function accessFallback(orgRole: string | null | undefined): { role: AccessRole, permissions: string[] } {
   const admin = (orgRole ?? '').replace(/^org:/, '') === 'admin'
   return admin ? { role: 'ADMIN', permissions: [...adminPermissions] } : { role: 'MEMBER', permissions: [...memberPermissions] }
+}
+
+// How a failed access/me ends: 404 is a Core without LLT-120 (legacy mode); subscription_required is a company
+// without a plan, which the plans screen of LLT-289 handles (no access error on top of it); anything else is an error.
+export function accessFailureStatus(reason: unknown): 'legacy' | 'unsubscribed' | 'error' {
+  if (reason === null || typeof reason !== 'object') return 'error'
+  const { status, code } = reason as { status?: unknown, code?: unknown }
+  if (status === 404) return 'legacy'
+  if (code === 'subscription_required') return 'unsubscribed'
+  return 'error'
+}
+
+// Whether the Team page opens: by the MEMBERS_VIEW permission of the Core (matrix), not by the Clerk role.
+// After an error or without a plan, the workspace already explains why, so the page just stays empty.
+export function teamPageGate(access: { status: AccessStatus, permissions: readonly string[] }): 'loading' | 'open' | 'denied' | 'hidden' {
+  if (access.status === 'loading') return 'loading'
+  if (access.status === 'error' || access.status === 'unsubscribed') return 'hidden'
+  return can(access.permissions, 'MEMBERS_VIEW') ? 'open' : 'denied'
 }
 
 // The Team item shows only when access is known and allows it; while loading or after an error, no management.

@@ -31,7 +31,7 @@ A constituição do Web ainda é o template vazio do Spec Kit. Valem as `docs/in
 ```text
 src/
 ├── features/access/
-│   ├── accessContract.ts        # readMe(), readCatalog(); paths do Core
+│   ├── accessContract.ts        # readMe(), readCatalog(), accessFailureStatus(), teamPageGate(); paths do Core
 │   ├── AccessProvider.tsx       # contexto: role, permissions, ownerUserId, reload ao trocar de org
 │   ├── useAccess.ts             # hook: can(permission), role
 │   └── labels.ts                # mapas pt-BR de papéis, permissões, gravidades e tipos
@@ -59,7 +59,8 @@ tests/
 ├── access-contract.test.mjs
 ├── owner-rules.test.mjs
 ├── product-access.test.mjs
-└── notification-roles.test.mjs
+├── notification-roles.test.mjs
+└── access-refusals.test.mjs     # recusas de negócio mantêm a sessão; subscription_required (22/11)
 ```
 
 ## Fases
@@ -77,6 +78,7 @@ tests/
 |---|---|
 | `TeamPage.tsx` já tem 542 linhas | extrair as regras novas para `ownerRules.ts` e `MemberProductsPanel.tsx`. Na `TeamPage`, só a ligação |
 | Mudar o comportamento do convite (LLT-167) | só filtrar as opções mostradas. A chamada `inviteMember` continua igual |
-| Core sem a LLT-120 no ambiente de alguém | o `access/me` com 404 cai no modo antigo (`orgRole` da Clerk) e mostra um aviso no console. Remover esse modo depois do merge do Core |
-| Nenhuma empresa tem Dono enquanto não existir o fluxo de compra (C1 do Core) | sem Dono, o Administrador continua convidando Administrador (W4); a regra do Dono vale assim que houver `ownerUserId` |
-| `node_modules` ausente nesta máquina (analyze WA1) | o agente não instala dependências; o Pedro roda `npm ci` e depois `npm run build` antes do PR |
+| Empresa sem plano (LLT-289) | o `access/me` responde `subscription_required`; o `AccessProvider` fica `unsubscribed`, sem erro por cima da tela de planos (22/11) |
+| Core sem a LLT-120 no ambiente de alguém | o `access/me` com 404 cai no modo antigo (`orgRole` da Clerk) e mostra um aviso no console. Remover esse modo depois do merge do Core (pendência registrada no PR, 22/11) |
+| ~~Nenhuma empresa tem Dono enquanto não existir o fluxo de compra~~ | resolvido em 22/11: a LLT-289 cria o Dono na compra. Só a organização de desenvolvimento fica sem Dono, e nela vale a W4 |
+| ~~`node_modules` ausente nesta máquina (analyze WA1)~~ | resolvido em 22/11: o Pedro instalou, e o `npm run build` passou |

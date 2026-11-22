@@ -25,7 +25,7 @@ function sameList(left: readonly string[], right: readonly string[]): boolean {
   return left.length === right.length && left.every((item) => right.includes(item))
 }
 
-// Catalog of notification roles (spec 005, US5 and US6; USID_052). Roles only decide who receives alerts.
+// Catalog of notification roles (spec 012, US5 and US6; USID_052). Roles only decide who receives alerts.
 export function NotificationRolesPage() {
   const access = useAccess()
   const request = useApi()

@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { useAuth } from '@clerk/react'
 import { ApiError } from '../../shared/services/api'
 import { useApi } from '../../shared/services/useApi'
-import { accessCatalogPath, accessFallback, accessMePath, can, readCatalog, readMe } from './accessContract'
+import { accessCatalogPath, accessFailureStatus, accessFallback, accessMePath, can, readCatalog, readMe } from './accessContract'
 import type { AccessRole, AccessStatus } from './accessContract'
 
 type AccessData = {
@@ -25,7 +25,7 @@ const loading: AccessData = { status: 'loading', role: null, permissions: [], ow
 
 const invalidResponse = 'O servidor retornou uma resposta inválida.'
 
-// Role and permissions of the person in the selected company, from the Core (spec 005, FR-W01).
+// Role and permissions of the person in the selected company, from the Core (spec 012, FR-W01).
 // Reloaded at every organization change; the previous company's access is dropped at once.
 export function AccessProvider({ children }: { children: ReactNode }) {
   const { orgId, orgRole } = useAuth()
@@ -55,7 +55,13 @@ export function AccessProvider({ children }: { children: ReactNode }) {
         if (active) setData({ status: 'ready', role: me.role, permissions: me.permissions, ownerUserId, error: '' })
       } catch (reason) {
         if (!active) return
-        if (reason instanceof ApiError && reason.status === 404) {
+        const failure = accessFailureStatus(reason)
+        if (failure === 'unsubscribed') {
+          // Company without a plan: useApi already sent the person to /plano (LLT-289); no management, no error.
+          setData({ ...loading, status: 'unsubscribed' })
+          return
+        }
+        if (failure === 'legacy') {
           // Core without LLT-120: keep the screens working with the Clerk role. Remove after the Core merge.
           console.warn('Core sem as rotas de acesso da LLT-120: usando o papel da Clerk.')
           const fallback = accessFallback(orgRole)

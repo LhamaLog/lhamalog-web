@@ -41,7 +41,7 @@ async function everyPerson(organization: OrganizationResource): Promise<Person[]
   return people
 }
 
-// People of a notification role (spec 005, US6). Owner and administrator roles are read only (ADR_140).
+// People of a notification role (spec 012, US6). Owner and administrator roles are read only (ADR_140).
 export function RoleMembersPanel({ role, ownerUserId, onChanged, onClose }: Props) {
   const { organization } = useOrganization()
   const request = useApi()

@@ -26,7 +26,7 @@ type Props = {
 
 const invalidResponse = 'O servidor retornou uma resposta inválida.'
 
-// Products a member can access (spec 005, US4, USID_030.1). Owner and administrators see everything.
+// Products a member can access (spec 012, US4, USID_030.1). Owner and administrators see everything.
 export function MemberProductsPanel({ userId, personLabel, onClose }: Props) {
   const request = useApi()
   const requestRef = useRef(request)

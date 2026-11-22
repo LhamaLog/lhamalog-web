@@ -4,9 +4,11 @@
 
 **Created**: 2026-11-17
 
-**Status**: Draft (pré-preenchida; passa por clarify e analyze no Claude Code)
+**Status**: Implementada (18/11/2026); atualizada com a `Development` e renomeada em 22/11/2026. Aguarda o teste manual e o PR.
 
-**Input**: telas da LLT-120 Cargos e permissões. O contrato do Core está em `lhamalog-core/specs/011-cargos-permissoes/contracts/api.md` (o pacote dizia 009; no Core a 009 já era da LLT-178), que é a fonte da verdade. A cópia em `contracts/core-api.md` é só para leitura e foi atualizada em 18/11.
+**Pasta**: `specs/012-cargos-permissoes`. Até 22/11 era `specs/005-cargos-permissoes`; foi renomeada porque a `Development` já tem uma `005` (notificação, `005-configurar-canais-filtros-notificacao`), a `007` é a tela de planos e as `008` a `011` são as de Produto.
+
+**Input**: telas da LLT-120 Cargos e permissões. O contrato do Core está em `lhamalog-core/specs/011-cargos-permissoes/contracts/api.md` (o pacote dizia 009; no Core a 009 já era da LLT-178), que é a fonte da verdade. A cópia em `contracts/core-api.md` é só para leitura e foi atualizada em 22/11, no estado final do Core.
 
 **Base**: ADRs sem chave secreta (decisão do Pedro em 17/11/2026):
 
@@ -35,6 +37,14 @@ Clarify feito sem o Pedro presente, a pedido dele. Cada resposta é a recomenda�
 - Q: Pode mexer na `TeamPage.tsx` (LLT-168) e no convite (LLT-167)? (W3) → A: Sim, com o menor recorte, avisando o Vinicius e o Felipe no PR.
 - Q: ⚠ Sem fluxo de compra, nenhuma empresa tem Dono. Quem convida Administrador enquanto isso? (W4) → A: Enquanto a empresa não tiver Dono (`ownerUserId` nulo), o Administrador continua podendo convidar e reenviar convite de Administrador, como hoje (LLT-167). Quando houver Dono, só ele convida Administrador (ADR_114, US3). Sem isso, a feature tiraria de todas as empresas atuais a possibilidade de convidar Administrador.
 - Q: ⚠ O que o Web mostra para um Administrador numa empresa sem Dono? (W5) → A: `ADMIN`, sem selo de Dono em ninguém. O cenário 1 da US1 do pacote ("Administrador numa empresa sem Dono recebe OWNER") deixa de valer.
+
+### Session 2026-11-22
+
+Confirmação do Pedro, com ele presente: **W1 a W5 confirmadas como estão na Session 2026-11-18**, sem mudança.
+
+**Fato novo apresentado:** a LLT-289 (Core spec `010-criar-tenant-pagamento` e Web spec `007-tela-planos-contratacao`) cria o Membro DONO de quem compra o plano. Assim, empresas criadas pela compra têm Dono, e a W4 vale na prática só para a organização de desenvolvimento (`DEV_TENANT_CLERK_ORG_ID`), que nasce sem Dono. O Core confirmou a C1 no mesmo dia (spec 011, Session 2026-11-22).
+
+- Q: Confirma W1 a W5? → A: Sim ("segue").
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -144,6 +154,8 @@ Como Dono ou Administrador, quero ver o que cada papel pode fazer (W2).
 - **Troca de empresa no meio de uma ação:** descartar o resultado, no mesmo padrão `sameOrganization` do `TeamPage`.
 - **Contagem de último administrador (LLT-168):** continua igual. O Dono conta como administrador ativo.
 - **Chave da Clerk:** nenhuma chave secreta no front (ADR_026). Só `VITE_CLERK_PUBLISHABLE_KEY`.
+- **Empresa sem plano (LLT-289, 22/11):** o `access/me` responde 403 `subscription_required`. O Web leva à tela de planos (spec `007`), sem encerrar a sessão. O `AccessProvider` fica no estado `unsubscribed`: não libera gestão e não mostra o erro "Não foi possível carregar o seu acesso" por cima da tela de planos.
+- **Recusas de negócio:** os códigos desta feature (`not_admin`, `owner_protected`, `full_access`, `product_not_found`, `immutable_role`, `role_name_in_use`, `members_from_access_role`, `role_members_limit`, `role_not_found`) mantêm a sessão e mostram a mensagem do Core, ou um texto mais claro da tela (spec `006`).
 
 ## Requirements *(mandatory)*
 
@@ -175,4 +187,9 @@ Como Dono ou Administrador, quero ver o que cada papel pode fazer (W2).
 ## Assumptions
 
 - O Core da `LLT-120-cargos-permissoes` precisa estar rodando localmente para o roteiro manual.
+- **Pendências (22/11/2026):**
+  - **Arquivar e Desarquivar produto (LLT-123):** ainda não está na `Development` do Web (não existe `src/features/products/productEdit.ts`). Quando entrar, a regra deve trocar de "cargo admin na Clerk" para `can('PRODUCTS_ARCHIVE')`, como pede a spec `009` (W2).
+  - **"Gerar nova" chave de API (LLT-179):** também não está na `Development` do Web. Quando entrar, usar `can('INGESTION_TOKENS_MANAGE')`.
+  - **Modo antigo do `AccessProvider`:** o 404 do `access/me` cai no cargo da Clerk. Sai depois que o PR do Core da LLT-120 entrar na `Development`.
+- **Figma (conferido em 22/11):** o Figma final ("Completo 2 / v02") não tem tela de Equipe, de Cargos nem de Permissões. As telas desta feature seguem o padrão da `TeamPage` e a linguagem visual das telas que existem no Figma (cartões, abas com sublinhado).
 - As telas seguem os componentes de `src/shared/ui` e o padrão visual que já existe. As telas do Figma ("Permissões" e "Acesso dos Gestores aos Produtos") são só inspiração: os perfis editáveis delas não valem (ADR_123).

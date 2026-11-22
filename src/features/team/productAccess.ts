@@ -1,4 +1,4 @@
-// Products a member can access (spec 005, US4; Core contracts/api.md section 2). Pure functions.
+// Products a member can access (spec 012, US4; Core contracts/api.md section 2). Pure functions.
 import { companyMembersPath } from './memberContract'
 
 export type MemberProductAccess = {

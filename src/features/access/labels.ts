@@ -1,4 +1,4 @@
-// Portuguese labels for the codes the Core sends (spec 005, FR-W07). Unknown codes are shown as they come.
+// Portuguese labels for the codes the Core sends (spec 012, FR-W07). Unknown codes are shown as they come.
 
 const roles: Record<string, string> = { OWNER: 'Dono', ADMIN: 'Administrador', MEMBER: 'Membro' }
 
@@ -49,7 +49,7 @@ export function permissionLabel(code: string): string {
   return permissions[code] ?? code
 }
 
-// The Core note names the role code; the screen says it in plain words (spec 005, US7).
+// The Core note names the role code; the screen says it in plain words (spec 012, US7).
 export function matrixNote(note: string | null): string {
   if (!note) return ''
   return note.startsWith('MEMBER só nos produtos liberados') ? 'Só nos produtos liberados' : note

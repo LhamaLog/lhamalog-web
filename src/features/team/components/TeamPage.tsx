@@ -14,6 +14,7 @@ import {
   membershipBlocksInvite,
   resendPlan,
   roleLabel,
+  teamAccessDeniedMessage,
   teamLoadKey,
 } from '../invitations'
 import { companyMembersPath, deactivationPath, readMemberList } from '../memberContract'
@@ -21,6 +22,7 @@ import { activeAdminCount, deactivatedTeamBlock, isActiveAdmin, localLastAdminGu
 import type { InviteRole, MemberRow } from '../types'
 import { emailFieldError, roleFieldError } from '../validation'
 import { useAccess } from '../../access/useAccess'
+import { teamPageGate } from '../../access/accessContract'
 import { canDeactivate, canDemote, demoteGuard, inviteHelpFor, inviteRolesFor, isOwnerRow, ownerDeactivateMessage, resendBlocked, rowRoleLabel } from '../ownerRules'
 import { fullAccessMessage } from '../productAccess'
 import { personRolesPath, readPersonRoles } from '../../notification-roles/roleContract'
@@ -109,7 +111,7 @@ export function TeamPage() {
   const { user } = useUser()
   const { organization, isLoaded } = useOrganization()
   const request = useApi()
-  // LLT-120: owner and invitation rules come from the Core access (spec 005, US2 and US3).
+  // LLT-120: owner and invitation rules come from the Core access (spec 012, US2 and US3).
   const access = useAccess()
   const ownerUserId = access.ownerUserId
   const inviteOptions = inviteRolesFor(access.role, ownerUserId !== null)
@@ -421,7 +423,7 @@ export function TeamPage() {
     }
   }
 
-  // Notification roles of one person, loaded only when asked (spec 005, US6 scenario 4).
+  // Notification roles of one person, loaded only when asked (spec 012, US6 scenario 4).
   async function showRoles(userId: string) {
     const path = personRolesPath(userId)
     if (!path) return
@@ -493,6 +495,13 @@ export function TeamPage() {
 
   if (!isLoaded || !organization) return <LoadingState label="Carregando equipe..." />
   if (!orgId) return null
+  // LLT-120 (spec 012, T035): the page opens by the MEMBERS_VIEW permission of the Core; the LLT-168 rules below stay.
+  const gate = teamPageGate(access)
+  if (gate === 'loading') return <LoadingState label="Carregando acesso..." />
+  if (gate === 'hidden') return null
+  if (gate === 'denied') {
+    return <p role="alert" className="rounded-lg bg-red-50 p-4 text-sm text-red-700">{teamAccessDeniedMessage}</p>
+  }
   const screen = teamScreen({ orgRole, blockedMessage: blocked })
   if (screen.mode === 'denied') {
     return <p role="alert" className="rounded-lg bg-red-50 p-4 text-sm text-red-700">{screen.message}</p>

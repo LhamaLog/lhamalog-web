@@ -1,4 +1,4 @@
-// Same limits as the Core (FR-013/FR-014): the Web refuses before calling it (spec 005, US5 scenario 6).
+// Same limits as the Core (FR-013/FR-014): the Web refuses before calling it (spec 012, US5 scenario 6).
 
 export const nameRequired = 'Informe o nome do cargo, com até 60 caracteres.'
 

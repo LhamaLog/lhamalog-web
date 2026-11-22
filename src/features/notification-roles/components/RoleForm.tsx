@@ -30,7 +30,7 @@ function toggle<T>(values: T[], value: T): T[] {
   return values.includes(value) ? values.filter((item) => item !== value) : [...values, value]
 }
 
-// Name, severities and alert types of a notification role (spec 005, US5). Refuses empty lists before the Core.
+// Name, severities and alert types of a notification role (spec 012, US5). Refuses empty lists before the Core.
 export function RoleForm({ formId, initial, submitLabel, busy, serverErrors = {}, keepUntouchedEmptyLists = false, onSubmit, onCancel }: Props) {
   const [name, setName] = useState(initial.name)
   const [severities, setSeverities] = useState<Severity[]>(initial.severities)
