@@ -13,7 +13,8 @@ As rotas `/empresa` e `/produtos` usam o Core e persistem dados. Há seleção/c
 A aplicação exige login. Sem sessão ativa, `/` redireciona para `/sign-in`; depois do login, `/` abre `/empresa`. A demonstração **Componentes LhamaLog**, com exemplos e dados ilustrativos, permanece em `/componentes`. Estão implementados:
 
 - Telas de autenticação com componentes da Clerk (ADR_023) e visual do LhamaLog: login, cadastro, etapas pós-login (escolher ou criar organização, configurar MFA e redefinir senha) e criação de organização. Sessão `pending` conta como deslogada (ADR_024, ADR_032).
-- Botão **Sair** no Header, ao lado da identificação do usuário. O nome e a função exibidos continuam fixos.
+- Botão **Sair** no Header, ao lado da identificação do usuário. Nas telas integradas, o Header mostra o nome do perfil (ou da sessão) e o nome da empresa ativa; só a demonstração `/componentes` usa dados fixos.
+- Sessão encerrada pelo Core (spec 006, ADR_032): 401 e 403 de segurança (sem `code` e sem mensagem do Core) encerram a sessão uma vez só, mesmo com várias chamadas recusadas ao mesmo tempo, e levam ao login com "Você foi deslogado". Depois de entrar, a pessoa volta à rota em que estava (só rotas internas). 403 com `code` ou mensagem do Core é recusa de negócio e mantém a pessoa na tela. A tela de criar organização avisa que a empresa nova só dá acesso depois da contratação de um plano; `403 subscription_required` leva à tela `/plano` (spec 007).
 
 - Campos, botões, checkbox, badges para status e tags, avatar, busca, cartões, paginação e barra de progresso.
 - Navbar com recolhimento no desktop e menu em telas pequenas, Header e Footer compostos pelo AppLayout.
@@ -33,7 +34,7 @@ O detalhamento das entregas e das definições pendentes está em [docs/planejam
 
 ## Pré-requisitos
 
-- Git, para clonar o ramo `dev/developer`.
+- Git, para clonar o ramo `Development`.
 - Node.js 26.12.1, com npm, somente para `npm run dev`, `npm test` e `npm run build` fora do Docker.
 - Docker, para o caminho recomendado abaixo. O comando é `docker compose` (plugin v2).
 - GNU Make (opcional), para `make up`, `make down`, `make logs` e `make status`. Os comandos diretos continuam disponíveis sem ele.
@@ -51,7 +52,7 @@ No Ubuntu, use o [Docker Engine](https://docs.docker.com/engine/install/ubuntu/)
 ## Obter o código
 
 ```bash
-git clone --branch dev/developer https://github.com/LhamaLog/lhamalog-web.git
+git clone --branch Development https://github.com/LhamaLog/lhamalog-web.git
 cd lhamalog-web
 ```
 
@@ -99,6 +100,18 @@ O Compose lê `.env`. O Vite também lê `.env`. Se existir `.env.local`, ele so
 
 Sem a chave publicável, a página não inicia e o console mostra `Falta VITE_CLERK_PUBLISHABLE_KEY`.
 
+### Login e organização de teste
+
+Cada desenvolvedor cria o próprio login e a própria organização na instância de desenvolvimento da Clerk, pelo `/sign-up` (um e-mail com `+clerk_test` aceita o código `424242`). Uma organização nova ainda não tem plano: o Core responde 403 `subscription_required` e o Web leva a pessoa a `/plano`, **sem deslogar**.
+
+Para liberar a empresa (LLT-289, spec 007; Core na spec 010 do `lhamalog-core`):
+
+1. Em `/plano`, confira o nome da empresa e clique em **Contratar** em um plano (só o administrador da organização contrata).
+2. O navegador abre a página de pagamento. Enquanto a cobrança real não existe, é o **simulador local do Asaas** no Core, e nenhum valor é cobrado: clique em **Simular pagamento**.
+3. Clique em **Voltar ao LhamaLog**. A empresa abre com acesso liberado.
+
+O atalho antigo continua valendo: o `org_id` em `DEV_TENANT_CLERK_ORG_ID` no `.env` do Core cria a empresa já liberada ao subir a API (README do `lhamalog-core`, seção "Login e organização de teste").
+
 ### Build do Vite e execução do contêiner
 
 São dois momentos diferentes:
@@ -116,8 +129,9 @@ São dois momentos diferentes:
 | `/empresa` | Dados, endereço e contexto da empresa ativa, com sessão. |
 | `/produtos` | Cadastro, lista e contexto de produtos acessíveis, com sessão. |
 | `/componentes` | Demonstração visual preservada, com sessão. |
-| `/sign-in/*` | Login. `?motivo=deslogado` mostra o aviso "Você foi deslogado" (ADR_032). |
+| `/sign-in/*` | Login. `?motivo=deslogado` mostra o aviso "Você foi deslogado" (ADR_032); `?redirect_url=<rota>` leva à rota depois do login, se for interna (spec 006). |
 | `/sign-up/*` | Cadastro. |
+| `/plano` | Planos do Core, contratação e situação do pedido (pagamento pelo simulador do Asaas enquanto a cobrança real não existe). Recusas `subscription_required` de qualquer tela levam para cá. Detalhes em [planos](specs/007-tela-planos-contratacao/spec.md). |
 | `/equipe` | Convite, lista, cargo e desativação das pessoas da empresa selecionada, só para o administrador. Detalhes em [convite](specs/003-convidar-usuario-empresa/spec.md) e [usuários](specs/004-listar-editar-desativar-usuarios/spec.md). |
 | `/organizacoes/nova/*` | Criação de organização, sem a etapa de convite da plataforma. Convidar alguém fica em `/equipe`. |
 | `/tarefas/escolher-organizacao/*`, `/tarefas/configurar-mfa/*`, `/tarefas/redefinir-senha/*` | Etapas pós-login da Clerk (session tasks). |
@@ -335,7 +349,7 @@ src/
 - `app/providers`: provedores globais, como o da Clerk.
 - `app/routes`: definição das rotas da aplicação.
 - `app/layouts`: estrutura visual compartilhada entre páginas.
-- `features/auth`: telas e etapas de autenticação com Clerk, proteção de rota, botão Sair, tratamento de 401/403 (`useSessionErrorHandler`), aparência e textos da Clerk. O `auth.css` não usa Tailwind: as regras ficam sob classes `lh-`, e a fonte Poppins vale apenas nessas telas.
+- `features/auth`: telas e etapas de autenticação com Clerk, proteção de rota, botão Sair, saída por 401/403 (`useSessionErrorHandler`, sobre `shared/services/sessionRedirect.ts`, que classifica as recusas do Core, valida o destino de volta e garante uma saída só), aparência e textos da Clerk. O `auth.css` não usa Tailwind: as regras ficam sob classes `lh-`, e a fonte Poppins vale apenas nessas telas.
 - `app/layouts/HeaderControls.tsx`: controles específicos do Header, reunindo estado do sistema, período, notificações e identificação do usuário.
 - `features`: funcionalidades organizadas por domínio; componentes, hooks, serviços e tipos específicos ficam junto da funcionalidade que os utiliza.
 - `shared/ui`: componentes visuais reutilizáveis entre funcionalidades.
@@ -357,6 +371,14 @@ import { Button } from '../shared/ui/Button'
 ```
 
 `shared/ui` recebe dados e eventos; regras de negócio e acesso a dados pertencem às funcionalidades. Os dados ilustrativos e as interações locais atuais ficam em `App.tsx`.
+
+## Validação de pull requests
+
+O workflow `.github/workflows/pr-validation.yml` comenta em pull requests para `Development` e `main`. O comentário é único, reconhecido pelo marcador `<!-- llt-285-validacao-prs -->`, e a verificação não bloqueia o merge. Em pull request para `main`, o comentário só mostra `npm ci`, `npm test` e `npm run build`. Pull request de fork não roda.
+
+Para repetir essa validação, uma pessoa com associação `OWNER`, `MEMBER` ou `COLLABORATOR` comenta `test` ou `/test` na conversa do pull request. Espaços e quebras só nas pontas não mudam o comando. `test por favor`, um comentário em issue, um comentário editado, um bot e um fork não disparam a reexecução. O comentário `test` recebe 👀 quando a rodada começa. No fim, recebe o foguete se todos os itens passaram ou o polegar para baixo se algum falhou. O comentário de validação é atualizado no lugar; não surge um segundo.
+
+Limitação: um workflow disparado por comentário (`issue_comment`) usa a versão do arquivo que está na branch padrão (`main`). O comando `test` só funciona de verdade depois que esta alteração chega em `main`. Enquanto o arquivo novo existir só na branch do pull request ou em `Development`, comentar `test` não reexecuta a validação.
 
 ## Conferência manual
 

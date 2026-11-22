@@ -32,7 +32,7 @@ test('distinguishes member access codes without signing the caller out', async (
     [{ code: 'user_deactivated' }, 403, 'user_deactivated', 'Seu acesso a esta empresa foi desativado.'],
     [{ message: 'Não é possível desativar o último administrador.', code: 'last_admin' }, 403, 'last_admin', 'Não é possível desativar o último administrador.'],
     [{ message: 'Somente o administrador da empresa pode gerenciar os usuários.', code: 'not_admin' }, 403, 'not_admin', 'Somente o administrador da empresa pode gerenciar os usuários.'],
-    [{}, 403, '', 'Você não tem acesso. Selecione uma empresa válida.'],
+    [{}, 403, '', 'Você não tem acesso a esta empresa.'],
   ]
   try {
     for (const [body, status, code, message] of cases) {
@@ -41,6 +41,27 @@ test('distinguishes member access codes without signing the caller out', async (
         assert.equal(error.status, status)
         assert.notEqual(error.status, 401)
         assert.equal(error.code, code)
+        assert.equal(error.message, message)
+        return true
+      })
+    }
+  } finally { globalThis.fetch = original }
+})
+
+test('keeps the message sent by the Core apart from the fallback text', async () => {
+  const original = globalThis.fetch
+  const cases = [
+    [{ error: 'forbidden' }, '', '', 'Você não tem acesso a esta empresa.'],
+    [{ code: 'not_admin', message: 'Somente o administrador da empresa pode gerenciar os usuários.' }, 'not_admin', 'Somente o administrador da empresa pode gerenciar os usuários.', 'Somente o administrador da empresa pode gerenciar os usuários.'],
+    [{ message: 'Somente o administrador da empresa pode alterar este cadastro.' }, '', 'Somente o administrador da empresa pode alterar este cadastro.', 'Somente o administrador da empresa pode alterar este cadastro.'],
+    [{ message: '   ' }, '', '', 'Você não tem acesso a esta empresa.'],
+  ]
+  try {
+    for (const [body, code, serverMessage, message] of cases) {
+      globalThis.fetch = async () => new Response(JSON.stringify(body), { status: 403 })
+      await assert.rejects(apiRequest('', '/api/company', 'token'), (error) => {
+        assert.equal(error.code, code)
+        assert.equal(error.serverMessage, serverMessage)
         assert.equal(error.message, message)
         return true
       })

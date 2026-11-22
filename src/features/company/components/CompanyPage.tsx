@@ -10,6 +10,7 @@ import { buildCompanyPut, formField, readCompanyFacts, readCompanySettings, serv
 import { cloneCompanySettings, companySectionFromParam, companySectionParam, type CompanySection, type CompanySettings } from '../model'
 import { errorsForSection } from '../validation'
 import { CompanyAddressScreen, CompanyContextScreen, CompanyDataScreen, CompanyOverview, CompanyPreferencesScreen } from './CompanyScreens'
+import { endsSession } from '../../../shared/services/sessionRedirect'
 
 export function CompanyPage({ organizationId }: { organizationId: string }) {
   const request = useApi()
@@ -45,7 +46,7 @@ export function CompanyPage({ organizationId }: { organizationId: string }) {
         setFacts(readCompanyFacts(body, parsed))
       })
       .catch((reason) => {
-        if (!current.signal.aborted) setLoadError(reason instanceof Error ? reason.message : 'Falha ao carregar a empresa.')
+        if (!current.signal.aborted && !endsSession(reason)) setLoadError(reason instanceof Error ? reason.message : 'Falha ao carregar a empresa.')
       })
       .finally(() => { if (!current.signal.aborted) setLoading(false) })
     return () => current.abort()
@@ -112,7 +113,7 @@ export function CompanyPage({ organizationId }: { organizationId: string }) {
       if (section === 'context') setContextSavedTick((value) => value + 1)
       setMessage('Alterações salvas. Preferências de segurança, IA e telemetria ficam registradas e não entram em vigor por este serviço.')
     } catch (reason) {
-      if (!current.signal.aborted) setError(reason instanceof ApiError ? presentError(reason) : new ApiError('Não foi possível salvar.', 0))
+      if (!current.signal.aborted && !endsSession(reason)) setError(reason instanceof ApiError ? presentError(reason) : new ApiError('Não foi possível salvar.', 0))
     } finally {
       if (!current.signal.aborted) setSaving(false)
     }
