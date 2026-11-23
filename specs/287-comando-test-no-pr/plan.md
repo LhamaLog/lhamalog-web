@@ -6,7 +6,7 @@
 
 ## Summary
 
-O workflow `.github/workflows/pr-validation.yml` ganha o gatilho `issue_comment` (`created`). Um job novo só segue quando o comentário está num pull request, o corpo sem espaços nas pontas é `test` ou `/test`, o autor não é bot e a associação é `OWNER`, `MEMBER` ou `COLLABORATOR`. O job obtém o commit da ponta da branch, roda `npm ci`, `npm test` e `npm run build` e atualiza o comentário do marcador `<!-- llt-285-validacao-prs -->`. As regras do comentário continuam em `scripts/pr-validation.mjs`. O job termina com saída zero. Fork não faz checkout.
+O job `reexecutar` está em `.github/workflows/pr-rerun.yml`, com o gatilho `issue_comment` (`created`). `.github/workflows/pr-validation.yml` ficou só com `pull_request` e o job `validar`. O job de reexecução só segue quando o comentário está num pull request, o corpo sem espaços nas pontas é `test` ou `/test`, o autor não é bot e a associação é `OWNER`, `MEMBER` ou `COLLABORATOR`. O job obtém o commit da ponta da branch, roda `npm ci`, `npm test` e `npm run build` e atualiza o comentário do marcador `<!-- llt-285-validacao-prs -->`. As regras do comentário continuam em `scripts/pr-validation.mjs`. O job termina com saída zero. Fork não faz checkout.
 
 ## Technical Context
 
@@ -50,7 +50,7 @@ Gate inicial: **aprovado**.
 - **Filtro do job**: o `if` do job exige pull request, comentário criado, autor que não é bot, associação aceita e o texto `test` em algum lugar. A função continua sendo a decisão final, para rejeitar `testar` e `test por favor` sem duplicar a regra no YAML além desse filtro barato.
 - **Limitação**: documentada no README e nesta spec. `issue_comment` não usa o workflow da branch do pull request.
 
-Alternativa recusada: um segundo workflow só para o comentário. O pedido é reexecutar este Action, e o script já é o ponto único das regras.
+A LLT-287 deixou os dois jobs no mesmo arquivo. A LLT-294 separou o comentário em `.github/workflows/pr-rerun.yml`: com os dois gatilhos no mesmo workflow, o GitHub mostra o job do outro evento como skipped. O script continua sendo o ponto único das regras.
 
 ## Project Structure
 
@@ -69,12 +69,13 @@ Spec, plano e tarefas no mesmo passo. Sem research, data-model, contracts ou qui
 
 ```text
 .github/workflows/pr-validation.yml
+.github/workflows/pr-rerun.yml
 scripts/pr-validation.mjs
 tests/pr-validation.test.mjs
 README.md
 ```
 
-**Structure Decision**: O job `validar` permanece no gatilho `pull_request`. O job `reexecutar` atende `issue_comment`. Os dois publicam pelo mesmo marcador. `package.json` não muda.
+**Structure Decision**: O job `validar` permanece em `.github/workflows/pr-validation.yml`, no gatilho `pull_request`. O job `reexecutar` está em `.github/workflows/pr-rerun.yml` e atende `issue_comment`. Os dois publicam pelo mesmo marcador. `package.json` não muda.
 
 ## Post-Design Constitution Check
 
