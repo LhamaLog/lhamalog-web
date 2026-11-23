@@ -32,6 +32,7 @@ import { emptyProductDraft } from '../types'
 import type { Product, ProductContext, ProductUiDraft } from '../types'
 import { cleanContext, contextFieldErrors, firstTabWithError, readProductContext } from '../context'
 import type { ProductTab } from '../context'
+import { isNameInUse, nameInUseErrors, nameInUseNotice } from '../productErrors'
 import { useOwnerOptions } from '../useOwnerOptions'
 import { endsSession } from '../../../shared/services/sessionRedirect'
 import { NewItemInput } from './NewItemInput'
@@ -163,7 +164,16 @@ export function ProductEditor({ product, onSaved, onCancel, request, areas = [],
         }
       }
     } catch (reason) {
-      if (!signal.aborted && !endsSession(reason)) setError(reason instanceof ApiError ? reason : new ApiError('Não foi possível salvar.', 0))
+      if (signal.aborted || endsSession(reason)) return
+      if (isNameInUse(reason)) {
+        // Spec 010: the name refusal goes to the name field, on the info tab, without "Recarregar produto" (status 0).
+        // In the edition the general data goes first, so the context was not sent (US1.6).
+        setLocalErrors(nameInUseErrors(reason))
+        setError(new ApiError(nameInUseNotice, 0))
+        setTab('info')
+        return
+      }
+      setError(reason instanceof ApiError ? reason : new ApiError('Não foi possível salvar.', 0))
     } finally {
       pending.current = false
       if (!signal.aborted) setSaving(false)
@@ -264,7 +274,7 @@ export function ProductEditor({ product, onSaved, onCancel, request, areas = [],
                 Tipo, ambiente, responsável, e-mail e tags ainda não são salvos no servidor: ficam guardados só neste navegador.
               </p>
               <div className="grid gap-x-6 gap-y-5 md:grid-cols-2">
-                <Input id="product-name" label="Nome do produto" requiredMark compact maxLength={200} value={name} error={errors.name} hint="Nome que identifica o sistema, serviço ou aplicação na sua empresa." onChange={(event) => { setName(event.target.value); setLocalErrors({}) }} />
+                <Input id="product-name" label="Nome do produto" requiredMark compact maxLength={200} value={name} error={errors.name} hint="Nome que identifica o sistema, serviço ou aplicação na sua empresa." onChange={(event) => { setName(event.target.value); setLocalErrors({}); setError((current) => (current?.message === nameInUseNotice ? null : current)) }} />
                 <Textarea id="product-description" label="Descrição" maxLength={10000} value={description} error={errors.description} hint="Descreva a finalidade e o contexto do produto." onChange={(event) => setDescription(event.target.value)} />
                 <ChoiceField id="product-type" label="Tipo de produto" requiredMark value={draft.productType} options={productTypes} error={errors.productType} hint="Selecione o tipo que melhor representa o produto." startIcon={<FieldIcon path={fieldIcons.type} />} onChange={(productType) => patchDraft({ productType })} />
                 <div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
