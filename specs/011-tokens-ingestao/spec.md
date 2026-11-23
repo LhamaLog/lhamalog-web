@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-19
 
-**Status**: Draft (pré-preenchida; passa por clarify e analyze no Claude Code)
+**Status**: Clarify feito em 2026-11-20
 
 **Input**: lado Web da LLT-179. Duas fontes:
 
@@ -18,21 +18,30 @@
 
 ## Clarifications
 
-- **F5** [NEEDS CLARIFICATION]: O Figma tem uma única "Chave de API" com "Gerar nova" e "Copiar". O Core tem vários tokens, revogar, rotacionar com transição e histórico.
-  - **Recomendação:** seguir o Figma.
-    - Sem chave ativa, "Gerar nova" cria uma (`POST`).
-    - Com chave ativa, "Gerar nova" rotaciona com transição de 24 h (`rotate`), depois da confirmação.
-    - A chave aparece uma vez, com Copiar.
-  - Listar, revogar e histórico não entram, porque não estão no Figma. Fica a pendência de pedir ao Figma uma tela de revogação, importante para chave vazada.
-- **F4** [NEEDS CLARIFICATION]: De onde vem o "Endpoint de recebimento"?
-  - **Recomendação:** da configuração pública do Web, numa variável nova `VITE_OTLP_ENDPOINT`, sem segredo.
-  - Sem valor, mostra "Endereço ainda não configurado.".
-- **F1** [NEEDS CLARIFICATION]: O que fazer com os elementos do Figma sem Core?
-  - **Recomendação para Sinais a enviar e Nível mínimo de log:** ficam iguais ao Figma, no rascunho local, com a nota "Ainda não é salvo no servidor".
-  - **Recomendação para o painel "Status da conexão":** mostra o estado neutro: "Aguardando primeiro log" se há chave ativa, "Sem integração" se não há, e "—" nos números. "Testar conexão" fica desabilitado, com a dica "Disponível quando a verificação existir no servidor".
-- **W1** [NEEDS CLARIFICATION]: Quem vê "Gerar nova"?
-  - **Recomendação:** quem tem o cargo admin na Clerk. Quando a LLT-120 do Web entrar, troca por `can('INGESTION_TOKENS_MANAGE')`.
-  - Quem não é admin vê a chave mascarada sem os botões e a dica "Somente donos e administradores podem gerar a chave.".
+### Session 2026-11-20
+
+Respostas do Pedro: segue a recomendação em todas. N1 a N4 saíram da leitura do Figma e do código do Coletor (`lhamalog-collector`).
+
+- Q (F5): O Figma tem uma única "Chave de API" com "Gerar nova" e "Copiar"; o Core tem vários tokens, revogar, rotacionar e histórico. O que fazer? → A: Seguir o Figma. Sem chave ativa, "Gerar nova" cria uma (`POST`). Com chave ativa, "Gerar nova" rotaciona com transição de 24 h (`rotate`), depois da confirmação. A chave aparece uma vez, com Copiar. Listar, revogar e histórico não entram; fica a pendência de pedir ao Figma uma tela de revogação, importante para chave vazada.
+- Q (F4): De onde vem o "Endpoint de recebimento"? → A: Da configuração pública do Web, numa variável nova `VITE_OTLP_ENDPOINT`, sem segredo. Sem valor, mostra "Endereço ainda não configurado.".
+- Q (F1): O que fazer com os elementos do Figma sem Core? → A: Sinais a enviar e Nível mínimo de log ficam iguais ao Figma, no rascunho local, com a nota "Sinais e nível mínimo ainda não são salvos no servidor: ficam guardados só neste navegador." O painel "Status da conexão" mostra o estado neutro: "Aguardando primeiro log" se há chave ativa, "Sem integração" se não há, e "—" nos números. "Testar conexão" fica desabilitado, com a dica "Disponível quando a verificação existir no servidor".
+- Q (W1): Quem vê "Gerar nova"? → A: Quem tem o cargo admin na Clerk. Quando a LLT-120 do Web entrar, troca por `can('INGESTION_TOKENS_MANAGE')`. Quem não é admin vê a chave mascarada sem os botões e a dica "Somente donos e administradores podem gerar a chave.".
+- Q (N1): O Figma mostra `OTEL_EXPORTER_OTLP_HEADERS=x-api-key=<sua-chave>`, mas o Coletor só aceita `Authorization: Bearer <token>` (`BearerToken.java`, `BearerTokenInterceptor.java`). Qual cabeçalho vai no exemplo? → A: `OTEL_EXPORTER_OTLP_HEADERS=Authorization=Bearer%20<sua-chave>` (o `%20` é o espaço, como a especificação do OpenTelemetry exige nessa variável). A diferença com o Figma vai para a lista de pendências do Figma.
+- Q (N2): O Figma oferece Traces e Métricas, mas o Coletor só recebe `/v1/logs` e `/v1/traces`. O que fazer com Métricas? → A: Aparece como no Figma, desabilitado, com a dica "O LhamaLog ainda não recebe métricas.". O exemplo sempre leva `OTEL_METRICS_EXPORTER=none`. Traces marcado vira `OTEL_TRACES_EXPORTER=otlp`; desmarcado, `none`.
+- Q (N3): De onde vem o `OTEL_SERVICE_NAME` do exemplo? → A: Do nome do produto, em minúsculas, sem acento, com hífens no lugar de espaços e símbolos ("Gateway de Pagamentos" vira `gateway-de-pagamentos`, como no Figma). Sem nome, `meu-servico`.
+- Q (N4): O endpoint também vale no Docker? → A: Sim. `VITE_OTLP_ENDPOINT` é opcional no `.env` e vale no `npm run dev` e no `/config.js` gerado por `infra/nginx/render-config.sh`, com a mesma validação de URL http ou https. Documentado no README e no `.env.example`.
+
+### Decisões da implementação, registradas no analyze final (T013, 2026-11-20)
+
+- **U2 (diferenças com o Figma, além da N1 e da N2):**
+  - a ajuda do nível mínimo diz "Nível de referência para a aplicação. Ainda não é aplicado no envio dos logs.", e não "Logs abaixo desse nível não serão enviados.", porque nada aplica esse nível hoje;
+  - o texto solto "Ative para relacionar logs a traces e ocultar dados sensíveis." não entra, porque não há controle ligado a ele no Figma;
+  - o comentário `# Java 8+: java -javaagent...` das variáveis de ambiente virou a aba "Java (agente)", com o comando completo;
+  - o painel mostra "—" em "Último log recebido" e "Logs nas últimas 24h", e não "Nenhum ainda" e "0", seguindo a F1.
+- **U4:** o ícone de olho do campo oculta ou mostra o valor só enquanto a chave está na memória, logo depois de gerar; sem chave, fica desabilitado.
+- **U5 (complemento da W1):** para quem não é admin, o Web não lista as chaves, porque o Core recusa; o selo do painel mostra "—".
+- **U6 (complemento da F4):** um `VITE_OTLP_ENDPOINT` inválido impede a página de abrir, com a mensagem do erro, como acontece com o `VITE_API_URL`.
+- **C1:** no produto arquivado, o modo só leitura da LLT-123 desabilita a aba inteira, inclusive o Copiar do endpoint e as abas do exemplo.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -82,8 +91,9 @@
 - **FR-W01**: A aba MUST seguir `04-produto-integracao-otel.png`. Os campos fora do Figma MUST sair.
 - **FR-W02**: A Chave de API MUST seguir F5. A leitura MUST usar funções puras com teste (`readTokenList`, `activeToken`, `readCreatedToken`, `readRotation`).
 - **FR-W03**: O valor da chave MUST aparecer só logo depois de gerar e MUST NOT ser guardado.
-- **FR-W04**: O endpoint MUST vir de `VITE_OTLP_ENDPOINT` (F4), documentado no README do Web e no `.env.example`, se existir.
-- **FR-W05**: Sinais, nível mínimo e o painel de status MUST seguir F1, sem número inventado.
+- **FR-W04**: O endpoint MUST vir de `VITE_OTLP_ENDPOINT` (F4), documentado no README do Web e no `.env.example`, e MUST valer também no `/config.js` do Docker (N4).
+- **FR-W05**: Sinais, nível mínimo e o painel de status MUST seguir F1, sem número inventado. Métricas MUST aparecer desabilitado, e o exemplo MUST levar `OTEL_METRICS_EXPORTER=none` (N2).
+- **FR-W06**: O exemplo da "Configuração da aplicação" MUST usar o cabeçalho `Authorization=Bearer%20<sua-chave>`, que é o que o Coletor aceita (N1), e o `OTEL_SERVICE_NAME` derivado do nome do produto (N3).
 
 ## Success Criteria *(mandatory)*
 

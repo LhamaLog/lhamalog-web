@@ -1,6 +1,6 @@
 #!/bin/sh
 # Writes the public browser config consumed by the SPA.
-# The publishable Clerk key and the API origin are runtime settings.
+# The publishable Clerk key, the API origin and the optional OTLP endpoint are runtime settings.
 # This script refuses secret keys and never prints the provided values.
 set -eu
 
@@ -67,10 +67,33 @@ if [ "${#API}" -gt 500 ]; then
   fail "VITE_API_URL é longa demais."
 fi
 
+# Optional address of the OTLP receiver shown in the OpenTelemetry tab (spec 011, F4 and N4).
+OTLP=${VITE_OTLP_ENDPOINT:-}
+OTLP=$(printf '%s' "$OTLP" | sed 's#/*$##')
+
+if [ -n "$OTLP" ]; then
+  case "$OTLP" in
+    http://*|https://*) ;;
+    *)
+      fail "VITE_OTLP_ENDPOINT deve ser uma URL http ou https."
+      ;;
+  esac
+
+  case "$OTLP" in
+    *[\ \"\'\\@?\#]*)
+      fail "VITE_OTLP_ENDPOINT não pode ter usuário, senha, parâmetros, âncora, aspas ou espaços."
+      ;;
+  esac
+
+  if [ "${#OTLP}" -gt 500 ]; then
+    fail "VITE_OTLP_ENDPOINT é longa demais."
+  fi
+fi
+
 mkdir -p /tmp/lhamalog
 tmp=$(mktemp /tmp/lhamalog/config.XXXXXX)
 cat > "$tmp" <<EOF
-window.__LHAMALOG_CONFIG__={"clerkPublishableKey":"$KEY","apiUrl":"$API"};
+window.__LHAMALOG_CONFIG__={"clerkPublishableKey":"$KEY","apiUrl":"$API","otlpEndpoint":"$OTLP"};
 EOF
 chmod 644 "$tmp"
 mv "$tmp" /tmp/lhamalog/config.js

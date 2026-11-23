@@ -12,6 +12,8 @@ export type ProductContext = {
 
 export type ContextListField = 'architecture' | 'scope' | 'sensitiveData'
 
+export type OtelLogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR'
+
 export type Product = {
   id: string
   tenantId: string
@@ -42,11 +44,9 @@ export type ProductUiDraft = {
   owner: string
   teamEmail: string
   tags: string[]
-  otelEndpoint: string
-  otelProtocol: string
-  otelService: string
-  otelHeaders: string
-  otelEnabled: boolean
+  // OpenTelemetry tab (spec 011, F1): Logs is always on and Metrics always off, so only these two are kept.
+  otelTraces: boolean
+  otelLogLevel: OtelLogLevel
 }
 
 export function emptyProductContext(): ProductContext {
@@ -67,10 +67,7 @@ export function emptyProductDraft(): ProductUiDraft {
     owner: '',
     teamEmail: '',
     tags: [],
-    otelEndpoint: '',
-    otelProtocol: 'OTLP/HTTP',
-    otelService: '',
-    otelHeaders: '',
-    otelEnabled: true,
+    otelTraces: false,
+    otelLogLevel: 'INFO',
   }
 }
