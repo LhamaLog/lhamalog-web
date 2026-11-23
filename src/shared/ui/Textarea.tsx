@@ -5,6 +5,8 @@ type TextareaProps = ComponentPropsWithoutRef<'textarea'> & {
   label: string
   error?: string
   requiredMark?: boolean
+  hint?: string
+  showCount?: boolean
 }
 
 export function Textarea({
@@ -12,6 +14,8 @@ export function Textarea({
   label,
   error,
   requiredMark = false,
+  hint,
+  showCount = true,
   maxLength,
   value,
   ...props
@@ -33,22 +37,27 @@ export function Textarea({
           aria-required={requiredMark || undefined}
           aria-invalid={error ? true : props['aria-invalid']}
           aria-describedby={
-            [props['aria-describedby'], error ? `${id}-error` : undefined].filter(Boolean).join(' ') || undefined
+            [props['aria-describedby'], hint ? `${id}-hint` : undefined, error ? `${id}-error` : undefined].filter(Boolean).join(' ') || undefined
           }
           className={`min-h-28 w-full rounded-lg border bg-field p-3 text-sm text-slate-900 placeholder:text-slate-600 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:opacity-70 ${
-            maxLength ? 'pb-7' : ''
+            maxLength && showCount ? 'pb-7' : ''
           } ${
             error
               ? 'border-red-600 focus:border-red-600 focus:ring-red-600/20'
               : 'border-slate-200 focus:border-[#0C70F2] focus:ring-[#0C70F2]/20'
           }`}
         />
-        {typeof maxLength === 'number' && (
+        {showCount && typeof maxLength === 'number' && (
           <span className="pointer-events-none absolute right-3 bottom-2 text-xs text-slate-400">
             {length}/{maxLength}
           </span>
         )}
       </div>
+      {hint && (
+        <p id={`${id}-hint`} className="text-xs text-slate-500">
+          {hint}
+        </p>
+      )}
       {error && (
         <p id={`${id}-error`} className="text-sm text-red-600">
           {error}

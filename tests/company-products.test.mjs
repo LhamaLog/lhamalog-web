@@ -73,7 +73,7 @@ test('product list filters, metrics and create requirements use api fields only'
 
 function product(partial) {
   return {
-    tenantId: 'tenant', description: 'desc', productVersion: '1', createdAt: '', context: { problemSolved: '', targetAudience: '', differentiators: '', keywords: '', restrictions: '' }, version: 1,
+    tenantId: 'tenant', description: 'desc', productVersion: '1', createdAt: '', context: { functionalDescription: '', personality: 'STANDARD', responseLanguage: 'pt-BR', architecture: [], scope: [], sensitiveData: [] }, version: 1,
     ...partial,
   }
 }

@@ -8,6 +8,7 @@ type SelectProps = ComponentPropsWithoutRef<'select'> & {
   requiredMark?: boolean
   startIcon?: ReactNode
   wrapperClassName?: string
+  hint?: string
 }
 
 export function Select({
@@ -18,6 +19,7 @@ export function Select({
   requiredMark = false,
   startIcon,
   wrapperClassName = '',
+  hint,
   className = '',
   children,
   ...props
@@ -35,7 +37,7 @@ export function Select({
           aria-required={requiredMark || undefined}
           aria-invalid={error ? true : props['aria-invalid']}
           aria-describedby={
-            [props['aria-describedby'], error ? `${id}-error` : undefined].filter(Boolean).join(' ') || undefined
+            [props['aria-describedby'], hint ? `${id}-hint` : undefined, error ? `${id}-error` : undefined].filter(Boolean).join(' ') || undefined
           }
           className={`h-10 w-full appearance-none rounded-lg border bg-field pr-10 text-sm text-slate-900 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:opacity-70 ${
             startIcon ? 'pl-10' : 'pl-3'
@@ -58,6 +60,11 @@ export function Select({
           </svg>
         </span>
       </div>
+      {hint && (
+        <p id={`${id}-hint`} className="text-xs text-slate-500">
+          {hint}
+        </p>
+      )}
       {error && (
         <p id={`${id}-error`} className="text-sm text-red-600">
           {error}
