@@ -46,11 +46,11 @@ Linhas 1 a 16: as do `TESTE-MANUAL-120.md` do pacote de fechamento. Linhas 17 a 
 
 | # | Quem | O que fazer | O que tem que acontecer | Resultado |
 |---|---|---|---|---|
-| 1 | Ana | Criar a conta, criar a "Empresa Teste 120" e entrar nela | Aparece a tela de planos, **sem** deslogar (LLT-289), e sem a mensagem de erro de acesso por cima | _preencher_ |
-| 2 | Ana | Escolher um plano e clicar em "Simular pagamento" | Entra na empresa. No Core, ela é o Membro DONO | _preencher_ |
-| 3 | Ana | Abrir Equipe | Ana aparece como **Dono**, sem o botão Desativar. A aba Permissões mostra Dono, Administrador e Membro | _preencher_ |
-| 4 | Ana | Convidar a Carla como Administrador e o Bruno como Membro. Os dois aceitam pelo e-mail e entram uma vez | Na Equipe, Carla aparece como Administrador e Bruno como Membro | _preencher_ |
-| 5 | Carla | Abrir Equipe e procurar como desativar a Ana | Não há opção de desativar a Dono. A Carla consegue desativar e reativar o Bruno | _preencher_ |
+| 1 | Ana | Criar a conta, criar a "Empresa Teste 120" e entrar nela | Aparece a tela de planos, **sem** deslogar (LLT-289), e sem a mensagem de erro de acesso por cima | **OK (24/11)**: Pedro (conta já existente, no papel da Ana) criou a empresa "LOGVIEWER"; tela de planos sem deslogar e sem erro por cima. Core: `access.denied.subscription_required`, "session kept" |
+| 2 | Ana | Escolher um plano e clicar em "Simular pagamento" | Entra na empresa. No Core, ela é o Membro DONO | **OK (24/11)**: pedido `STARTER` PAID, Tenant ativado pelo pagamento simulado; no banco, `member.role = DONO` para o Pedro |
+| 3 | Ana | Abrir Equipe | Ana aparece como **Dono**, sem o botão Desativar. A aba Permissões mostra Dono, Administrador e Membro | **OK (24/11)**: Dono sem Desativar; a aba Permissões lista Dono, Administrador e Membro |
+| 4 | Ana | Convidar a Carla como Administrador e o Bruno como Membro. Os dois aceitam pelo e-mail e entram uma vez | Na Equipe, Carla aparece como Administrador e Bruno como Membro | **OK (24/11)**: Carla (`+carla` no Gmail do Pedro) aparece como Administrador; o Bruno é a conta de um amigo do Pedro, como Membro |
+| 5 | Carla | Abrir Equipe e procurar como desativar a Ana | Não há opção de desativar a Dono. A Carla consegue desativar e reativar o Bruno | **OK (24/11)**: a Carla não tem Desativar na linha do Dono; desativou o Bruno (com confirmação) e o reativou |
 | 6 | Ana | Criar os produtos "Produto A" e "Produto B". Na Equipe, abrir o acesso por produto do Bruno e liberar só o A | "Acessos atualizados."; reabrindo, só o A está marcado | _preencher_ |
 | 7 | Ana | Tentar abrir o acesso por produto da Carla | Mostra "Acessa todos os Produtos." (`full_access`) | _preencher_ |
 | 8 | Bruno | Abrir Produtos e tentar abrir o B pelo endereço | Vê só o A. O B aparece como não encontrado, sem deslogar | _preencher_ |
