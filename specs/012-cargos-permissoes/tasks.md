@@ -79,7 +79,7 @@ Regras para o agente no `lhamalog-web`: não rodar Git; trabalhar uma fase por v
 
 ## Fase 6: fechamento
 
-- [ ] T025 Roteiro manual contra o Core local da LLT-120, em `quickstart.md`:
+- [X] T025 Roteiro manual contra o Core local da LLT-120, em `quickstart.md` (fechada pela T040 em 25/11):
   - Dono, Administrador e Membro em janelas separadas;
   - cada US com o resultado registrado.
 - [X] T026 Conferir que não há chave secreta nem token salvo em arquivo.
@@ -115,13 +115,14 @@ Regras para o agente no `lhamalog-web`: não rodar Git; trabalhar uma fase por v
 
 ## Fase 10: teste manual
 
-- [ ] T040 Subir o ambiente e guiar o Pedro no roteiro do `TESTE-MANUAL-120.md` (pasta do pacote). Registrar cada linha (ok ou o que aconteceu) no `quickstart.md`. Corrigir o que falhar, na mesma branch, e repetir a linha. Fecha também a T025.
+- [X] T040 Subir o ambiente e guiar o Pedro no roteiro do `TESTE-MANUAL-120.md` (pasta do pacote). Registrar cada linha (ok ou o que aconteceu) no `quickstart.md`. Corrigir o que falhar, na mesma branch, e repetir a linha. Fecha também a T025.
+  - 24/11: linhas 1 a 5 OK (Pedro). 25/11: linhas 6, 7, 10 a 14, 18 e 19 OK (Claude pelo Chrome, na conta do Pedro); 8, 9, 16 e 17 OK (Pedro). A 15 ficou como "Não se aplica": o Arquivar é da LLT-123, que não está nesta branch. Nenhuma linha falhou, então nenhum código mudou.
 
 ## Fase 11: fechamento
 
 - [X] T041 `speckit-analyze`. Procurar `sk_`, `CLERK_SECRET_KEY` com valor e `eyJ` em `src/`, `tests/` e na spec.
 - [X] T042 `npm test` e `npm run build` finais.
-- [ ] T043 Rascunho do PR (título `LLT-120: cargos e permissoes`): o que entrega, o resultado dos testes e do roteiro manual, o fato de não haver tela no Figma e os avisos:
+- [X] T043 (25/11: rascunho completo em `LLT-119-120-fechamento\relatorios\PR-LLT-120-web.md`, com o resultado do roteiro) Rascunho do PR (título `LLT-120: cargos e permissoes`): o que entrega, o resultado dos testes e do roteiro manual, o fato de não haver tela no Figma e os avisos:
   - Vinicius: a `TeamPage` passou a usar as permissões do Core e mostra o Dono;
   - Felipe: o `CompanyWorkspace` e as rotas foram mesclados com a tela de planos;
   - pendências (por exemplo, o Arquivar, se a LLT-123 ainda não tiver entrado).
