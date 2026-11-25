@@ -6,7 +6,7 @@
 
 ## Summary
 
-`/perfil` passa a ser o hub da conta: cartão de identidade e uma seção por vez (Conta, Preferências, Notificações, Segurança, Ajuda). Nome, idioma e fuso continuam no Core, como na especificação anterior. Bio e cargo entram no mesmo `GET`/`PUT /api/user/profile`, nos campos `bio` e `jobTitle`. Tema e acessibilidade ficam só neste navegador. Foto, sessões, senha e verificação usam o SDK de sessão da Clerk já aberto, sem segredo e sem mudança no painel. A ADR_171 fica só como ponteiro. Decisões em [research.md](research.md).
+`/perfil` passa a ser o hub da conta: cartão de identidade e uma seção por vez (Conta, Preferências, Notificações, Segurança, Ajuda). Nome, idioma e fuso continuam no Core, como na especificação anterior. Bio e cargo entram no mesmo `GET`/`PUT /api/user/profile`, nos campos `bio` e `jobTitle`. Tema e acessibilidade ficam só neste navegador. Foto, sessões, a troca de senha pela sessão aberta e desligar a verificação usam o SDK de sessão da Clerk já aberto, sem segredo e sem mudança no painel. Ligar a verificação fica só no fluxo existente `/tarefas/configurar-mfa`. A ADR_171 fica só como ponteiro. Decisões em [research.md](research.md).
 
 ## Technical Context
 

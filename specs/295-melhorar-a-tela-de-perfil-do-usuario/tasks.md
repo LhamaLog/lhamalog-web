@@ -103,13 +103,13 @@ description: "Task list for the profile hub"
 
 ## Phase 6: User Story 4 - Cuidar da segurança da própria conta (Priority: P2)
 
-**Goal**: status da verificação, senha, verificação e sessões, sem código de pareamento
+**Goal**: status da verificação, troca de senha e sessões, sem pareamento no hub. Ligar a verificação fica no fluxo existente.
 
-**Independent Test**: ler o status, concluir senha e verificação pela rota existente ou pela sessão aberta, ver a sessão em uso marcada e sem revogação, revogar outra
+**Independent Test**: ler o status; com a tarefa `reset-password`, abrir `/tarefas/redefinir-senha`; sem a tarefa, pedir a senha atual e a nova no `PasswordInput` já existente via `user.updatePassword`; ligar a verificação só em `/tarefas/configurar-mfa`; no hub, o bloco da verificação só mostra o status e desliga com `user.disableTOTP()`, sem `createTOTP`; ver a sessão em uso marcada e sem revogação; revogar outra
 
-- [ ] T023 [US4] Acrescentar nos dois catálogos de `src/features/profile/messages.ts` as frases de status, erro com nova tentativa, senha, verificação, sessão em uso, nenhuma outra sessão e falha ao revogar
-- [ ] T024 [US4] Mostrar `user.twoFactorEnabled` em `src/features/profile/components/SecuritySection.tsx`; se o status não puder ser lido, erro com nova tentativa e sem apresentar inativo; não renderizar código, URI, QR nem aparelho
-- [ ] T025 [US4] Em `src/features/profile/components/SecuritySection.tsx`, abrir `/tarefas/redefinir-senha` ou `/tarefas/configurar-mfa` quando a sessão tiver a tarefa `reset-password` ou `setup-mfa`; sem a tarefa, concluir com `user.updatePassword({ currentPassword, newPassword })` sem `signOutOfOtherSessions`, no `PasswordInput` já existente, e desligar a verificação com `user.disableTOTP()`; não chamar `createTOTP` e não usar chave secreta
+- [ ] T023 [US4] Acrescentar nos dois catálogos de `src/features/profile/messages.ts` as frases de status, erro com nova tentativa, senha atual, senha nova, desligar a verificação, sessão em uso, nenhuma outra sessão e falha ao revogar. Não acrescentar frase de pareamento, código, URI ou QR. Ligar a verificação não ganha texto de fluxo próprio no hub
+- [ ] T024 [US4] No bloco da verificação de `src/features/profile/components/SecuritySection.tsx`, mostrar só o status `user.twoFactorEnabled`; se o status não puder ser lido, erro com nova tentativa e sem apresentar inativo; não renderizar código, URI, QR, aparelho nem pareamento. Senha e sessões continuam na mesma seção
+- [ ] T025 [US4] Em `src/features/profile/components/SecuritySection.tsx`, abrir `/tarefas/redefinir-senha` quando a sessão tiver a tarefa `reset-password`; sem a tarefa, a troca pela sessão aberta pede a senha atual e a nova no `PasswordInput` já existente, via `user.updatePassword({ currentPassword, newPassword })`, sem `signOutOfOtherSessions`, e isso não conta como desenho novo (I1). Ligar a verificação quando estiver desligada não é feito no hub: acontece só pelo fluxo existente `/tarefas/configurar-mfa` (I2). No hub, o bloco da verificação só mostra o status e desliga com `user.disableTOTP()`. Sem `createTOTP`, sem pareamento e sem chave secreta. Senha e sessões continuam na mesma seção
 - [ ] T026 [US4] Listar `user.getSessions()` em `src/features/profile/components/SecuritySection.tsx` com `src/features/profile/sessions.ts`: marcar o id de `useSession()`, sem revogação nele; `revoke()` nas outras; sucesso tira o id da lista; falha mantém a linha e explica o erro
 
 **Checkpoint**: a sessão em uso só termina pelo Sair já existente
@@ -133,7 +133,7 @@ description: "Task list for the profile hub"
 
 **Purpose**: fechar i18n e o roteiro
 
-- [ ] T029 Afirmar em `tests/profile-hub.test.mjs` que as chaves novas do hub e de `NotificationPreferences` existem nos catálogos `pt-BR` e `en` de `src/features/profile/messages.ts`
+- [ ] T029 Afirmar em `tests/profile-hub.test.mjs` que as chaves novas do hub, inclusive status, erro com nova tentativa, senha atual, senha nova e desligar a verificação, e as de `NotificationPreferences`, existem nos catálogos `pt-BR` e `en` de `src/features/profile/messages.ts`, e que não há chave de pareamento, código, URI ou QR
 - [ ] T030 Executar o roteiro de `specs/295-melhorar-a-tela-de-perfil-do-usuario/quickstart.md`
 
 ---
@@ -211,6 +211,7 @@ Task: "Aplicar a aparência em src/app/layouts/CompanyWorkspace.tsx e src/styles
 - [P] só quando os arquivos não se cruzam
 - Na tela, cargo; no JSON, `jobTitle`
 - Não usar `CLERK_SECRET_KEY` nem valor `sk_`
-- Não desenhar código de pareamento e não chamar `createTOTP` na tela
+- A troca de senha pela sessão aberta usa o `PasswordInput` já existente e não conta como desenho novo (I1)
+- Ligar a verificação só em `/tarefas/configurar-mfa`. No hub, o bloco da verificação só mostra o status e chama `user.disableTOTP()`. Não chamar `createTOTP` nem desenhar pareamento (I2)
 - Bio no máximo 160 e `jobTitle` no máximo 80, depois do recorte
 - Tema e acessibilidade não entram no `PUT /api/user/profile`
