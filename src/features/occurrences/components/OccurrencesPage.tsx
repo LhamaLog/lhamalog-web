@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAppliedPreferences } from '../../profile/preferences'
 import { Button } from '../../../shared/ui/Button'
@@ -15,6 +15,9 @@ import type { OccurrenceQuery, PageSize } from '../occurrenceQuery'
 import { toCardItem } from '../occurrenceView'
 import type { OccurrencePage } from '../types'
 import { useCoreResource } from '../useCoreResource'
+import { countsFor, hasNovelties, noveltyLabel } from '../occurrenceStream'
+import { useOccurrenceStream } from '../useOccurrenceStream'
+import { useApi } from '../../../shared/services/useApi'
 import { OccurrenceFilters } from './OccurrenceFilters'
 import { OccurrencesView } from './OccurrencesView'
 
@@ -30,6 +33,40 @@ export function OccurrencesPage() {
   // The path is computed once per address, so `from` of a preset does not change at every render.
   const path = useMemo(() => occurrencesPath(query), [query])
   const resource = useCoreResource<OccurrencePage>(path)
+  const request = useApi()
+  // Spec 014 (LLT-137): occurrences announced since the list was last loaded, and news found after a reconnection.
+  const [novel, setNovel] = useState<ReadonlySet<string>>(new Set())
+  const [syncNews, setSyncNews] = useState(false)
+  const queryRef = useRef(query)
+  queryRef.current = query
+  const shownRef = useRef<{ ids: string[]; totalItems: number; page: number } | null>(null)
+  shownRef.current = resource.data
+    ? { ids: resource.data.items.map(item => item.id), totalItems: resource.data.totalItems, page: query.page }
+    : null
+  useEffect(() => { setNovel(new Set()); setSyncNews(false) }, [path])
+  const streamStatus = useOccurrenceStream({
+    onNotice: (notice) => {
+      if (!countsFor(queryRef.current, notice)) return
+      setNovel(current => (current.has(notice.occurrenceId) ? current : new Set(current).add(notice.occurrenceId)))
+    },
+    onReconnected: () => {
+      const shown = shownRef.current
+      if (!shown) return
+      request<OccurrencePage>(occurrencesPath({ ...queryRef.current, page: 1 }))
+        .then(first => {
+          const current = { ids: first.items.map(item => item.id), totalItems: first.totalItems }
+          const news = shown.page === 1 ? hasNovelties(shown, current) : current.totalItems > shown.totalItems
+          if (news) setSyncNews(true)
+        })
+        .catch(() => undefined)
+    },
+  })
+  const refreshWithNews = () => {
+    setNovel(new Set())
+    setSyncNews(false)
+    if (query.page === 1) resource.reload()
+    else go({ ...query, page: 1 })
+  }
   const [search, setSearch] = useState(query.q)
   const [filtersOpen, setFiltersOpen] = useState(false)
   const situationId = useId()
@@ -76,8 +113,20 @@ export function OccurrencesPage() {
     showPagination = true
   }
 
+  const noveltyText = novel.size > 0 ? noveltyLabel(novel.size) : syncNews ? 'Há ocorrências novas' : ''
   return (
     <div aria-busy={resource.loading} className="space-y-4">
+      <div aria-live="polite" className="space-y-2">
+        {noveltyText && (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-[#083B7A]">
+            <span className="font-semibold">{noveltyText}</span>
+            <Button size="small" fullWidth={false} onClick={refreshWithNews}>Atualizar</Button>
+          </div>
+        )}
+        {streamStatus === 'paused' && (
+          <p className="text-xs text-slate-500">Atualização automática pausada. Reconectando…</p>
+        )}
+      </div>
       <OccurrencesView
         header={{
           search,
