@@ -8,6 +8,16 @@
 
 **Input**: User description: "LLT-295. Reformular /perfil como hub de conta, inspirado nas configurações do GitHub e no mock mobile de perfil (não há mock web). Cartão de identidade, seções Conta, Preferências, Notificações, Segurança e Ajuda, foto no cabeçalho e textos desta tela nos dois idiomas já usados no perfil. Sem planejar nem implementar nesta rodada."
 
+## Clarifications
+
+### Session 2026-11-25
+
+- Q: Onde ficam gravados o tema e as opções de acessibilidade? → A: Só neste navegador, em localStorage. O tema do sistema segue prefers-color-scheme. Essas escolhas não vão para o Core.
+- Q: O que acontece se `/tarefas/redefinir-senha` ou `/tarefas/configurar-mfa` não iniciarem a tarefa para quem já está autenticado? → A: A seção Segurança conclui a ação pela sessão já aberta, via SDK da Clerk, sem desenho novo, sem código de pareamento e sem mudança no painel.
+- Q: A sessão em uso pode ser revogada na lista? → A: Aparece marcada e não pode ser revogada na lista. Encerra pelo Sair. As outras sessões podem ser revogadas.
+- Q: Qual é o limite e a validação de bio e cargo, e o que a tela faz enquanto o Core não devolve esses campos? → A: Bio até 160 e cargo até 80. Texto puro como o nome, sem quebra de linha. A leitura sem os campos continua válida e mostra vazio. A gravação envia os dois. Se o Core recusar, a tela mostra o erro, não anuncia sucesso e mantém o rascunho.
+- Q: Qual é o contrato paralelo de bio e cargo, e o que fazer com a ADR_171 ainda não publicada? → A: `GET` e `PUT /api/user/profile` ganham `bio` e `jobTitle`. Omitir o campo mantém o valor, `""` apaga, e o `GET` devolve `""` quando não há texto. A ADR_171 em `lhamalog-docs` permanece só como ponteiro.
+
 ## User Scenarios & Testing *(mandatory)*
 
 A pessoa autenticada, com uma empresa selecionada, abre o próprio perfil e encontra um hub da conta dela. O cartão de identidade permanece visível. As cinco seções ocupam o restante: em janela larga, uma lista vertical ao lado do conteúdo; em janela estreita, as mesmas seções em abas ou seletor. Ao abrir `/perfil`, a seção inicial é Conta. Uma seção aparece por vez.
@@ -31,7 +41,7 @@ A pessoa vê quem ela é na empresa selecionada e, só depois de escolher Editar
 5. **Given** nome, bio e cargo válidos, **When** a pessoa salva e reabre o perfil, **Then** os três valores gravados aparecem de novo e o cabeçalho usa o nome gravado, sem novo login.
 6. **Given** alterações ainda não salvas, **When** a pessoa cancela, **Then** nome, bio e cargo voltam ao último valor gravado e a foto não muda.
 7. **Given** uma foto nova aceita, **When** a troca termina, **Then** o cartão e o cabeçalho mostram essa foto sem novo login. **Given** a troca falha, **When** a resposta chega, **Then** a foto anterior permanece e a pessoa vê o erro.
-8. **Given** bio ou cargo vazios, **When** a pessoa salva, **Then** o vazio é aceito e a reabertura mostra o campo vazio. **Given** nome vazio, longo demais ou com caractere de controle, **When** a pessoa salva, **Then** o campo é explicado e nada é gravado.
+8. **Given** bio ou cargo vazios, **When** a pessoa salva, **Then** o vazio é aceito e a reabertura mostra o campo vazio. **Given** bio acima de 160, cargo acima de 80, quebra de linha ou outro caractere de controle, **When** a pessoa salva, **Then** o campo é explicado e nada é gravado. **Given** nome vazio, longo demais ou com caractere de controle, **When** a pessoa salva, **Then** o campo é explicado e nada é gravado.
 
 ---
 
@@ -41,7 +51,7 @@ Na seção Preferências, a pessoa continua escolhendo Português (Brasil) ou En
 
 **Why this priority**: Idioma e fuso já são o perfil gravado. A busca do fuso, o tema e a acessibilidade são o restante do que a pessoa espera encontrar num hub de conta.
 
-**Independent Test**: Buscar um fuso pelo nome ou pelo deslocamento, ver o deslocamento e a pré-visualização antes de salvar, salvar e reabrir. Escolher escuro, o tema do sistema, reduzir movimento, sublinhar links e contraste, e perceber o efeito na área autenticada. Cancelar devolve idioma e fuso ao último valor gravado.
+**Independent Test**: Buscar um fuso pelo nome ou pelo deslocamento, ver o deslocamento e a pré-visualização antes de salvar, salvar e reabrir. Escolher escuro, o tema do sistema, reduzir movimento, sublinhar links e contraste, e perceber o efeito na área autenticada. Recarregar neste navegador e ver a mesma aparência. Cancelar devolve idioma e fuso ao último valor gravado e não envia tema nem acessibilidade ao serviço.
 
 **Acceptance Scenarios**:
 
@@ -51,6 +61,7 @@ Na seção Preferências, a pessoa continua escolhendo Português (Brasil) ou En
 4. **Given** a pessoa escolhe tema escuro, claro ou o do sistema, **When** navega na área autenticada, **Then** a aparência segue essa escolha. No tema do sistema, a aparência acompanha a mudança do sistema operacional enquanto essa opção continuar selecionada.
 5. **Given** reduzir movimento, sublinhar links ou contraste maior ligados, **When** a pessoa usa a área autenticada, **Then** a animação não essencial para, os links de texto ficam sublinhados ou o contraste fica maior do que o tema padrão, conforme o que foi ligado. Cada opção funciona sozinha.
 6. **Given** idioma ou fuso ainda não salvos, **When** a pessoa olha a moldura e as outras telas, **Then** continuam no último idioma gravado e as datas fora desta tela não mudam de fuso.
+7. **Given** tema ou acessibilidade já escolhidos neste navegador, **When** a pessoa reabre a área autenticada, **Then** a escolha permanece. Ela não aparece na gravação do perfil e não muda em outro navegador.
 
 ---
 
@@ -76,13 +87,13 @@ A pessoa vê se a verificação em duas etapas está ativa e encontra trocar sen
 
 **Why this priority**: O mock e o hub pedem segurança, mas o pareamento desenhado no mock está fora. A pessoa precisa de um lugar claro para o que já existe.
 
-**Independent Test**: Abrir Segurança, ler o status da verificação em duas etapas, localizar trocar senha e gerenciar a verificação, listar as sessões e revogar outra sessão. Confirmar que não há código de pareamento.
+**Independent Test**: Abrir Segurança, ler o status da verificação em duas etapas, localizar trocar senha e gerenciar a verificação, listar as sessões, ver a sessão em uso marcada e sem revogação, e revogar outra sessão. Confirmar que não há código de pareamento.
 
 **Acceptance Scenarios**:
 
 1. **Given** a verificação em duas etapas está ativa ou inativa, **When** a pessoa abre Segurança, **Then** o status mostrado corresponde a esse estado. **Given** o status não pôde ser lido, **When** a seção trata a falha, **Then** mostra erro com nova tentativa e não apresenta o estado como inativo.
-2. **Given** a pessoa pede para trocar a senha ou gerenciar a verificação em duas etapas, **When** a ação é oferecida, **Then** o destino é o fluxo já existente de redefinir senha ou de configurar a verificação, sem formulário novo e sem código de pareamento. O que acontece quando não há uma tarefa pendente fica em aberto no FR-014.
-3. **Given** há sessões ativas, **When** a pessoa abre a lista, **Then** distingue a sessão em uso das demais e consegue revogar uma sessão que não é a atual. A sessão revogada sai da lista e deixa de poder ser usada.
+2. **Given** a pessoa pede para trocar a senha ou gerenciar a verificação em duas etapas, **When** o fluxo já existente inicia a tarefa, **Then** esse fluxo segue, sem formulário novo nesta tela e sem código de pareamento. **Given** `/tarefas/redefinir-senha` ou `/tarefas/configurar-mfa` não iniciam a tarefa para quem já está autenticado, **When** a seção continua a ação, **Then** ela a conclui pela sessão já aberta, sem desenho novo, sem código de pareamento e sem mudança no painel.
+3. **Given** há sessões ativas, **When** a pessoa abre a lista, **Then** a sessão em uso aparece marcada e não pode ser revogada ali. As outras podem. A sessão revogada sai da lista e deixa de poder ser usada. A sessão em uso termina pelo Sair.
 4. **Given** a revogação falha, **When** a resposta chega, **Then** a sessão permanece na lista e a pessoa vê o erro.
 
 ---
@@ -106,14 +117,14 @@ A seção Ajuda reúne os mesmos destinos de Privacidade, Termos de Uso e Suport
 
 - Sem empresa selecionada: não há carga nem gravação, e a orientação é a mesma já usada para pedir a seleção de uma empresa.
 - Nome, idioma, fuso, versão desatualizada, sessão expirada, resposta atrasada e troca de empresa no meio da edição seguem a especificação anterior do perfil. Trocar de empresa atualiza função, nome da empresa, membro desde e as notificações. Não muda nome, bio, cargo, idioma nem fuso, porque esses dados são da pessoa.
-- Bio ou cargo ausentes na leitura: a carga do restante continua válida e os dois aparecem vazios.
+- Bio ou cargo ausentes na leitura: a carga do restante continua válida e os dois aparecem vazios. A gravação envia os dois. Se o serviço recusar, a tela mostra o erro, não anuncia sucesso e mantém o rascunho.
 - Bio ou cargo só com espaços: tratados como vazios.
-- Bio ou cargo acima do limite ou com caractere de controle: recusados, com explicação no campo, sem gravar.
+- Bio acima de 160, cargo acima de 80, quebra de linha ou outro caractere de controle: recusados, com explicação no campo, sem gravar. O texto é puro, como o nome.
 - Fuso fora da lista: o valor recebido aparece e só pode ser salvo depois que a pessoa escolhe um fuso da lista.
 - Foto recusada ou troca interrompida: a foto anterior permanece.
 - Lista de sessões vazia: a seção diz que não há outra sessão para mostrar e ainda indica a sessão em uso quando ela for conhecida.
 - Falha ao carregar uma seção: as outras seções e o cartão de identidade continuam utilizáveis. A seção com falha oferece nova tentativa.
-- Tema e acessibilidade não são configuração da empresa. Trocar de empresa não os repõe com o tema da empresa.
+- Tema e acessibilidade ficam só neste navegador e não são configuração da empresa nem do perfil gravado. Trocar de empresa não os repõe.
 - Ajuda não ganha destino que o rodapé não tenha.
 
 ## Requirements *(mandatory)*
@@ -124,17 +135,17 @@ A seção Ajuda reúne os mesmos destinos de Privacidade, Termos de Uso e Suport
 - **FR-002**: Em janela larga, as seções MUST aparecer como lista vertical ao lado do conteúdo. Em janela estreita, as mesmas cinco seções MUST permanecer alcançáveis por abas ou seletor. O cartão MUST permanecer visível nos dois casos. A navegação MUST ser completa por teclado, com rótulo visível na seção ativa.
 - **FR-003**: O cartão MUST mostrar foto grande ou iniciais, ação de alterar foto, nome, e-mail somente leitura, função na empresa selecionada, nome dessa empresa, membro desde, bio, cargo e Editar.
 - **FR-004**: Antes de Editar, nome, bio e cargo MUST NOT ser campos. Depois de Editar, só esses três MUST ser editáveis na seção Conta. E-mail, função, empresa e membro desde MUST permanecer somente leitura.
-- **FR-005**: Nome MUST continuar obrigatório, de 1 a 200 caracteres depois de remover os espaços das pontas, sem caractere de controle. Bio e cargo MUST ser opcionais. Cargo MUST ter no máximo 200 caracteres e bio no máximo 500, depois do recorte. Vazio MUST gravar vazio. Espaços só nas pontas MUST ser removidos. Caractere de controle MUST ser recusado.
-- **FR-006**: Salvar a conta MUST gravar nome, bio e cargo da pessoa autenticada junto com a versão carregada, sem apagar idioma e fuso já gravados. A primeira gravação continua sem versão. Versão desatualizada MUST ser recusada e a tela MUST oferecer recarregar, sem tratar o rascunho como gravado.
+- **FR-005**: Nome MUST continuar obrigatório, de 1 a 200 caracteres depois de remover os espaços das pontas, sem caractere de controle. Bio e cargo MUST ser opcionais e texto puro, como o nome: sem caractere de controle e sem quebra de linha. Bio MUST ter no máximo 160 caracteres e cargo no máximo 80, depois do recorte. Vazio MUST gravar vazio. Espaços só nas pontas MUST ser removidos. Texto só com espaços MUST ser tratado como vazio.
+- **FR-006**: Salvar a conta MUST gravar nome, bio e cargo da pessoa autenticada junto com a versão carregada, sem apagar idioma e fuso já gravados. A gravação MUST enviar bio e cargo. A leitura que não trouxer esses campos MUST continuar válida e MUST mostrá-los vazios. Se o serviço recusar a gravação, a tela MUST mostrar o erro, MUST NOT anunciar sucesso e MUST manter o rascunho. A primeira gravação continua sem versão. Versão desatualizada MUST ser recusada e a tela MUST oferecer recarregar, sem tratar o rascunho como gravado.
 - **FR-007**: O cabeçalho MUST mostrar a mesma foto da conta. Sem foto, o cartão e o cabeçalho MUST mostrar as iniciais do nome. Uma troca de foto bem-sucedida MUST atualizar os dois sem novo login. Uma troca falha MUST manter a foto anterior e MUST explicar o erro. Esta história MUST NOT oferecer remover a foto.
 - **FR-008**: Função, empresa e membro desde MUST refletir a empresa selecionada e MUST NOT ser editados nesta tela. Membro desde é a data em que a pessoa passou a pertencer a essa empresa. Sem data, a tela MUST dizer que a data está indisponível. Trocar de empresa MUST atualizar esses três dados e MUST NOT regravar o perfil.
 - **FR-009**: Preferências MUST oferecer só Português (Brasil) e English, e um fuso internacional buscável por nome ou deslocamento. Cada opção de fuso MUST mostrar o deslocamento atual. A pré-visualização de agora MUST seguir o fuso selecionado e MUST NOT alterar as datas das outras telas. Salvar preferências MUST NOT apagar nome, bio e cargo já gravados.
-- **FR-010**: A pessoa MUST poder escolher tema claro, escuro ou o do sistema, e MUST poder ligar ou desligar, cada um por si, reduzir movimento, sublinhar links e contraste maior. O efeito MUST valer na área autenticada. Essas escolhas MUST NOT alterar a configuração da empresa. Onde essas quatro preferências são gravadas MUST ser [NEEDS CLARIFICATION: ficam só neste navegador, ou passam a acompanhar o perfil da pessoa no mesmo serviço que já guarda idioma e fuso?].
+- **FR-010**: A pessoa MUST poder escolher tema claro, escuro ou o do sistema, e MUST poder ligar ou desligar, cada um por si, reduzir movimento, sublinhar links e contraste maior. O efeito MUST valer na área autenticada e MUST permanecer neste navegador. O tema do sistema MUST acompanhar prefers-color-scheme enquanto essa opção continuar selecionada. Essas escolhas MUST ficar só no navegador e MUST NOT ir para o Core nem alterar a configuração da empresa. Trocar de empresa MUST NOT repor essas escolhas.
 - **FR-011**: Todas as frases novas e antigas desta tela, inclusive as do cartão de notificações, MUST existir no catálogo de português e no de inglês já usados pelo perfil. O idioma gravado MUST ser aplicado a esta tela e à moldura como já ocorre hoje. MUST NOT traduzir o restante do aplicativo.
 - **FR-012**: Notificações MUST manter canais, filtros, gravação, conflito e escopo por pessoa e empresa já aceitos. MUST aparecer só na seção Notificações. Web MUST continuar obrigatório.
 - **FR-013**: Segurança MUST mostrar a verificação em duas etapas como ativa ou inativa. Se o status não puder ser lido, MUST mostrar erro com nova tentativa e MUST NOT apresentá-lo como inativo. MUST NOT mostrar código de pareamento, aparelho autenticador, último pareamento nem o passo a passo do mock de segurança.
-- **FR-014**: Trocar senha e gerenciar a verificação em duas etapas MUST usar os fluxos já existentes em `/tarefas/redefinir-senha` e `/tarefas/configurar-mfa`, sem formulário novo e sem mudança no painel do provedor de identidade. O que a pessoa já autenticada encontra ao acionar esses fluxos fora de uma tarefa pendente MUST ser [NEEDS CLARIFICATION: a tela apenas abre esses endereços, mesmo que o fluxo não possa começar, ou a seção precisa concluir a mesma ação pela sessão já aberta quando o endereço sozinho não inicia a tarefa?].
-- **FR-015**: Segurança MUST listar as sessões ativas, marcar a sessão em uso e permitir revogar uma sessão que não é a atual. A sessão revogada MUST sair da lista e MUST deixar de poder ser usada. Falha na revogação MUST manter a sessão e MUST explicar o erro. Revogar a sessão em uso nesta lista MUST ser [NEEDS CLARIFICATION: a sessão em uso também pode ser revogada aqui, encerrando a entrada, ou só termina pelo Sair já existente?].
+- **FR-014**: Trocar senha e gerenciar a verificação em duas etapas MUST usar os fluxos já existentes em `/tarefas/redefinir-senha` e `/tarefas/configurar-mfa`, sem formulário novo nesta tela e sem mudança no painel do provedor de identidade. Se esses endereços não iniciarem a tarefa para quem já está autenticado, a seção Segurança MUST concluir a mesma ação pela sessão já aberta, via SDK de sessão da Clerk, sem desenho novo, sem código de pareamento e sem mudança no painel.
+- **FR-015**: Segurança MUST listar as sessões ativas e MUST marcar a sessão em uso. Essa sessão MUST NOT ser revogada na lista e MUST terminar pelo Sair já existente. As outras sessões MUST poder ser revogadas. A sessão revogada MUST sair da lista e MUST deixar de poder ser usada. Falha na revogação MUST manter a sessão e MUST explicar o erro.
 - **FR-016**: Ajuda MUST oferecer Privacidade, Termos de Uso e Suporte com os mesmos destinos do rodapé. Destino que hoje é placeholder MUST continuar placeholder. A história MUST NOT criar documentação, perguntas frequentes nem página de contato.
 - **FR-017**: Cada gravação de conta, preferências ou notificações MUST impedir um segundo envio até a resposta. Erro de gravação MUST preservar o rascunho. Cancelar MUST restaurar o último valor gravado daquele grupo. Uma resposta de pedido abandonado, por saída da tela ou troca de empresa, MUST ser descartada.
 - **FR-018**: Sem empresa selecionada, o aplicativo MUST NOT carregar nem gravar perfil ou notificações. Sessão expirada e acesso negado MUST seguir a recuperação já usada nas configurações da empresa.
@@ -142,23 +153,23 @@ A seção Ajuda reúne os mesmos destinos de Privacidade, Termos de Uso e Suport
 
 ### Key Entities *(include if feature involves data)*
 
-- **Perfil da pessoa**: Nome, bio, cargo, idioma, fuso horário e a versão que impede gravar por cima de uma edição mais nova. Uma pessoa, não uma empresa. Bio e cargo são opcionais. E-mail e foto vêm da sessão de entrada e não são gravados neste perfil.
+- **Perfil da pessoa**: Nome, bio, cargo, idioma, fuso horário e a versão que impede gravar por cima de uma edição mais nova. Uma pessoa, não uma empresa. Bio e cargo são opcionais, texto puro, com no máximo 160 e 80 caracteres. No serviço, os campos são `bio` e `jobTitle`: omitir mantém o valor, vazio apaga, e a leitura devolve vazio quando não há texto. E-mail e foto vêm da sessão de entrada e não são gravados neste perfil.
 - **Vínculo com a empresa selecionada**: Função, nome da empresa e data de entrada. Somente leitura. Mudam quando a empresa selecionada muda.
-- **Aparência e acessibilidade**: Tema claro, escuro ou do sistema, e as três opções de reduzir movimento, sublinhar links e contraste. Não pertencem à empresa. O lugar em que ficam gravadas está em aberto no FR-010.
+- **Aparência e acessibilidade**: Tema claro, escuro ou do sistema, e as três opções de reduzir movimento, sublinhar links e contraste. Ficam só neste navegador. Não pertencem à empresa nem ao perfil gravado no Core.
 - **Preferência de notificação**: A mesma entidade já aceita, por pessoa e empresa. Esta história só muda onde ela aparece e em que idioma as frases fixas são mostradas.
-- **Sessão ativa**: Uma entrada ainda válida da conta, distinguindo a que está em uso. Pode ser revogada, com a ressalva em aberto no FR-015.
+- **Sessão ativa**: Uma entrada ainda válida da conta. A que está em uso aparece marcada e só termina pelo Sair. As outras podem ser revogadas.
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
 - **SC-001**: Uma pessoa com empresa selecionada encontra foto ou iniciais, nome, e-mail, função, empresa, membro desde, bio e cargo numa única abertura de `/perfil`, em menos de 1 minuto.
-- **SC-002**: Em 100% das reaberturas depois de um salvamento confirmado de nome, bio e cargo, os três valores exibidos são os confirmados. Nome inválido não altera o perfil em 100% das tentativas.
+- **SC-002**: Em 100% das reaberturas depois de um salvamento confirmado de nome, bio e cargo, os três valores exibidos são os confirmados. Nome, bio ou cargo inválidos não alteram o perfil em 100% das tentativas.
 - **SC-003**: Depois de uma troca de foto confirmada, o cartão e o cabeçalho mostram a nova foto sem novo login. Sem foto, os dois mostram iniciais. Numa troca falha, a foto anterior permanece em 100% dos casos.
 - **SC-004**: A pessoa localiza um fuso pela busca, vê o deslocamento e a pré-visualização de agora antes de salvar, e conclui a escolha em menos de 1 minuto.
 - **SC-005**: Com English gravado, 100% das frases fixas das cinco seções, inclusive notificações, aparecem em inglês. Com Português (Brasil), aparecem em português. As frases das outras telas permanecem em português nos dois casos.
 - **SC-006**: Uma preferência de notificação salva nesta seção permanece na reabertura e é a mesma escolha que a tela anterior já era capaz de gravar.
-- **SC-007**: A seção Segurança não exibe código de pareamento em nenhuma abertura. Revogar outra sessão remove essa sessão da lista e impede o uso dela.
+- **SC-007**: A seção Segurança não exibe código de pareamento em nenhuma abertura. A sessão em uso aparece marcada e não é revogada na lista. Revogar outra sessão remove essa sessão da lista e impede o uso dela.
 - **SC-008**: Em janela larga a pessoa troca de seção pela lista vertical. Em janela estreita alcança as mesmas cinco seções sem perder o cartão de identidade. Ajuda não abre destino diferente do rodapé.
 
 ## Out of Scope
@@ -174,12 +185,12 @@ A seção Ajuda reúne os mesmos destinos de Privacidade, Termos de Uso e Suport
 ## Assumptions
 
 - A especificação anterior do perfil permanece em vigor para nome, idioma `pt-BR` e `en`, fuso internacional, versão, conflito, atualização do nome na sessão já aberta, moldura e a exigência de empresa selecionada. Esta história acrescenta bio, cargo, foto, hub, tema, acessibilidade, segurança e ajuda, e move as notificações para uma seção.
-- Bio e cargo entram no mesmo perfil que já guarda nome, idioma e fuso. O serviço, em trabalho paralelo, passa a aceitá-los na leitura e na gravação. Se a leitura ainda não trouxer os campos, a tela trata os dois como vazios e não falha a carga. A gravação da conta os envia. Se o serviço recusar, a tela mostra o erro, não anuncia sucesso e mantém o rascunho. Os limites de 200 e 500 caracteres deixam o aceite testável. Não foram confirmados pelo product owner nem pelo contrato publicado do serviço. Se o serviço publicar outro limite, o planejamento substitui estes números.
+- Bio e cargo entram no mesmo perfil que já guarda nome, idioma e fuso. No serviço, em trabalho paralelo, os campos são `bio` e `jobTitle` no `GET` e no `PUT /api/user/profile`. Omitir o campo mantém o valor, `""` apaga, e o `GET` devolve `""` quando não há texto. Se a leitura ainda não trouxer os campos, a tela trata os dois como vazios e não falha a carga. A gravação da conta envia os dois. Se o serviço recusar, a tela mostra o erro, não anuncia sucesso e mantém o rascunho. Bio tem no máximo 160 caracteres e cargo no máximo 80, depois do recorte. Os dois são texto puro, como o nome, sem quebra de linha.
 - A foto é a da sessão de entrada já aberta. Alterar a foto usa essa mesma sessão. Não há chave secreta e não há mudança no painel do provedor. O formato e o tamanho aceitos são os que essa sessão já aceita. A recusa é mostrada à pessoa.
 - Membro desde é a entrada na empresa selecionada, não a data de criação da conta. A função é o papel desse vínculo. O cabeçalho continua mostrando o nome do perfil e o nome da empresa. A única mudança do cabeçalho nesta história é a foto.
-- Tema e acessibilidade valem para a área autenticada. As telas de entrada não mudam. Gravar ou não essas quatro escolhas no perfil está em aberto no FR-010. Enquanto isso não for decidido, elas não podem ser tratadas como configuração da empresa.
+- Tema e acessibilidade valem para a área autenticada e ficam só neste navegador, em localStorage. O tema do sistema segue prefers-color-scheme. Não vão para o Core. As telas de entrada não mudam. Trocar de empresa não as repõe.
 - Os três destinos de Ajuda são os do rodapé: Privacidade, Termos de Uso e Suporte. Hoje são os placeholders `#privacidade`, `#termos` e `#suporte`. Não há outro endereço real para reutilizar.
-- A fronteira entre a sessão de identidade, o perfil no serviço e as preferências da conta está na ADR_171 de `lhamalog-docs`, título "Conta do usuário no Web - fronteira Clerk, Core e preferências de perfil". Esta especificação não reabre essa fronteira. No momento da escrita, o arquivo ainda não estava na branch `main` desse repositório. O planejamento deve reler a ADR quando ela estiver publicada e ajustar só o que a contradisser.
+- A fronteira entre a sessão de identidade, o perfil no serviço e as preferências da conta está na ADR_171 de `lhamalog-docs`, título "Conta do usuário no Web - fronteira Clerk, Core e preferências de perfil". Esta especificação não reabre essa fronteira. O arquivo ainda não está publicado. Nesta rodada a ADR fica só como ponteiro: o planejamento não espera o texto, não o copia e não altera esta especificação por causa dele.
 - Salvar a conta reenvia o idioma e o fuso já confirmados, para não apagá-los. Salvar preferências reenvia o nome, a bio e o cargo já confirmados, pelo mesmo motivo. Notificações continuam numa gravação separada.
-- Revogar uma sessão que não é a atual está decidido. O que acontece com a sessão em uso está em aberto no FR-015. O Sair já existente continua encerrando a entrada atual.
+- A sessão em uso aparece marcada e não é revogada na lista. Ela termina pelo Sair já existente. As outras sessões podem ser revogadas.
 - Textos devolvidos pelo serviço continuam como vieram, sem tradução nesta história. Rótulos de tipos e severidades que o serviço envia também.
