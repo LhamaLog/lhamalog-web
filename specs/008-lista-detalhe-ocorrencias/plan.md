@@ -91,6 +91,8 @@ tests/
 
 **Structure Decision**: tudo de ocorrências fica em `features/occurrences`, como `products` e `team`. O `CompanyWorkspace` só ganha o ramo de Ocorrências. `useApi`, `useApiResource` e `sessionRedirect` não mudam.
 
+**Depois da LLT-120 (merge da `Development` em 25/11)**: o `CompanyWorkspace` passou a ficar dentro do `AccessProvider` e esconde o menu de Equipe por permissão (`teamMenuHidden`). Ocorrências não ganha regra de permissão no Web: todo papel abre a tela, e quem limita os produtos é o Core (spec 012, R3, que continua igual com a matriz da 011). O item `occurrences` não entra no `hiddenItems`.
+
 ## Complexity Tracking
 
 > Sem violações.
