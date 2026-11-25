@@ -126,13 +126,14 @@ type UserIdentityProps = {
   name: string
   role: string
   href?: string
+  imageUrl?: string | null
 }
 
-export function UserIdentity({ name, role, href }: UserIdentityProps) {
+export function UserIdentity({ name, role, href, imageUrl }: UserIdentityProps) {
   const identity = (
     <>
       <span aria-hidden="true" className="inline-flex shrink-0">
-        <Avatar name={name} />
+        <Avatar name={name} imageUrl={imageUrl} />
       </span>
       <div className="min-w-0">
         <p className="truncate text-xs font-bold text-[#083B7A]" title={name}>

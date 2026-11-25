@@ -6,7 +6,9 @@ import { CompanyPage } from '../../features/company/components/CompanyPage'
 import { companySectionFromParam, companySections } from '../../features/company/model'
 import { ProductsPage } from '../../features/products/components/ProductsPage'
 import { ProfilePage } from '../../features/profile/components/ProfilePage'
-import { NotificationPreferences } from '../../features/notificationPreferences/components/NotificationPreferences'
+import { applyAppearance, clearAppearance, readAppearance, subscribeAppearance } from '../../features/profile/appearance'
+import { profilePhotoSrc } from '../../features/profile/photo'
+import { footerLinks } from './footerLinks'
 import { TeamPage } from '../../features/team/components/TeamPage'
 import { TeamTabs, teamTabFromPath } from '../../features/team/components/TeamTabs'
 import type { TeamTab } from '../../features/team/components/TeamTabs'
@@ -57,6 +59,25 @@ function WorkspaceShell() {
   const location = useLocation()
   const [params] = useSearchParams()
   const text = (key: Parameters<typeof profileMessage>[1], values?: Record<string, string>) => profileMessage(language, key, values)
+  useEffect(() => {
+    const root = document.documentElement
+    const media = window.matchMedia('(prefers-color-scheme: dark)')
+    const apply = () => applyAppearance(root, readAppearance(), media.matches)
+    apply()
+    media.addEventListener('change', apply)
+    const unsubscribe = subscribeAppearance(apply)
+    const onStorage = (event: StorageEvent) => {
+      if (!event.key?.startsWith('lhamalog.')) return
+      apply()
+    }
+    window.addEventListener('storage', onStorage)
+    return () => {
+      media.removeEventListener('change', apply)
+      unsubscribe()
+      window.removeEventListener('storage', onStorage)
+      clearAppearance(root)
+    }
+  }, [])
   const products = location.pathname.startsWith('/produtos')
   const profile = location.pathname.startsWith('/perfil')
   const team = location.pathname.startsWith('/equipe')
@@ -99,18 +120,14 @@ function WorkspaceShell() {
           ? [{ label: text('shell.breadcrumbAdministration') }, { label: text('shell.breadcrumbProfile') }]
           : products ? [{ label: text('shell.breadcrumbProducts') }] : companyCrumbs,
       },
-      user: { name: headerName || sessionName, role: organization?.name ?? '', href: '/perfil' },
+      user: { name: headerName || sessionName, role: organization?.name ?? '', href: '/perfil', imageUrl: profilePhotoSrc(user) },
       signOutLabel: text('shell.signOut'),
       onSignOut: () => setAppliedClerkLocale('pt-BR'),
     }}
     footer={{
       notice: text('shell.footerNotice', { year: String(new Date().getFullYear()) }),
       navLabel: text('shell.footerNav'),
-      links: [
-        { label: text('shell.privacy'), href: '#privacidade' },
-        { label: text('shell.terms'), href: '#termos' },
-        { label: text('shell.support'), href: '#suporte' },
-      ],
+      links: footerLinks.map((link) => ({ label: text(link.labelKey), href: link.href })),
     }}>
     <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4">
       <div className="space-y-1"><p className="text-sm font-semibold text-[#083B7A]">{text('shell.companySelected')}</p>
@@ -125,6 +142,6 @@ function WorkspaceShell() {
     </div>
     {orgId && access.status === 'error' ? <ErrorState title="Não foi possível carregar o seu acesso" description={access.error} onRetry={access.reload} /> : null}
     {!orgId ? <EmptyState title={text('shell.emptyCompanyTitle')} description={text('shell.emptyCompanyDescription')} />
-      : <div key={orgId}>{plan ? <PlansPage /> : team ? <TeamSection tab={teamTabFromPath(location.pathname)} /> : profile ? <div className="space-y-6"><ProfilePage /><NotificationPreferences /></div> : products ? <ProductsPage /> : <CompanyPage organizationId={organization?.id ?? orgId} />}</div>}
+      : <div key={orgId}>{plan ? <PlansPage /> : team ? <TeamSection tab={teamTabFromPath(location.pathname)} /> : profile ? <ProfilePage /> : products ? <ProductsPage /> : <CompanyPage organizationId={organization?.id ?? orgId} />}</div>}
   </AppLayout>
 }

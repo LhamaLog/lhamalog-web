@@ -4,12 +4,12 @@ import assert from 'node:assert/strict'
 
 register(new URL('./resolve-ts.mjs', import.meta.url))
 
-const emptyProfile = { displayName: '', language: 'pt-BR', timezone: 'America/Sao_Paulo', version: null }
+const emptyProfile = { displayName: '', language: 'pt-BR', timezone: 'America/Sao_Paulo', version: null, bio: '', jobTitle: '' }
 
 test('profile response reads timezone and version, and rejects the company timeZone name', async () => {
   const { readUserProfile } = await import('../src/features/profile/contract.ts')
   assert.deepEqual(readUserProfile({ displayName: 'Ana Souza', language: 'en', timezone: 'America/Manaus', version: 2 }), {
-    displayName: 'Ana Souza', language: 'en', timezone: 'America/Manaus', version: 2,
+    displayName: 'Ana Souza', language: 'en', timezone: 'America/Manaus', version: 2, bio: '', jobTitle: '',
   })
   assert.deepEqual(readUserProfile(emptyProfile), emptyProfile)
   assert.equal(readUserProfile({ displayName: 'Ana', language: 'pt-BR', timeZone: 'America/Sao_Paulo', version: null }), null)
@@ -17,16 +17,45 @@ test('profile response reads timezone and version, and rejects the company timeZ
   assert.equal(readUserProfile({ displayName: 1, language: 'pt-BR', timezone: 'UTC', version: null }), null)
 })
 
-test('profile put sends only the four contract fields and trims the name', async () => {
+test('profile read without bio and jobTitle stays valid and empty', async () => {
+  const { readUserProfile } = await import('../src/features/profile/contract.ts')
+  const legacy = { displayName: 'Ana Souza', language: 'pt-BR', timezone: 'America/Sao_Paulo', version: 3 }
+  assert.deepEqual(readUserProfile(legacy), { ...legacy, bio: '', jobTitle: '' })
+  assert.deepEqual(readUserProfile({ ...legacy, bio: 12, jobTitle: null }), { ...legacy, bio: '', jobTitle: '' })
+  assert.deepEqual(readUserProfile({ ...legacy, bio: 'Observabilidade', jobTitle: 'SRE' }), {
+    ...legacy, bio: 'Observabilidade', jobTitle: 'SRE',
+  })
+})
+
+test('profile put sends bio and jobTitle, trims them, and requires the echo', async () => {
   const { buildProfilePut, serverConfirmedProfile } = await import('../src/features/profile/contract.ts')
-  const sent = { displayName: '  Ana Souza  ', language: 'pt-BR', timezone: 'America/Sao_Paulo', version: null }
+  const sent = {
+    displayName: '  Ana Souza  ',
+    language: 'pt-BR',
+    timezone: 'America/Sao_Paulo',
+    version: null,
+    bio: '  Observabilidade  ',
+    jobTitle: '  SRE  ',
+  }
   const body = buildProfilePut(sent)
-  assert.deepEqual(Object.keys(body).sort(), ['displayName', 'language', 'timezone', 'version'])
+  assert.deepEqual(Object.keys(body).sort(), ['bio', 'displayName', 'jobTitle', 'language', 'timezone', 'version'])
   assert.equal(body.displayName, 'Ana Souza')
+  assert.equal(body.bio, 'Observabilidade')
+  assert.equal(body.jobTitle, 'SRE')
   assert.equal(body.version, null)
+  assert.equal('theme' in body, false)
   assert.equal(serverConfirmedProfile(sent, { ...body, displayName: 'Ana Souza', version: 4 }), true)
   assert.equal(serverConfirmedProfile(sent, { ...body, timezone: 'UTC', version: 4 }), false)
   assert.equal(serverConfirmedProfile(sent, { ...body, language: 'en', version: 4 }), false)
+  assert.equal(serverConfirmedProfile(sent, { ...body, bio: 'outra', version: 4 }), false)
+  assert.equal(serverConfirmedProfile(sent, { ...body, jobTitle: 'outra', version: 4 }), false)
+  const withoutEcho = { displayName: 'Ana Souza', language: 'pt-BR', timezone: 'America/Sao_Paulo', version: 4 }
+  assert.equal(serverConfirmedProfile(sent, withoutEcho), false)
+  assert.equal(serverConfirmedProfile(sent, { ...withoutEcho, bio: '', jobTitle: 'SRE' }), false)
+  const blank = buildProfilePut({ ...sent, bio: '   ', jobTitle: '  ' })
+  assert.equal(blank.bio, '')
+  assert.equal(blank.jobTitle, '')
+  assert.equal(serverConfirmedProfile({ ...sent, bio: '   ', jobTitle: '  ' }, { ...blank, version: 5 }), true)
 })
 
 test('profile validation accepts one and 200 characters and rejects the rest', async () => {
@@ -42,6 +71,28 @@ test('profile validation accepts one and 200 characters and rejects the rest', a
   assert.ok(valid('Ana', 'en-US').language)
   assert.ok(valid('Ana', 'pt').language)
   assert.ok(valid('Ana', 'pt-BR', 'Brasilia').timezone)
+})
+
+test('profile validation rejects long bio, long job title, line breaks and other control characters', async () => {
+  const { profileFieldErrors } = await import('../src/features/profile/validation.ts')
+  const { buildProfilePut } = await import('../src/features/profile/contract.ts')
+  const base = { displayName: 'Ana', language: 'pt-BR', timezone: 'America/Sao_Paulo', bio: '', jobTitle: '' }
+  const errors = (bio, jobTitle = '') => profileFieldErrors({ ...base, bio, jobTitle })
+  assert.deepEqual(errors('a'.repeat(160), 'b'.repeat(80)), {})
+  assert.deepEqual(errors(`  ${'a'.repeat(160)}  `, `  ${'b'.repeat(80)}  `), {})
+  assert.deepEqual(errors('   ', '   '), {})
+  assert.equal(buildProfilePut({ ...base, bio: '   ', jobTitle: ' \u0020 ' }).bio, '')
+  assert.equal(buildProfilePut({ ...base, bio: '   ', jobTitle: ' \u0020 ' }).jobTitle, '')
+  assert.equal(errors('a'.repeat(161)).bio, 'bio')
+  assert.equal(errors('', 'b'.repeat(81)).jobTitle, 'jobTitle')
+  assert.equal(errors('linha\nnova').bio, 'control')
+  assert.equal(errors('ok', 'cargo\nnovo').jobTitle, 'control')
+  assert.equal(errors('a\u0000b').bio, 'control')
+  assert.equal(errors('ok', 'a\u0000b').jobTitle, 'control')
+  assert.equal(errors('a\u001Fb').bio, 'control')
+  assert.equal(errors('ok', 'a\u001Fb').jobTitle, 'control')
+  assert.equal(errors('a\u007Fb').bio, 'control')
+  assert.equal(errors('ok', 'a\u007Fb').jobTitle, 'control')
 })
 
 test('unsaved empty profile takes the Clerk session name without replacing a typed name', async () => {
