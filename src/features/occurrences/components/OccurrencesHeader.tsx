@@ -46,8 +46,9 @@ export function OccurrencesHeader({
         description={description}
         actions={<FilterButton count={filterCount} onClick={onFilterClick} />}
       />
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="min-w-0 flex-1">
+      {/* The search takes the whole row until there is room for the selectors beside it (spec 013/014). */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="min-w-0 sm:basis-full xl:basis-0 xl:flex-1">
           <SearchInput
             id={searchId}
             label="Buscar ocorrências"
