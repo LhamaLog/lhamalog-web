@@ -5,6 +5,8 @@ import { AppLayout } from './AppLayout'
 import { CompanyPage } from '../../features/company/components/CompanyPage'
 import { companySectionFromParam, companySections } from '../../features/company/model'
 import { ProductsPage } from '../../features/products/components/ProductsPage'
+import { OccurrencesPage } from '../../features/occurrences/components/OccurrencesPage'
+import { OccurrenceDetailPage } from '../../features/occurrences/components/OccurrenceDetailPage'
 import { ProfilePage } from '../../features/profile/components/ProfilePage'
 import { NotificationPreferences } from '../../features/notificationPreferences/components/NotificationPreferences'
 import { TeamPage } from '../../features/team/components/TeamPage'
@@ -61,6 +63,9 @@ function WorkspaceShell() {
   const profile = location.pathname.startsWith('/perfil')
   const team = location.pathname.startsWith('/equipe')
   const plan = location.pathname.startsWith('/plano')
+  // Spec 008 (LLT-135): /ocorrencias and /ocorrencias/:id.
+  const occurrences = location.pathname === '/ocorrencias' || location.pathname.startsWith('/ocorrencias/')
+  const occurrenceDetail = location.pathname.startsWith('/ocorrencias/')
   // Empresa sem plano: qualquer recusa subscription_required leva à tela de planos (spec 007).
   useEffect(() => onSubscriptionRequired(() => {
     if (!window.location.pathname.startsWith('/plano')) navigate('/plano', { replace: true })
@@ -71,11 +76,12 @@ function WorkspaceShell() {
     ? [{ label: text('shell.breadcrumbAdministration') }, { label: 'Configurações da Empresa' }]
     : [{ label: text('shell.breadcrumbAdministration') }, { label: 'Configurações da Empresa', href: '/empresa' }, { label: sectionLabel }]
   const sessionName = user?.fullName || user?.primaryEmailAddress?.emailAddress || text('shell.userFallback')
-  const here = plan ? '/plano' : team ? '/equipe' : profile ? '/perfil' : products ? '/produtos' : '/empresa'
+  // Changing company drops the occurrence filters of the previous one (FR-015).
+  const here = occurrences ? '/ocorrencias' : plan ? '/plano' : team ? '/equipe' : profile ? '/perfil' : products ? '/produtos' : '/empresa'
   return <AppLayout
     contentClassName="max-w-none"
     navbar={{
-      activeItem: plan ? 'plan' : team ? 'team' : profile ? 'profile' : products ? 'products' : 'company',
+      activeItem: occurrences ? 'occurrences' : plan ? 'plan' : team ? 'team' : profile ? 'profile' : products ? 'products' : 'company',
       productName: 'Produtos da empresa',
       homeHref: '/empresa',
       hiddenItems: teamMenuHidden(access),
@@ -86,12 +92,17 @@ function WorkspaceShell() {
         if (item === 'profile') navigate('/perfil')
         if (item === 'team') navigate('/equipe')
         if (item === 'plan') navigate('/plano')
+        if (item === 'occurrences') navigate('/ocorrencias')
       },
     }}
     header={{
       breadcrumbs: {
         homeHref: '/empresa',
-        items: plan
+        items: occurrenceDetail
+          ? [{ label: text('nav.occurrences'), href: '/ocorrencias' }, { label: 'Detalhe da ocorrência' }]
+          : occurrences
+          ? [{ label: text('nav.occurrences') }]
+          : plan
           ? [{ label: text('shell.breadcrumbAdministration') }, { label: text('nav.plan') }]
           : team
           ? [{ label: text('shell.breadcrumbAdministration') }, { label: text('nav.team') }]
@@ -125,6 +136,6 @@ function WorkspaceShell() {
     </div>
     {orgId && access.status === 'error' ? <ErrorState title="Não foi possível carregar o seu acesso" description={access.error} onRetry={access.reload} /> : null}
     {!orgId ? <EmptyState title={text('shell.emptyCompanyTitle')} description={text('shell.emptyCompanyDescription')} />
-      : <div key={orgId}>{plan ? <PlansPage /> : team ? <TeamSection tab={teamTabFromPath(location.pathname)} /> : profile ? <div className="space-y-6"><ProfilePage /><NotificationPreferences /></div> : products ? <ProductsPage /> : <CompanyPage organizationId={organization?.id ?? orgId} />}</div>}
+      : <div key={orgId}>{occurrenceDetail ? <OccurrenceDetailPage /> : occurrences ? <OccurrencesPage /> : plan ? <PlansPage /> : team ? <TeamSection tab={teamTabFromPath(location.pathname)} /> : profile ? <div className="space-y-6"><ProfilePage /><NotificationPreferences /></div> : products ? <ProductsPage /> : <CompanyPage organizationId={organization?.id ?? orgId} />}</div>}
   </AppLayout>
 }
