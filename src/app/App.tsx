@@ -211,7 +211,7 @@ export function App() {
   const occurrencePageSize = 6
   const occurrenceQuery = occurrenceSearch.trim().toLocaleLowerCase('pt-BR')
   const filteredOccurrences = demoOccurrences.filter((item) =>
-    [item.title, item.description, item.project, ...item.tags].join(' ').toLocaleLowerCase('pt-BR').includes(occurrenceQuery),
+    [item.title, item.description ?? '', item.project, ...(item.tags ?? [])].join(' ').toLocaleLowerCase('pt-BR').includes(occurrenceQuery),
   )
   const [demoDataState, setDemoDataState] = useState<'loading' | 'empty' | 'no-results' | 'error' | 'success'>('error')
   useEffect(() => {
