@@ -1,5 +1,7 @@
 type SeverityIndicatorProps = {
   severity: 'error' | 'warning' | 'info'
+  // Text shown instead of the default one (the real list uses "Informação", spec 008 FR-002).
+  label?: string
 }
 
 const severities = {
@@ -8,11 +10,11 @@ const severities = {
   info: { label: 'Info', className: 'border-blue-200 bg-blue-50 text-[#0C70F2]' },
 }
 
-export function SeverityIndicator({ severity }: SeverityIndicatorProps) {
+export function SeverityIndicator({ severity, label }: SeverityIndicatorProps) {
   const current = severities[severity]
 
   return (
-    <span className={`inline-flex h-16 w-26 shrink-0 items-center justify-center gap-2 rounded-lg border text-sm font-bold ${current.className}`}>
+    <span className={`inline-flex h-16 w-fit min-w-26 shrink-0 px-2 items-center justify-center gap-2 rounded-lg border text-sm font-bold ${current.className}`}>
       <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" className="shrink-0">
         {severity === 'warning' ? (
           <path d="M12 2 1 22h22Z" fill="currentColor" />
@@ -27,7 +29,7 @@ export function SeverityIndicator({ severity }: SeverityIndicatorProps) {
           strokeLinecap="round"
         />
       </svg>
-      {current.label}
+      {label ?? current.label}
     </span>
   )
 }
