@@ -77,6 +77,8 @@ LLT-135 (spec 008): a lista, os filtros e o detalhe agora usam o Core em `/ocorr
 
 LLT-136 (spec 013): o detalhe ganhou o `OccurrenceActions` (seletor de status, alterar, arquivar/desarquivar, com conflito e recarga), a lista ganhou o seletor de situação (Ativas/Arquivadas) pelo `controls` do `OccurrencesHeader`, e o `OccurrenceCard` ganhou o selo "Arquivada".
 
+LLT-137 (spec 014): a lista ganhou o aviso "N ocorrências novas · Atualizar" e o estado "Atualização automática pausada", pelo hook `useOccurrenceStream` (WebSocket do Core) e o módulo puro `occurrenceStream.ts`. No cabeçalho, a busca ocupa a linha inteira até haver espaço para os seletores ao lado.
+
 ## 6 Empresa
 
 - [x] Implementar cabeçalho da tela de Configurações da Empresa.
