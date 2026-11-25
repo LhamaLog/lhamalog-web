@@ -131,6 +131,8 @@ São dois momentos diferentes:
 | `/empresa` | Dados, endereço e contexto da empresa ativa, com sessão. |
 | `/produtos` | Cadastro, lista e contexto de produtos acessíveis, com sessão. |
 | `/componentes` | Demonstração visual preservada, com sessão. |
+| `/ocorrencias` | Lista das ocorrências dos produtos visíveis, vinda do Core (spec 012 do core): busca, filtros de tipo, status, produto e período, página e tamanho guardados no endereço. Detalhes em [lista e detalhe de ocorrências](specs/008-lista-detalhe-ocorrencias/spec.md). |
+| `/ocorrencias/:id` | Detalhe da ocorrência: dados, atributos, resumo, exemplos de log e histórico de status. O 404 do Core aparece como "Ocorrência não encontrada ou sem acesso", sem encerrar a sessão. |
 | `/sign-in/*` | Login. `?motivo=deslogado` mostra o aviso "Você foi deslogado" (ADR_032); `?redirect_url=<rota>` leva à rota depois do login, se for interna (spec 006). |
 | `/sign-up/*` | Cadastro. |
 | `/plano` | Planos do Core, contratação e situação do pedido (pagamento pelo simulador do Asaas enquanto a cobrança real não existe). Recusas `subscription_required` de qualquer tela levam para cá. Detalhes em [planos](specs/007-tela-planos-contratacao/spec.md). |
@@ -139,6 +141,10 @@ São dois momentos diferentes:
 | `/tarefas/escolher-organizacao/*`, `/tarefas/configurar-mfa/*`, `/tarefas/redefinir-senha/*` | Etapas pós-login da Clerk (session tasks). |
 
 Outros caminhos redirecionam para `/`. O `/*` é necessário porque os componentes da Clerk usam sub-rotas, como `/sign-in/factor-one`.
+
+### Ocorrências (`/ocorrencias`)
+
+O Core só lê as ocorrências gravadas pelo Módulo Ocorrência. Enquanto ele não grava as reais, suba o Core local com `OCCURRENCE_SAMPLE_DATA=true` (perfil `local`): a subida grava 12 ocorrências de exemplo para cada produto existente, sem duplicar. Roteiro em [quickstart](specs/008-lista-detalhe-ocorrencias/quickstart.md). A demonstração de `/componentes` continua com os dados fictícios e os painéis de métricas, que a tela real não mostra.
 
 ### Equipe (`/equipe`)
 
