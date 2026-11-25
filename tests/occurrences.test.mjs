@@ -55,7 +55,7 @@ test('the count reads in Portuguese', async () => {
 test('an empty address is the default list', async () => {
   const { readOccurrenceQuery, defaultOccurrenceQuery } = await query()
   assert.deepEqual(readOccurrenceQuery(new URLSearchParams('')), defaultOccurrenceQuery())
-  assert.deepEqual(defaultOccurrenceQuery(), { q: '', types: [], statuses: [], productIds: [], period: 'all', page: 1, size: 20 })
+  assert.deepEqual(defaultOccurrenceQuery(), { q: '', types: [], statuses: [], productIds: [], period: 'all', page: 1, size: 20, archived: false })
 })
 
 test('valid page and size are read; invalid ones fall back to 1 and 20', async () => {
@@ -142,7 +142,7 @@ test('a blank search is not sent to the Core', async () => {
 
 test('writing and reading the address gives the same query back', async () => {
   const { readOccurrenceQuery, writeOccurrenceQuery } = await query()
-  const original = { q: 'jwt', types: ['ERROR', 'WARNING'], statuses: ['FECHADA'], productIds: ['p1'], period: '30d', page: 3, size: 10 }
+  const original = { q: 'jwt', types: ['ERROR', 'WARNING'], statuses: ['FECHADA'], productIds: ['p1'], period: '30d', page: 3, size: 10, archived: true }
   assert.deepEqual(readOccurrenceQuery(writeOccurrenceQuery(original)), original)
 })
 
@@ -201,4 +201,66 @@ test('the status history is chronological', async () => {
     { from: null, to: 'ABERTA', changedAt: '2026-11-18T10:00:00Z', changedBy: { type: 'SYSTEM', id: 'm' } },
   ]
   assert.deepEqual(chronologicalHistory(changes).map(change => change.to), ['ABERTA', 'EM_ANALISE'])
+})
+
+// Spec 013 (LLT-136): situação da lista
+
+test('the situation is read from situacao=arquivadas and anything else is the active list', async () => {
+  const { readOccurrenceQuery, writeOccurrenceQuery, defaultOccurrenceQuery } = await query()
+  assert.equal(defaultOccurrenceQuery().archived, false)
+  assert.equal(readOccurrenceQuery(new URLSearchParams('situacao=arquivadas')).archived, true)
+  assert.equal(readOccurrenceQuery(new URLSearchParams('situacao=todas')).archived, false)
+  assert.equal(writeOccurrenceQuery({ ...defaultOccurrenceQuery(), archived: true }).toString(), 'situacao=arquivadas')
+  assert.equal(writeOccurrenceQuery(defaultOccurrenceQuery()).toString(), '')
+})
+
+test('the Core path asks for the archived ones only when chosen, and the situation is not an active filter', async () => {
+  const { occurrencesPath, activeFilterCount, clearFilters, defaultOccurrenceQuery } = await query()
+  assert.equal(occurrencesPath({ ...defaultOccurrenceQuery(), archived: true }, NOW), '/api/occurrences?page=1&size=20&archived=true')
+  assert.equal(occurrencesPath(defaultOccurrenceQuery(), NOW), '/api/occurrences?page=1&size=20')
+  assert.equal(activeFilterCount({ ...defaultOccurrenceQuery(), archived: true }), 0)
+  assert.equal(clearFilters({ ...defaultOccurrenceQuery(), archived: true, types: ['ERROR'] }).archived, false)
+})
+
+// Spec 013 (LLT-136): ações
+
+const actions = () => import('../src/features/occurrences/occurrenceActions.ts')
+
+test('each action has its route, method and body with the revision seen', async () => {
+  const { statusAction, archiveAction, unarchiveAction } = await actions()
+  assert.deepEqual(statusAction('o/1', 'FECHADA', 'rev-1'), { path: '/api/occurrences/o%2F1/status', method: 'PUT', body: { status: 'FECHADA', revision: 'rev-1' } })
+  assert.deepEqual(archiveAction('o1', 'rev-2'), { path: '/api/occurrences/o1/archive', method: 'POST', body: { revision: 'rev-2' } })
+  assert.deepEqual(unarchiveAction('o1', 'rev-3'), { path: '/api/occurrences/o1/unarchive', method: 'POST', body: { revision: 'rev-3' } })
+})
+
+test('the answer of an action is classified for the screen', async () => {
+  const { actionFailure } = await actions()
+  const { ApiError } = await import('../src/shared/services/api.ts')
+  assert.deepEqual(actionFailure(new ApiError('A ocorrência mudou desde que você abriu. Recarregue e tente de novo.', 409, {}, 'occurrence_changed', 'A ocorrência mudou desde que você abriu. Recarregue e tente de novo.')),
+    { kind: 'conflict', message: 'A ocorrência mudou desde que você abriu. Recarregue e tente de novo.' })
+  assert.deepEqual(actionFailure(new ApiError('x', 404)), { kind: 'not-found' })
+  assert.deepEqual(actionFailure(new ApiError('Confira os campos', 400, { status: 'Status desconhecido.' })), { kind: 'invalid', message: 'Status desconhecido.' })
+  assert.deepEqual(actionFailure(new ApiError('Falhou', 500)), { kind: 'error', message: 'Falhou' })
+  assert.deepEqual(actionFailure(new Error('rede')), { kind: 'error', message: 'Não foi possível concluir a ação. Tente novamente.' })
+})
+
+test('the success message names what changed', async () => {
+  const { successMessage } = await actions()
+  assert.equal(successMessage('status'), 'Status alterado')
+  assert.equal(successMessage('archive'), 'Ocorrência arquivada')
+  assert.equal(successMessage('unarchive'), 'Ocorrência desarquivada')
+})
+
+test('the author of a user change shows the member name when known', async () => {
+  const { changedByLabel } = await labels()
+  const names = new Map([['user_1', 'Ana Souza']])
+  assert.equal(changedByLabel({ type: 'USER', id: 'user_1' }, names), 'Ana Souza')
+  assert.equal(changedByLabel({ type: 'USER', id: 'user_2' }, names), 'user_2')
+  assert.equal(changedByLabel({ type: 'SYSTEM', id: 'modulo-ocorrencia' }, names), 'Sistema')
+})
+
+test('an archived item shows the Arquivada badge on its card', async () => {
+  const { toCardItem } = await view()
+  assert.equal(toCardItem({ ...item, archived: true }, 'pt-BR').archivedLabel, 'Arquivada')
+  assert.equal(toCardItem(item, 'pt-BR').archivedLabel, undefined)
 })

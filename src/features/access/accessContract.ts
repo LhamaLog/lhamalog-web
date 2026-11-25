@@ -93,10 +93,10 @@ export function can(permissions: readonly string[], permission: string): boolean
 }
 
 // Same rows as the Core matrix (data-model.md), used only while the Core does not have LLT-120.
-const memberPermissions = ['COMPANY_VIEW', 'PRODUCTS_CREATE', 'PRODUCTS_EDIT']
+const memberPermissions = ['COMPANY_VIEW', 'OCCURRENCES_MANAGE', 'PRODUCTS_CREATE', 'PRODUCTS_EDIT']
 const adminPermissions = [
   'COMPANY_EDIT', 'COMPANY_VIEW', 'INGESTION_TOKENS_MANAGE', 'MEMBERS_DEACTIVATE', 'MEMBERS_INVITE_MEMBER',
-  'MEMBERS_PROMOTE_ADMIN', 'MEMBERS_VIEW', 'NOTIFICATION_ROLES_MANAGE', 'PRODUCT_ACCESS_MANAGE', 'PRODUCTS_ARCHIVE',
+  'MEMBERS_PROMOTE_ADMIN', 'MEMBERS_VIEW', 'NOTIFICATION_ROLES_MANAGE', 'OCCURRENCES_MANAGE', 'PRODUCT_ACCESS_MANAGE', 'PRODUCTS_ARCHIVE',
   'PRODUCTS_CREATE', 'PRODUCTS_EDIT', 'PRODUCTS_VIEW_ALL',
 ]
 

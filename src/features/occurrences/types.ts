@@ -19,6 +19,8 @@ export type OccurrenceListItem = {
   recurring: boolean
   firstSeenAt: string
   lastSeenAt: string
+  // Spec 013 (LLT-136); absent in a Core without the spec 014.
+  archived?: boolean
 }
 
 export type OccurrencePage = { items: OccurrenceListItem[]; page: number; size: number; totalItems: number }
@@ -39,4 +41,8 @@ export type OccurrenceDetail = OccurrenceListItem & {
   samples: string[]
   attributes: OccurrenceAttribute[]
   statusHistory: OccurrenceStatusChange[]
+  // Spec 013 (LLT-136): null or absent in a Core without the spec 014, which hides the actions.
+  revision?: string | null
+  archivedAt?: string | null
+  archivedBy?: { type: string; id: string | null } | null
 }

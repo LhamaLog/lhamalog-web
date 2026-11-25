@@ -131,8 +131,8 @@ São dois momentos diferentes:
 | `/empresa` | Dados, endereço e contexto da empresa ativa, com sessão. |
 | `/produtos` | Cadastro, lista e contexto de produtos acessíveis, com sessão. |
 | `/componentes` | Demonstração visual preservada, com sessão. |
-| `/ocorrencias` | Lista das ocorrências dos produtos visíveis, vinda do Core (spec 012 do core): busca, filtros de tipo, status, produto e período, página e tamanho guardados no endereço. Detalhes em [lista e detalhe de ocorrências](specs/008-lista-detalhe-ocorrencias/spec.md). |
-| `/ocorrencias/:id` | Detalhe da ocorrência: dados, atributos, resumo, exemplos de log e histórico de status. O 404 do Core aparece como "Ocorrência não encontrada ou sem acesso", sem encerrar a sessão. |
+| `/ocorrencias` | Lista das ocorrências dos produtos visíveis, vinda do Core (spec 012 do core): busca, filtros de tipo, status, produto e período, página e tamanho guardados no endereço. O seletor de situação mostra as ativas (padrão) ou as arquivadas (`situacao=arquivadas`). Detalhes em [lista e detalhe de ocorrências](specs/008-lista-detalhe-ocorrencias/spec.md). |
+| `/ocorrencias/:id` | Detalhe da ocorrência: dados, atributos, resumo, exemplos de log e histórico de status. O 404 do Core aparece como "Ocorrência não encontrada ou sem acesso", sem encerrar a sessão. Quem tem `OCCURRENCES_MANAGE` vê o cartão "Ações": alterar o status (Aberta, Em análise, Fechada) e arquivar ou desarquivar ([ciclo de vida](specs/013-ciclo-de-vida-ocorrencias/spec.md)). |
 | `/sign-in/*` | Login. `?motivo=deslogado` mostra o aviso "Você foi deslogado" (ADR_032); `?redirect_url=<rota>` leva à rota depois do login, se for interna (spec 006). |
 | `/sign-up/*` | Cadastro. |
 | `/plano` | Planos do Core, contratação e situação do pedido (pagamento pelo simulador do Asaas enquanto a cobrança real não existe). Recusas `subscription_required` de qualquer tela levam para cá. Detalhes em [planos](specs/007-tela-planos-contratacao/spec.md). |

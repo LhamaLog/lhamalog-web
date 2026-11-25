@@ -21,6 +21,8 @@ export type OccurrenceItem = {
   countLabel?: string
   status?: { label: string; tone: BadgeTone }
   recurringLabel?: string
+  // Spec 013 (LLT-136): shown on archived occurrences.
+  archivedLabel?: string
 }
 
 type OccurrenceCardProps = {
@@ -30,7 +32,7 @@ type OccurrenceCardProps = {
 
 export function OccurrenceCard({ occurrence, onOpen }: OccurrenceCardProps) {
   const tags = occurrence.tags ?? []
-  const hasBadges = Boolean(occurrence.status || occurrence.recurringLabel || tags.length)
+  const hasBadges = Boolean(occurrence.status || occurrence.recurringLabel || occurrence.archivedLabel || tags.length)
   return (
     <Card className="flex flex-col gap-4 @min-[38rem]/occurrence:flex-row @min-[38rem]/occurrence:items-center">
       <SeverityIndicator severity={occurrence.severity} label={occurrence.severityLabel} />
@@ -41,6 +43,7 @@ export function OccurrenceCard({ occurrence, onOpen }: OccurrenceCardProps) {
           <div className="flex flex-wrap gap-2">
             {occurrence.status && <Badge variant={occurrence.status.tone} dot>{occurrence.status.label}</Badge>}
             {occurrence.recurringLabel && <Badge variant="neutral">{occurrence.recurringLabel}</Badge>}
+            {occurrence.archivedLabel && <Badge variant="neutral">{occurrence.archivedLabel}</Badge>}
             {tags.map((tag, index) => <Badge key={`${index}-${tag}`}>{tag}</Badge>)}
           </div>
         )}

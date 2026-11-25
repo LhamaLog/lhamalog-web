@@ -20,6 +20,8 @@ export type OccurrenceQuery = {
   period: PeriodPreset
   page: number
   size: PageSize
+  // Spec 013 (LLT-136): archived occurrences only; kept out of the filter panel and of the active count.
+  archived: boolean
 }
 
 export const periodLabels: Record<PeriodPreset, string> = {
@@ -36,7 +38,7 @@ const periodMillis: Record<Exclude<PeriodPreset, 'all'>, number> = {
 }
 
 export function defaultOccurrenceQuery(): OccurrenceQuery {
-  return { q: '', types: [], statuses: [], productIds: [], period: 'all', page: 1, size: defaultPageSize }
+  return { q: '', types: [], statuses: [], productIds: [], period: 'all', page: 1, size: defaultPageSize, archived: false }
 }
 
 function known<T extends string>(values: string[], allowed: readonly T[]): T[] {
@@ -61,6 +63,7 @@ export function readOccurrenceQuery(params: URLSearchParams): OccurrenceQuery {
     period: (periodPresets as readonly string[]).includes(period ?? '') ? period as PeriodPreset : 'all',
     page: positiveInteger(params.get('page')) ?? 1,
     size: (pageSizes as readonly number[]).includes(size ?? 0) ? size as PageSize : defaultPageSize,
+    archived: params.get('situacao') === 'arquivadas',
   }
 }
 
@@ -74,6 +77,7 @@ export function writeOccurrenceQuery(query: OccurrenceQuery): URLSearchParams {
   if (query.period !== 'all') params.set('periodo', query.period)
   if (query.page > 1) params.set('page', String(query.page))
   if (query.size !== defaultPageSize) params.set('size', String(query.size))
+  if (query.archived) params.set('situacao', 'arquivadas')
   return params
 }
 
@@ -88,6 +92,7 @@ export function occurrencesPath(query: OccurrenceQuery, now: Date = new Date()):
   if (query.period !== 'all') params.set('from', new Date(now.getTime() - periodMillis[query.period]).toISOString())
   const search = query.q.trim()
   if (search) params.set('q', search)
+  if (query.archived) params.set('archived', 'true')
   return `/api/occurrences?${params.toString()}`
 }
 
@@ -101,7 +106,7 @@ export function hasFiltersOrSearch(query: OccurrenceQuery): boolean {
   return activeFilterCount(query) > 0 || query.q.trim() !== ''
 }
 
-// Clears search and filters and goes back to page 1; the page size stays.
+// Clears search and filters, goes back to page 1 and to the active list; the page size stays.
 export function clearFilters(query: OccurrenceQuery): OccurrenceQuery {
   return { ...defaultOccurrenceQuery(), size: query.size }
 }

@@ -1,4 +1,4 @@
-import { countLabel, recurringLabel, statusLabel, statusTone, typeLabel, typeSeverity } from './labels'
+import { archivedLabel, countLabel, recurringLabel, statusLabel, statusTone, typeLabel, typeSeverity } from './labels'
 import type { OccurrenceItem } from './components/OccurrenceCard'
 import type { OccurrenceListItem, OccurrenceStatusChange } from './types'
 
@@ -45,6 +45,7 @@ export function toCardItem(item: OccurrenceListItem, locale: string, timeZone?: 
     countLabel: countLabel(item.count),
     status: { label: statusLabel(item.status), tone: statusTone(item.status) },
     recurringLabel: item.recurring ? recurringLabel : undefined,
+    archivedLabel: item.archived ? archivedLabel : undefined,
   }
 }
 
