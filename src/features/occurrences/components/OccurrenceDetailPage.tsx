@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
+import { useOrganization } from '@clerk/react'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import { useAppliedPreferences } from '../../profile/preferences'
+import { can } from '../../access/accessContract'
+import { useAccess } from '../../access/useAccess'
+import { memberDisplayName } from '../../team/members'
 import { Badge } from '../../../shared/ui/Badge'
 import { Button } from '../../../shared/ui/Button'
 import { Card } from '../../../shared/ui/Card'
@@ -8,15 +12,40 @@ import { EmptyState } from '../../../shared/ui/EmptyState'
 import { ErrorState } from '../../../shared/ui/ErrorState'
 import { LoadingState } from '../../../shared/ui/LoadingState'
 import {
-  attributeLabel, changedByLabel, countLabel, recurringLabel, sensitiveDataLabel, statusLabel, statusTone, typeLabel,
+  archivedLabel, attributeLabel, changedByLabel, countLabel, recurringLabel, sensitiveDataLabel, statusLabel, statusTone, typeLabel,
   typeSeverity,
 } from '../labels'
 import { chronologicalHistory, formatDateTime, productName } from '../occurrenceView'
 import type { OccurrenceDetail } from '../types'
 import { useCoreResource } from '../useCoreResource'
+import { OccurrenceActions } from './OccurrenceActions'
 import { SeverityIndicator } from './SeverityIndicator'
 
 const notFound = 'Ocorrência não encontrada ou sem acesso'
+
+// Names of the organization members, to show who changed a status (spec 013, research R4). Any failure keeps the ids.
+function useMemberNames(): ReadonlyMap<string, string> {
+  const { organization } = useOrganization()
+  const [names, setNames] = useState<ReadonlyMap<string, string>>(new Map())
+  useEffect(() => {
+    if (!organization) return
+    let active = true
+    organization.getMemberships({ initialPage: 1, pageSize: 100 })
+      .then(result => {
+        if (!active) return
+        const found = new Map<string, string>()
+        for (const member of result.data) {
+          const user = member.publicUserData
+          const name = user ? memberDisplayName(user) : ''
+          if (user?.userId && name) found.set(user.userId, name)
+        }
+        setNames(found)
+      })
+      .catch(() => undefined)
+    return () => { active = false }
+  }, [organization])
+  return names
+}
 
 function canCopy(): boolean {
   return typeof navigator !== 'undefined' && typeof navigator.clipboard?.writeText === 'function'
@@ -64,18 +93,25 @@ export function OccurrenceDetailPage() {
   const back = typeof from === 'string' && from.startsWith('?') ? `/ocorrencias${from}` : '/ocorrencias'
   const resource = useCoreResource<OccurrenceDetail>(`/api/occurrences/${encodeURIComponent(id)}`)
   const when = (iso: string | null) => formatDateTime(iso, language, timezone)?.full ?? 'Data desconhecida'
+  const access = useAccess()
+  const names = useMemberNames()
+  // The detail returned by an action replaces the loaded one until the next load (spec 013, FR-002).
+  const [updated, setUpdated] = useState<OccurrenceDetail | null>(null)
+  const [gone, setGone] = useState(false)
+  useEffect(() => { setUpdated(null); setGone(false) }, [resource.data])
+  const reload = () => { setUpdated(null); setGone(false); resource.reload() }
 
-  if (resource.error) {
+  if (resource.error || gone) {
     return (
       <div className="space-y-4">
         <BackLink to={back} />
-        {resource.error.status === 404
+        {gone || resource.error?.status === 404
           ? <EmptyState title={notFound} description="Ela pode ter sido removida, ser de outra empresa ou de um produto a que você não tem acesso." action={<Link to={back} className="text-sm font-semibold text-[#0C70F2] hover:underline">Voltar para ocorrências</Link>} />
-          : <ErrorState title="Não foi possível carregar a ocorrência" description={resource.error.message} onRetry={resource.reload} retrying={resource.loading} />}
+          : <ErrorState title="Não foi possível carregar a ocorrência" description={resource.error?.message} onRetry={reload} retrying={resource.loading} />}
       </div>
     )
   }
-  const occurrence = resource.data
+  const occurrence = updated ?? resource.data
   if (!occurrence || (resource.loading && occurrence.id !== id)) return <div className="space-y-4"><BackLink to={back} /><LoadingState label="Carregando ocorrência..." rows={3} /></div>
 
   const sensitive = sensitiveDataLabel(occurrence.sensitiveData)
@@ -88,6 +124,13 @@ export function OccurrenceDetailPage() {
         <SeverityIndicator severity={typeSeverity(occurrence.type)} label={typeLabel(occurrence.type)} />
         <div className="min-w-0 flex-1 space-y-2">
           <h1 className="break-words text-lg font-bold text-[#083B7A]">{occurrence.title}</h1>
+          {occurrence.archivedAt && (
+            <p className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+              <Badge variant="neutral">{archivedLabel}</Badge>
+              <span>em <time dateTime={occurrence.archivedAt}>{when(occurrence.archivedAt)}</time>
+                {occurrence.archivedBy ? ` por ${changedByLabel(occurrence.archivedBy, names)}` : ''}</span>
+            </p>
+          )}
           <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
             <span className="break-all">ID: <code className="text-slate-700">{occurrence.id}</code></span>
             <CopyButton text={occurrence.id} label="Copiar o ID da ocorrência" />
@@ -99,6 +142,14 @@ export function OccurrenceDetailPage() {
           </dl>
         </div>
       </Card>
+      {occurrence.revision && can(access.permissions, 'OCCURRENCES_MANAGE') && (
+        <OccurrenceActions
+          occurrence={{ ...occurrence, revision: occurrence.revision }}
+          onChanged={setUpdated}
+          onReload={reload}
+          onNotFound={() => setGone(true)}
+        />
+      )}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="min-w-0 space-y-3">
@@ -153,7 +204,7 @@ export function OccurrenceDetailPage() {
                     <Badge variant={statusTone(change.to)}>{statusLabel(change.to)}</Badge>
                   </span>
                   <span className="text-xs text-slate-500">
-                    <time dateTime={change.changedAt ?? undefined}>{when(change.changedAt)}</time> · {changedByLabel(change.changedBy)}
+                    <time dateTime={change.changedAt ?? undefined}>{when(change.changedAt)}</time> · {changedByLabel(change.changedBy, names)}
                   </span>
                 </li>
               ))}

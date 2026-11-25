@@ -1,4 +1,5 @@
 import { useId } from 'react'
+import type { ReactNode } from 'react'
 import { FilterButton } from '../../../shared/ui/FilterButton'
 import { PageHeader } from '../../../shared/ui/PageHeader'
 import { SearchInput } from '../../../shared/ui/SearchInput'
@@ -16,6 +17,8 @@ type OccurrencesHeaderProps = {
   pageSize?: number
   pageSizes?: readonly number[]
   onPageSizeChange?: (size: number) => void
+  // Extra controls next to the search, such as the situation selector of the spec 013 (LLT-136).
+  controls?: ReactNode
 }
 
 export function OccurrencesHeader({
@@ -29,6 +32,7 @@ export function OccurrencesHeader({
   pageSize,
   pageSizes,
   onPageSizeChange,
+  controls,
 }: OccurrencesHeaderProps) {
   const searchId = useId()
   const sizeId = useId()
@@ -53,6 +57,7 @@ export function OccurrencesHeader({
             onChange={(event) => onSearchChange(event.target.value)}
           />
         </div>
+        {controls}
         {showSize && (
           <div className="flex items-center gap-2 sm:w-44">
             <Select id={sizeId} label="Itens por página" hideLabel value={String(pageSize)} onChange={(event) => onPageSizeChange(Number(event.target.value))}>

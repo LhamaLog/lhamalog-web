@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAppliedPreferences } from '../../profile/preferences'
 import { Button } from '../../../shared/ui/Button'
 import { EmptyState } from '../../../shared/ui/EmptyState'
 import { ErrorState } from '../../../shared/ui/ErrorState'
 import { LoadingState } from '../../../shared/ui/LoadingState'
+import { Select } from '../../../shared/ui/Select'
+import { situationLabels } from '../labels'
 import {
   activeFilterCount, clearFilters, hasFiltersOrSearch, maxSearchLength, occurrencesPath, pageSizes,
   readOccurrenceQuery, writeOccurrenceQuery,
@@ -30,6 +32,7 @@ export function OccurrencesPage() {
   const resource = useCoreResource<OccurrencePage>(path)
   const [search, setSearch] = useState(query.q)
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const situationId = useId()
 
   const go = (next: OccurrenceQuery) => setParams(writeOccurrenceQuery(next))
 
@@ -63,6 +66,8 @@ export function OccurrencesPage() {
     // Page beyond the last one: the pagination stays to go back.
     emptyState = <EmptyState title="Não há ocorrências nesta página" description="Volte para uma página anterior." />
     showPagination = true
+  } else if (page.items.length === 0 && query.archived) {
+    emptyState = <EmptyState title="Nenhuma ocorrência arquivada" action={filtered ? clearButton : undefined} />
   } else if (page.items.length === 0) {
     emptyState = filtered
       ? <EmptyState title="Nenhuma ocorrência encontrada para os filtros aplicados" action={clearButton} />
@@ -84,6 +89,16 @@ export function OccurrencesPage() {
           pageSize: query.size,
           pageSizes,
           onPageSizeChange: (size) => go({ ...query, size: size as PageSize, page: 1 }),
+          // Spec 013 (LLT-136): active or archived occurrences, kept in the address as situacao=arquivadas.
+          controls: (
+            <div className="sm:w-44">
+              <Select id={situationId} label="Situação" hideLabel value={query.archived ? 'archived' : 'active'}
+                onChange={(event) => go({ ...query, archived: event.target.value === 'archived', page: 1 })}>
+                <option value="active">{situationLabels.active}</option>
+                <option value="archived">{situationLabels.archived}</option>
+              </Select>
+            </div>
+          ),
         }}
         list={{
           occurrences: page ? page.items.map(item => toCardItem(item, language, timezone)) : [],
