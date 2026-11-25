@@ -27,7 +27,7 @@ description: "Task list for the profile hub"
 
 **Purpose**: não criar pacote nem runner novo
 
-- [ ] T001 Manter `package.json` sem dependência nova e com `npm test` em `node --test tests/*.test.mjs`
+- [X] T001 Manter `package.json` sem dependência nova e com `npm test` em `node --test tests/*.test.mjs`
 
 ---
 
@@ -39,19 +39,19 @@ description: "Task list for the profile hub"
 
 ### Tests
 
-- [ ] T002 [P] Estender `tests/profile.test.mjs`: leitura sem `bio` e sem `jobTitle` continua válida e vale `""`; o `PUT` envia os dois; a confirmação exige o eco; bio acima de 160, cargo (`jobTitle`) acima de 80, quebra de linha e outro caractere de controle (`U+0000`–`U+001F` e `U+007F`) são recusados; só espaços vira `""`
-- [ ] T003 [P] Criar `tests/profile-hub.test.mjs` para aparência (`light`, `dark`, `system`), sessão em uso sem revogação, `profilePhotoSrc` só com `hasImage`, filtro de fuso por nome ou deslocamento e papel `org:admin` / `org:member`
+- [X] T002 [P] Estender `tests/profile.test.mjs`: leitura sem `bio` e sem `jobTitle` continua válida e vale `""`; o `PUT` envia os dois; a confirmação exige o eco; bio acima de 160, cargo (`jobTitle`) acima de 80, quebra de linha e outro caractere de controle (`U+0000`–`U+001F` e `U+007F`) são recusados; só espaços vira `""`
+- [X] T003 [P] Criar `tests/profile-hub.test.mjs` para aparência (`light`, `dark`, `system`), sessão em uso sem revogação, `profilePhotoSrc` só com `hasImage`, filtro de fuso por nome ou deslocamento e papel `org:admin` / `org:member`
 
 ### Implementation
 
-- [ ] T004 Acrescentar `bio` e `jobTitle` em `src/features/profile/types.ts`
-- [ ] T005 [P] Depois de T004, ler campo ausente como `""`, enviar sempre `bio` e `jobTitle` e confirmar o eco em `src/features/profile/contract.ts`
-- [ ] T006 [P] Depois de T004, validar bio até 160 e `jobTitle` até 80, texto puro como o nome, em `src/features/profile/validation.ts`
-- [ ] T007 [P] Gravar e ler tema e acessibilidade só no `localStorage` em `src/features/profile/appearance.ts`, sem incluir esses campos no `PUT` e sem apagar as chaves ao trocar de empresa
-- [ ] T008 [P] Marcar a sessão em uso e impedir a revogação dela em `src/features/profile/sessions.ts`
-- [ ] T009 [P] Devolver a foto só quando `hasImage` for verdadeiro em `src/features/profile/photo.ts`
-- [ ] T010 [P] Filtrar fusos por nome ou deslocamento e expor o deslocamento atual em `src/features/profile/timeZones.ts`
-- [ ] T011 [P] Mapear `org:admin` e `org:member` para chave de mensagem e tratar data ausente em `src/features/profile/membership.ts`
+- [X] T004 Acrescentar `bio` e `jobTitle` em `src/features/profile/types.ts`
+- [X] T005 [P] Depois de T004, ler campo ausente como `""`, enviar sempre `bio` e `jobTitle` e confirmar o eco em `src/features/profile/contract.ts`
+- [X] T006 [P] Depois de T004, validar bio até 160 e `jobTitle` até 80, texto puro como o nome, em `src/features/profile/validation.ts`
+- [X] T007 [P] Gravar e ler tema e acessibilidade só no `localStorage` em `src/features/profile/appearance.ts`, sem incluir esses campos no `PUT` e sem apagar as chaves ao trocar de empresa
+- [X] T008 [P] Marcar a sessão em uso e impedir a revogação dela em `src/features/profile/sessions.ts`
+- [X] T009 [P] Devolver a foto só quando `hasImage` for verdadeiro em `src/features/profile/photo.ts`
+- [X] T010 [P] Filtrar fusos por nome ou deslocamento e expor o deslocamento atual em `src/features/profile/timeZones.ts`
+- [X] T011 [P] Mapear `org:admin` e `org:member` para chave de mensagem e tratar data ausente em `src/features/profile/membership.ts`
 
 **Checkpoint**: `npm test` cobre o contrato, a validação, a aparência, a sessão, a foto, o fuso e o papel
 
@@ -63,11 +63,11 @@ description: "Task list for the profile hub"
 
 **Independent Test**: abrir `/perfil`, ler o cartão, editar nome, bio e cargo, salvar, reabrir, trocar a foto e ver a mesma imagem no cabeçalho sem novo login
 
-- [ ] T012 [US1] Acrescentar nos catálogos `pt-BR` e `en` de `src/features/profile/messages.ts` as frases do cartão, dos nomes das cinco seções, de Editar, bio, cargo e dos erros de tamanho e de quebra de linha
-- [ ] T013 [US1] Montar o hub em `src/features/profile/components/ProfilePage.tsx`: Conta ao abrir, uma seção por vez, lista vertical em janela larga, abas ou seletor em janela estreita, teclado e rótulo visível na seção ativa, cartão sempre visível; sem empresa selecionada, não chama perfil nem notificações
-- [ ] T014 [US1] Implementar leitura e edição em `src/features/profile/components/AccountSection.tsx`: só nome, bio e cargo editáveis depois de Editar; e-mail, função, empresa e membro desde somente leitura via `src/features/profile/membership.ts`; salvar envia bio e `jobTitle` e impede um segundo envio até a resposta; recusa mostra o erro, não anuncia sucesso e mantém o rascunho; cancelar restaura o último valor gravado; resposta de pedido abandonado é descartada
-- [ ] T015 [US1] Trocar a foto com `user.setProfileImage({ file })` em `src/features/profile/components/AccountSection.tsx`, usando `src/features/profile/photo.ts`, sem ação de remover; falha mantém a foto anterior
-- [ ] T016 [US1] Mostrar a mesma foto no cabeçalho: `src/shared/ui/Avatar.tsx` aceita a imagem, `src/app/layouts/HeaderControls.tsx` a repassa e `src/app/layouts/CompanyWorkspace.tsx` envia `imageUrl` só quando `hasImage` for verdadeiro; sem foto, cartão e cabeçalho mostram as iniciais
+- [X] T012 [US1] Acrescentar nos catálogos `pt-BR` e `en` de `src/features/profile/messages.ts` as frases do cartão, dos nomes das cinco seções, de Editar, bio, cargo e dos erros de tamanho e de quebra de linha
+- [X] T013 [US1] Montar o hub em `src/features/profile/components/ProfilePage.tsx`: Conta ao abrir, uma seção por vez, lista vertical em janela larga, abas ou seletor em janela estreita, teclado e rótulo visível na seção ativa, cartão sempre visível; sem empresa selecionada, não chama perfil nem notificações
+- [X] T014 [US1] Implementar leitura e edição em `src/features/profile/components/AccountSection.tsx`: só nome, bio e cargo editáveis depois de Editar; e-mail, função, empresa e membro desde somente leitura via `src/features/profile/membership.ts`; salvar envia bio e `jobTitle` e impede um segundo envio até a resposta; recusa mostra o erro, não anuncia sucesso e mantém o rascunho; cancelar restaura o último valor gravado; resposta de pedido abandonado é descartada
+- [X] T015 [US1] Trocar a foto com `user.setProfileImage({ file })` em `src/features/profile/components/AccountSection.tsx`, usando `src/features/profile/photo.ts`, sem ação de remover; falha mantém a foto anterior
+- [X] T016 [US1] Mostrar a mesma foto no cabeçalho: `src/shared/ui/Avatar.tsx` aceita a imagem, `src/app/layouts/HeaderControls.tsx` a repassa e `src/app/layouts/CompanyWorkspace.tsx` envia `imageUrl` só quando `hasImage` for verdadeiro; sem foto, cartão e cabeçalho mostram as iniciais
 
 **Checkpoint**: a história 1 funciona com as outras seções ainda vazias, mas alcançáveis
 
@@ -79,9 +79,9 @@ description: "Task list for the profile hub"
 
 **Independent Test**: buscar um fuso, ver deslocamento e pré-visualização, salvar e reabrir; escolher tema e acessibilidade, recarregar neste navegador e ver o efeito fora do `PUT`
 
-- [ ] T017 [P] [US2] Acrescentar nos dois catálogos de `src/features/profile/messages.ts` as frases de idioma, fuso, pré-visualização, tema e acessibilidade
-- [ ] T018 [US2] Implementar `src/features/profile/components/PreferencesSection.tsx` com a busca de `src/features/profile/timeZones.ts`, a pré-visualização local e o salvamento que reenvia nome, bio e `jobTitle` já confirmados, com um envio por vez; cancelar restaura só idioma e fuso; resposta de pedido abandonado é descartada
-- [ ] T019 [P] [US2] Aplicar `src/features/profile/appearance.ts` em `document.documentElement` a partir de `src/app/layouts/CompanyWorkspace.tsx` e as regras de tema, reduzir movimento, sublinhar links e contraste em `src/styles.css`, removendo os atributos ao desmontar para as telas de entrada não mudarem
+- [X] T017 [P] [US2] Acrescentar nos dois catálogos de `src/features/profile/messages.ts` as frases de idioma, fuso, pré-visualização, tema e acessibilidade
+- [X] T018 [US2] Implementar `src/features/profile/components/PreferencesSection.tsx` com a busca de `src/features/profile/timeZones.ts`, a pré-visualização local e o salvamento que reenvia nome, bio e `jobTitle` já confirmados, com um envio por vez; cancelar restaura só idioma e fuso; resposta de pedido abandonado é descartada
+- [X] T019 [P] [US2] Aplicar `src/features/profile/appearance.ts` em `document.documentElement` a partir de `src/app/layouts/CompanyWorkspace.tsx` e as regras de tema, reduzir movimento, sublinhar links e contraste em `src/styles.css`, removendo os atributos ao desmontar para as telas de entrada não mudarem
 
 **Checkpoint**: idioma e fuso continuam no Core; tema e acessibilidade não
 
@@ -93,9 +93,9 @@ description: "Task list for the profile hub"
 
 **Independent Test**: alterar e-mail ou um filtro, salvar, reabrir; web obrigatório; trocar de empresa recarrega; com English, as frases fixas do cartão estão em inglês
 
-- [ ] T020 [US3] Mover para os dois catálogos de `src/features/profile/messages.ts` todas as frases fixas de `src/features/notificationPreferences/components/NotificationPreferences.tsx`: título, descrição, carregamento, vazio, erro, canais, web obrigatório, filtros, item indisponível, cancelar e salvar
-- [ ] T021 [P] [US3] Exibir `NotificationPreferences` só na seção Notificações de `src/features/profile/components/ProfilePage.tsx` e retirar o empilhamento em `src/app/layouts/CompanyWorkspace.tsx`
-- [ ] T022 [P] [US3] Ler essas chaves em `src/features/notificationPreferences/components/NotificationPreferences.tsx` com `profileMessage` e `useAppliedPreferences`; rótulos e erros devolvidos pelo Core permanecem como vieram; o envio único e o descarte de resposta abandonada que o cartão já tem permanecem
+- [X] T020 [US3] Mover para os dois catálogos de `src/features/profile/messages.ts` todas as frases fixas de `src/features/notificationPreferences/components/NotificationPreferences.tsx`: título, descrição, carregamento, vazio, erro, canais, web obrigatório, filtros, item indisponível, cancelar e salvar
+- [X] T021 [P] [US3] Exibir `NotificationPreferences` só na seção Notificações de `src/features/profile/components/ProfilePage.tsx` e retirar o empilhamento em `src/app/layouts/CompanyWorkspace.tsx`
+- [X] T022 [P] [US3] Ler essas chaves em `src/features/notificationPreferences/components/NotificationPreferences.tsx` com `profileMessage` e `useAppliedPreferences`; rótulos e erros devolvidos pelo Core permanecem como vieram; o envio único e o descarte de resposta abandonada que o cartão já tem permanecem
 
 **Checkpoint**: o cartão não aparece nas outras seções e a gravação antiga continua
 
@@ -107,10 +107,10 @@ description: "Task list for the profile hub"
 
 **Independent Test**: ler o status; com a tarefa `reset-password`, abrir `/tarefas/redefinir-senha`; sem a tarefa, pedir a senha atual e a nova no `PasswordInput` já existente via `user.updatePassword`; ligar a verificação só em `/tarefas/configurar-mfa`; no hub, o bloco da verificação só mostra o status e desliga com `user.disableTOTP()`, sem `createTOTP`; ver a sessão em uso marcada e sem revogação; revogar outra
 
-- [ ] T023 [US4] Acrescentar nos dois catálogos de `src/features/profile/messages.ts` as frases de status, erro com nova tentativa, senha atual, senha nova, desligar a verificação, sessão em uso, nenhuma outra sessão e falha ao revogar. Não acrescentar frase de pareamento, código, URI ou QR. Ligar a verificação não ganha texto de fluxo próprio no hub
-- [ ] T024 [US4] No bloco da verificação de `src/features/profile/components/SecuritySection.tsx`, mostrar só o status `user.twoFactorEnabled`; se o status não puder ser lido, erro com nova tentativa e sem apresentar inativo; não renderizar código, URI, QR, aparelho nem pareamento. Senha e sessões continuam na mesma seção
-- [ ] T025 [US4] Em `src/features/profile/components/SecuritySection.tsx`, abrir `/tarefas/redefinir-senha` quando a sessão tiver a tarefa `reset-password`; sem a tarefa, a troca pela sessão aberta pede a senha atual e a nova no `PasswordInput` já existente, via `user.updatePassword({ currentPassword, newPassword })`, sem `signOutOfOtherSessions`, e isso não conta como desenho novo (I1). Ligar a verificação quando estiver desligada não é feito no hub: acontece só pelo fluxo existente `/tarefas/configurar-mfa` (I2). No hub, o bloco da verificação só mostra o status e desliga com `user.disableTOTP()`. Sem `createTOTP`, sem pareamento e sem chave secreta. Senha e sessões continuam na mesma seção
-- [ ] T026 [US4] Listar `user.getSessions()` em `src/features/profile/components/SecuritySection.tsx` com `src/features/profile/sessions.ts`: marcar o id de `useSession()`, sem revogação nele; `revoke()` nas outras; sucesso tira o id da lista; falha mantém a linha e explica o erro
+- [X] T023 [US4] Acrescentar nos dois catálogos de `src/features/profile/messages.ts` as frases de status, erro com nova tentativa, senha atual, senha nova, desligar a verificação, sessão em uso, nenhuma outra sessão e falha ao revogar. Não acrescentar frase de pareamento, código, URI ou QR. Ligar a verificação não ganha texto de fluxo próprio no hub
+- [X] T024 [US4] No bloco da verificação de `src/features/profile/components/SecuritySection.tsx`, mostrar só o status `user.twoFactorEnabled`; se o status não puder ser lido, erro com nova tentativa e sem apresentar inativo; não renderizar código, URI, QR, aparelho nem pareamento. Senha e sessões continuam na mesma seção
+- [X] T025 [US4] Em `src/features/profile/components/SecuritySection.tsx`, abrir `/tarefas/redefinir-senha` quando a sessão tiver a tarefa `reset-password`; sem a tarefa, a troca pela sessão aberta pede a senha atual e a nova no `PasswordInput` já existente, via `user.updatePassword({ currentPassword, newPassword })`, sem `signOutOfOtherSessions`, e isso não conta como desenho novo (I1). Ligar a verificação quando estiver desligada não é feito no hub: acontece só pelo fluxo existente `/tarefas/configurar-mfa` (I2). No hub, o bloco da verificação só mostra o status e desliga com `user.disableTOTP()`. Sem `createTOTP`, sem pareamento e sem chave secreta. Senha e sessões continuam na mesma seção
+- [X] T026 [US4] Listar `user.getSessions()` em `src/features/profile/components/SecuritySection.tsx` com `src/features/profile/sessions.ts`: marcar o id de `useSession()`, sem revogação nele; `revoke()` nas outras; sucesso tira o id da lista; falha mantém a linha e explica o erro
 
 **Checkpoint**: a sessão em uso só termina pelo Sair já existente
 
@@ -122,8 +122,8 @@ description: "Task list for the profile hub"
 
 **Independent Test**: acionar Privacidade, Termos de Uso e Suporte e chegar a `#privacidade`, `#termos` e `#suporte`
 
-- [ ] T027 [US5] Extrair os três destinos do rodapé para `src/app/layouts/footerLinks.ts` e usá-los em `src/app/layouts/CompanyWorkspace.tsx`
-- [ ] T028 [US5] Implementar `src/features/profile/components/HelpSection.tsx` com `shell.privacy`, `shell.terms` e `shell.support` e os hrefs de `src/app/layouts/footerLinks.ts`, sem página nova
+- [X] T027 [US5] Extrair os três destinos do rodapé para `src/app/layouts/footerLinks.ts` e usá-los em `src/app/layouts/CompanyWorkspace.tsx`
+- [X] T028 [US5] Implementar `src/features/profile/components/HelpSection.tsx` com `shell.privacy`, `shell.terms` e `shell.support` e os hrefs de `src/app/layouts/footerLinks.ts`, sem página nova
 
 **Checkpoint**: Ajuda não abre destino que o rodapé não tenha
 
@@ -133,7 +133,7 @@ description: "Task list for the profile hub"
 
 **Purpose**: fechar i18n e o roteiro
 
-- [ ] T029 Afirmar em `tests/profile-hub.test.mjs` que as chaves novas do hub, inclusive status, erro com nova tentativa, senha atual, senha nova e desligar a verificação, e as de `NotificationPreferences`, existem nos catálogos `pt-BR` e `en` de `src/features/profile/messages.ts`, e que não há chave de pareamento, código, URI ou QR
+- [X] T029 Afirmar em `tests/profile-hub.test.mjs` que as chaves novas do hub, inclusive status, erro com nova tentativa, senha atual, senha nova e desligar a verificação, e as de `NotificationPreferences`, existem nos catálogos `pt-BR` e `en` de `src/features/profile/messages.ts`, e que não há chave de pareamento, código, URI ou QR
 - [ ] T030 Executar o roteiro de `specs/295-melhorar-a-tela-de-perfil-do-usuario/quickstart.md`
 
 ---

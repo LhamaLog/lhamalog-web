@@ -9,12 +9,16 @@ import { Card } from '../../../shared/ui/Card'
 import { Checkbox } from '../../../shared/ui/Checkbox'
 import { ErrorState } from '../../../shared/ui/ErrorState'
 import { LoadingState } from '../../../shared/ui/LoadingState'
+import { profileMessage } from '../../profile/messages'
+import type { MessageKey } from '../../profile/messages'
+import { useAppliedPreferences } from '../../profile/preferences'
 import { confirmedPreferences, preferenceErrors, preferencePayload, preferencesPath, readCatalog, readPreferences, readProducts } from '../model'
 import type { Catalog, Option, Preferences, Selection } from '../model'
 
-function Filter({ name, title, allLabel, value, options, onChange, emptyText }: {
+function Filter({ name, title, allLabel, value, options, onChange, emptyText, unavailableLabel }: {
   name: string; title: string; allLabel: string; value: Selection; options: Option[]
   onChange: (value: Selection) => void; emptyText: string
+  unavailableLabel: (id: string) => string
 }) {
   const unavailable = value.ids.filter(id => !options.some(option => option.id === id))
   return <fieldset className="space-y-3 rounded-lg border border-slate-200 p-4">
@@ -29,7 +33,7 @@ function Filter({ name, title, allLabel, value, options, onChange, emptyText }: 
         onChange={event => onChange({ all: false, ids: event.target.checked
           ? [...value.ids, option.id] : value.ids.filter(id => id !== option.id) })} />)}
       {unavailable.map((id, index) => <Checkbox key={id} id={name + '-unavailable-' + index}
-        label={'Item indisponível (' + id + ') — desmarque para remover'} checked
+        label={unavailableLabel(id)} checked
         onChange={() => onChange({ all: false, ids: value.ids.filter(item => item !== id) })} />)}
     </div>}
   </fieldset>
@@ -43,6 +47,8 @@ export function NotificationPreferences() {
 
 function PreferencesForm() {
   const request = useApi()
+  const { language } = useAppliedPreferences()
+  const text = (key: MessageKey, values?: Record<string, string>) => profileMessage(language, key, values)
   const [draft, setDraft] = useState<Preferences | null>(null)
   const [baseline, setBaseline] = useState<Preferences | null>(null)
   const [catalog, setCatalog] = useState<Catalog>({ types: [], severities: [] })
@@ -72,13 +78,13 @@ function PreferencesForm() {
     ]).then(([raw, rawCatalog, rawProducts]) => {
       if (controller.signal.aborted) return
       const value = readPreferences(raw), options = readCatalog(rawCatalog), availableProducts = readProducts(rawProducts)
-      if (!value || !options || !availableProducts) throw new Error('O servidor retornou dados de notificação inválidos.')
+      if (!value || !options || !availableProducts) throw new Error(text('notifications.invalid'))
       setDraft(value)
       setBaseline(value)
       setCatalog(options)
       setProducts(availableProducts)
     }).catch(reason => {
-      if (!controller.signal.aborted && !endsSession(reason)) setLoadError(reason instanceof Error ? reason.message : 'Não foi possível carregar as preferências.')
+      if (!controller.signal.aborted && !endsSession(reason)) setLoadError(reason instanceof Error ? reason.message : text('notifications.loadError'))
     }).finally(() => {
       if (!controller.signal.aborted) setLoading(false)
     })
@@ -103,14 +109,14 @@ function PreferencesForm() {
       if (controller.signal.aborted) return
       const saved = readPreferences(raw)
       if (!saved || !confirmedPreferences(sent, saved))
-        throw new Error('O salvamento não foi confirmado. Recarregue as preferências antes de tentar novamente.')
+        throw new Error(text('notifications.notConfirmed'))
       setDraft(saved)
       setBaseline(saved)
-      setMessage('Preferências de notificação salvas.')
+      setMessage(text('notifications.saved'))
     } catch (reason) {
       if (controller.signal.aborted || endsSession(reason)) return
       const details = reason instanceof ApiError ? Object.values(reason.fieldErrors).join(' ') : ''
-      setError((reason instanceof Error ? reason.message : 'Não foi possível salvar.') + (details ? ' ' + details : ''))
+      setError((reason instanceof Error ? reason.message : text('notifications.saveError')) + (details ? ' ' + details : ''))
     } finally {
       if (lifetime.current === controller && !controller.signal.aborted) {
         savingRef.current = false
@@ -121,39 +127,42 @@ function PreferencesForm() {
 
   return <Card className="space-y-4">
     <div>
-      <h2 className="text-xl font-semibold text-[#083B7A]">Notificações</h2>
-      <p className="mt-1 text-sm text-slate-600">Suas preferências para a empresa selecionada. Os filtros valem para todos os canais.</p>
+      <h3 className="text-xl font-semibold text-[#083B7A]">{text('notifications.title')}</h3>
+      <p className="mt-1 text-sm text-slate-600">{text('notifications.description')}</p>
     </div>
-    {loading ? <LoadingState label="Carregando preferências de notificação..." />
-      : loadError || !draft ? <ErrorState description={loadError || 'Não foi possível carregar.'} onRetry={() => setReload(value => value + 1)} />
+    {loading ? <LoadingState label={text('notifications.loading')} />
+      : loadError || !draft ? <ErrorState description={loadError || text('notifications.loadError')} onRetry={() => setReload(value => value + 1)} />
       : <form onSubmit={submit} className="space-y-4">
         {message && <p role="status" className="text-sm text-green-700">{message}</p>}
         {error && <div role="alert" className="space-y-2 text-sm text-red-700">
           <p>{error}</p>
           <Button type="button" variant="outline" fullWidth={false} disabled={saving}
-            onClick={() => setReload(value => value + 1)}>Recarregar preferências</Button>
+            onClick={() => setReload(value => value + 1)}>{text('notifications.reload')}</Button>
         </div>}
         <fieldset disabled={saving} className="space-y-4">
           <fieldset className="space-y-3">
-            <legend className="mb-2 font-semibold text-[#083B7A]">Canais</legend>
-            <Checkbox id="notifications-web" label="Web — canal obrigatório" checked disabled />
-            <Checkbox id="notifications-email" label="E-mail" checked={draft.email}
+            <legend className="mb-2 font-semibold text-[#083B7A]">{text('notifications.channels')}</legend>
+            <Checkbox id="notifications-web" label={text('notifications.web')} checked disabled />
+            <Checkbox id="notifications-email" label={text('notifications.email')} checked={draft.email}
               onChange={event => { setMessage(''); setDraft({ ...draft, email: event.target.checked }) }} />
-            <Checkbox id="notifications-push" label="Aplicativo móvel" checked={draft.push}
+            <Checkbox id="notifications-push" label={text('notifications.push')} checked={draft.push}
               onChange={event => { setMessage(''); setDraft({ ...draft, push: event.target.checked }) }} />
           </fieldset>
-          <Filter name="notification-products" title="Produtos" allLabel="Todos os produtos disponíveis"
-            value={draft.products} options={products} emptyText="Você não tem produtos disponíveis nesta empresa."
+          <Filter name="notification-products" title={text('notifications.products')} allLabel={text('notifications.allProducts')}
+            value={draft.products} options={products} emptyText={text('notifications.productsEmpty')}
+            unavailableLabel={id => text('notifications.unavailable', { id })}
             onChange={products => { setMessage(''); setDraft({ ...draft, products }) }} />
-          <Filter name="notification-types" title="Tipos" allLabel="Todos os tipos"
-            value={draft.types} options={catalog.types} emptyText="Os tipos ainda serão definidos pela equipe. Por enquanto, todos estão incluídos."
+          <Filter name="notification-types" title={text('notifications.types')} allLabel={text('notifications.allTypes')}
+            value={draft.types} options={catalog.types} emptyText={text('notifications.typesEmpty')}
+            unavailableLabel={id => text('notifications.unavailable', { id })}
             onChange={types => { setMessage(''); setDraft({ ...draft, types }) }} />
-          <Filter name="notification-severities" title="Severidades" allLabel="Todas as severidades"
-            value={draft.severities} options={catalog.severities} emptyText="As severidades ainda serão definidas pela equipe. Por enquanto, todas estão incluídas."
+          <Filter name="notification-severities" title={text('notifications.severities')} allLabel={text('notifications.allSeverities')}
+            value={draft.severities} options={catalog.severities} emptyText={text('notifications.severitiesEmpty')}
+            unavailableLabel={id => text('notifications.unavailable', { id })}
             onChange={severities => { setMessage(''); setDraft({ ...draft, severities }) }} />
           <div className="flex flex-wrap justify-end gap-3">
-            <Button type="button" variant="outline" fullWidth={false} onClick={() => { setDraft(baseline); setError(''); setMessage('') }}>Cancelar alterações</Button>
-            <Button type="submit" fullWidth={false}>{saving ? 'Salvando...' : 'Salvar notificações'}</Button>
+            <Button type="button" variant="outline" fullWidth={false} onClick={() => { setDraft(baseline); setError(''); setMessage('') }}>{text('notifications.cancel')}</Button>
+            <Button type="submit" fullWidth={false}>{saving ? text('notifications.saving') : text('notifications.save')}</Button>
           </div>
         </fieldset>
       </form>}

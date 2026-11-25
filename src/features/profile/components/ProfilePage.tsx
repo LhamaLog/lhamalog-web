@@ -1,45 +1,54 @@
 import { useAuth, useUser } from '@clerk/react'
 import { useEffect, useRef, useState } from 'react'
-import type { FormEvent } from 'react'
+import type { FormEvent, KeyboardEvent } from 'react'
+import { NotificationPreferences } from '../../notificationPreferences/components/NotificationPreferences'
 import { ApiError } from '../../../shared/services/api'
+import { endsSession } from '../../../shared/services/sessionRedirect'
 import { useApi } from '../../../shared/services/useApi'
-import { Button } from '../../../shared/ui/Button'
-import { Card } from '../../../shared/ui/Card'
-import { ErrorState } from '../../../shared/ui/ErrorState'
-import { Input } from '../../../shared/ui/Input'
-import { LoadingState } from '../../../shared/ui/LoadingState'
 import { PageHeader } from '../../../shared/ui/PageHeader'
 import { Select } from '../../../shared/ui/Select'
 import { clerkSessionName, fillUnsavedNameIfUntouched, splitDisplayName, withUnsavedClerkName } from '../clerkName'
 import { setAppliedClerkLocale } from '../clerkLocale'
 import { buildProfilePut, cloneProfile, readUserProfile, serverConfirmedProfile, userProfilePath } from '../contract'
-import { profileMessage } from '../messages'
+import { profileFieldMessages, profileMessage } from '../messages'
+import type { MessageKey } from '../messages'
 import { useAppliedPreferences } from '../preferences'
-import { isSupportedTimeZone, timeZoneOptions } from '../timeZones'
 import type { AppliedLanguage, UserProfile } from '../types'
-import { profileFieldErrors } from '../validation'
-import { endsSession } from '../../../shared/services/sessionRedirect'
+import { AccountSection, ProfileIdentityCard } from './AccountSection'
+import { HelpSection } from './HelpSection'
+import { PreferencesSection } from './PreferencesSection'
+import { SecuritySection } from './SecuritySection'
+
+const sections = ['account', 'preferences', 'notifications', 'security', 'help'] as const
+type SectionId = (typeof sections)[number]
+type SaveSource = 'account' | 'preferences'
+
+const sectionLabel: Record<SectionId, MessageKey> = {
+  account: 'profile.section.account',
+  preferences: 'profile.section.preferences',
+  notifications: 'profile.section.notifications',
+  security: 'profile.section.security',
+  help: 'profile.section.help',
+}
 
 function languageOf(value: string): AppliedLanguage {
   return value === 'en' ? 'en' : 'pt-BR'
 }
 
-function localMessages(language: AppliedLanguage, profile: UserProfile): Record<string, string> {
-  const codes = profileFieldErrors(profile)
-  const messages: Record<string, string> = {}
-  if (codes.displayName === 'control') messages.displayName = profileMessage(language, 'profile.error.nameControl')
-  else if (codes.displayName) messages.displayName = profileMessage(language, 'profile.error.name')
-  if (codes.language) messages.language = profileMessage(language, 'profile.error.language')
-  if (codes.timezone) messages.timezone = profileMessage(language, 'profile.error.timezone')
-  return messages
-}
-
-function previewClock(language: AppliedLanguage, timezone: string, now: Date) {
-  if (!timezone || !isSupportedTimeZone(timezone)) return ''
-  try {
-    return new Intl.DateTimeFormat(language, { dateStyle: 'short', timeStyle: 'short', timeZone: timezone }).format(now)
-  } catch {
-    return ''
+function mergeDirty(current: UserProfile | null, previous: UserProfile | null, echoed: UserProfile, source: SaveSource): UserProfile {
+  if (!current || !previous) return cloneProfile(echoed)
+  if (source === 'account') {
+    return {
+      ...echoed,
+      language: current.language !== previous.language ? current.language : echoed.language,
+      timezone: current.timezone !== previous.timezone ? current.timezone : echoed.timezone,
+    }
+  }
+  return {
+    ...echoed,
+    displayName: current.displayName !== previous.displayName ? current.displayName : echoed.displayName,
+    bio: current.bio !== previous.bio ? current.bio : echoed.bio,
+    jobTitle: current.jobTitle !== previous.jobTitle ? current.jobTitle : echoed.jobTitle,
   }
 }
 
@@ -52,12 +61,17 @@ export function ProfilePage() {
   const [baseline, setBaseline] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState<ApiError | null>(null)
+  const [section, setSection] = useState<SectionId>('account')
+  const [editing, setEditing] = useState(false)
+  const [savingAccount, setSavingAccount] = useState(false)
+  const [savingPreferences, setSavingPreferences] = useState(false)
+  const [accountMessage, setAccountMessage] = useState('')
+  const [preferencesMessage, setPreferencesMessage] = useState('')
+  const [accountError, setAccountError] = useState<ApiError | null>(null)
+  const [preferencesError, setPreferencesError] = useState<ApiError | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
-  const [now, setNow] = useState(() => new Date())
-  const controller = useRef<AbortController | null>(null)
+  const flight = useRef<AbortController | null>(null)
+  const mounted = useRef(true)
   const sessionName = clerkSessionName(user)
   const sessionNameRef = useRef(sessionName)
   const draftRef = useRef(draft)
@@ -65,37 +79,56 @@ export function ProfilePage() {
   sessionNameRef.current = sessionName
   draftRef.current = draft
   baselineRef.current = baseline
-  const text = (key: Parameters<typeof profileMessage>[1]) => profileMessage(language, key)
+  const text = (key: MessageKey) => profileMessage(language, key)
+  const saving = savingAccount || savingPreferences
 
-  useEffect(() => () => controller.current?.abort(), [])
+  useEffect(() => {
+    mounted.current = true
+    return () => {
+      mounted.current = false
+      flight.current?.abort()
+    }
+  }, [])
+
   useEffect(() => {
     if (!orgId) {
       setLoading(false)
       setLoadError('')
       setDraft(null)
+      setBaseline(null)
       return
     }
     const current = new AbortController()
-    controller.current = current
     setLoading(true)
     setLoadError('')
+    setAccountMessage('')
+    setPreferencesMessage('')
+    setAccountError(null)
+    setPreferencesError(null)
     request<unknown>(userProfilePath, { signal: current.signal })
       .then((body) => {
-        if (current.signal.aborted) return
+        if (current.signal.aborted || !mounted.current) return
         const profile = readUserProfile(body)
         if (!profile) {
           setLoadError(text('profile.loadError'))
+          setDraft(null)
+          setBaseline(null)
           return
         }
         const suggested = withUnsavedClerkName(profile, sessionNameRef.current)
         setDraft(cloneProfile(suggested))
         setBaseline(cloneProfile(suggested))
+        setEditing(false)
         applyConfirmed(profile)
       })
       .catch((reason) => {
-        if (!current.signal.aborted && !endsSession(reason)) setLoadError(reason instanceof Error ? reason.message : text('profile.loadError'))
+        if (!current.signal.aborted && mounted.current && !endsSession(reason)) {
+          setLoadError(reason instanceof Error ? reason.message : text('profile.loadError'))
+          setDraft(null)
+          setBaseline(null)
+        }
       })
-      .finally(() => { if (!current.signal.aborted) setLoading(false) })
+      .finally(() => { if (!current.signal.aborted && mounted.current) setLoading(false) })
     return () => current.abort()
   }, [orgId, request, reloadKey, applyConfirmed])
 
@@ -109,120 +142,218 @@ export function ProfilePage() {
     setBaseline(cloneProfile(filled.baseline))
   }, [sessionName])
 
-  useEffect(() => {
-    setNow(new Date())
-    const timer = window.setInterval(() => setNow(new Date()), 60_000)
-    return () => window.clearInterval(timer)
-  }, [draft?.timezone])
-
-  function cancel() {
-    if (!baseline) return
-    setDraft(cloneProfile(baseline))
-    setMessage('')
-    setError(null)
+  function reload() {
+    flight.current?.abort()
+    setReloadKey((value) => value + 1)
   }
 
-  async function submit(event: FormEvent) {
-    event.preventDefault()
-    if (!draft || !orgId || saving) return
-    const localErrors = localMessages(language, draft)
-    if (Object.keys(localErrors).length > 0) {
-      setMessage('')
-      setError(new ApiError(text('profile.error.checkFields'), 400, localErrors))
-      return
-    }
-    const current = new AbortController()
-    controller.current = current
+  function cancelAccount() {
+    if (!draft || !baseline) return
+    setDraft({ ...draft, displayName: baseline.displayName, bio: baseline.bio, jobTitle: baseline.jobTitle })
+    setEditing(false)
+    setAccountMessage('')
+    setAccountError(null)
+  }
+
+  function cancelPreferences() {
+    if (!draft || !baseline) return
+    setDraft({ ...draft, language: baseline.language, timezone: baseline.timezone })
+    setPreferencesMessage('')
+    setPreferencesError(null)
+  }
+
+  async function persist(next: UserProfile, source: SaveSource) {
+    if (!orgId || flight.current) return
+    const controller = new AbortController()
+    flight.current = controller
+    const setSaving = source === 'account' ? setSavingAccount : setSavingPreferences
+    const setMessage = source === 'account' ? setAccountMessage : setPreferencesMessage
+    const setError = source === 'account' ? setAccountError : setPreferencesError
     setSaving(true)
     setMessage('')
     setError(null)
     try {
       const saved = await request<unknown>(userProfilePath, {
         method: 'PUT',
-        signal: current.signal,
-        body: JSON.stringify(buildProfilePut(draft)),
+        signal: controller.signal,
+        body: JSON.stringify(buildProfilePut(next)),
       })
-      if (current.signal.aborted) return
+      if (!mounted.current || controller.signal.aborted) return
       const echoed = readUserProfile(saved)
-      if (!serverConfirmedProfile(draft, saved) || !echoed) {
-        if (echoed) {
-          setDraft(cloneProfile(echoed))
-          setBaseline(cloneProfile(echoed))
-          applyConfirmed(echoed)
-        }
+      if (!serverConfirmedProfile(next, saved) || !echoed) {
         setError(new ApiError(text('profile.error.notConfirmed'), 0))
         return
       }
-      setDraft(cloneProfile(echoed))
+      const previous = baselineRef.current
       setBaseline(cloneProfile(echoed))
+      setDraft((current) => mergeDirty(current, previous, echoed, source))
       applyConfirmed(echoed)
       const savedLanguage = languageOf(echoed.language)
       setAppliedClerkLocale(savedLanguage)
       setMessage(profileMessage(savedLanguage, 'profile.success'))
-      if (!user) return
+      if (source === 'account') setEditing(false)
+      if (!user || controller.signal.aborted) return
       try {
         const names = splitDisplayName(echoed.displayName)
         await user.update({ firstName: names.firstName, lastName: names.lastName })
+        if (!mounted.current || controller.signal.aborted) return
         try {
           await user.reload()
         } catch {
-          applyConfirmed(echoed)
+          if (mounted.current) applyConfirmed(echoed)
         }
       } catch {
-        applyConfirmed(echoed)
+        if (mounted.current) applyConfirmed(echoed)
       }
     } catch (reason) {
-      if (current.signal.aborted || endsSession(reason)) return
+      if (!mounted.current || controller.signal.aborted || endsSession(reason)) return
       setError(reason instanceof ApiError ? reason : new ApiError(text('profile.error.save'), 0))
     } finally {
-      if (!current.signal.aborted) setSaving(false)
+      if (flight.current === controller) flight.current = null
+      if (mounted.current && !controller.signal.aborted) setSaving(false)
     }
   }
 
-  if (!orgId) return null
-  if (loading) return <LoadingState label={text('profile.loading')} />
-  if (loadError || !draft) return <ErrorState description={loadError || text('profile.loadError')} onRetry={() => setReloadKey((value) => value + 1)} />
+  function submitAccount(event: FormEvent) {
+    event.preventDefault()
+    if (!draft || !baseline || saving) return
+    const next: UserProfile = {
+      ...baseline,
+      displayName: draft.displayName,
+      bio: draft.bio,
+      jobTitle: draft.jobTitle,
+    }
+    const local = profileFieldMessages(language, next)
+    if (Object.keys(local).length > 0) {
+      setAccountMessage('')
+      setAccountError(new ApiError(local.language || local.timezone || text('profile.error.checkFields'), 400, local))
+      return
+    }
+    void persist(next, 'account')
+  }
 
-  const fieldErrors = error?.fieldErrors ?? {}
-  const zones = timeZoneOptions()
-  const zoneChoices = draft.timezone && !zones.includes(draft.timezone) ? [draft.timezone, ...zones] : zones
-  const languageChoices = draft.language === 'pt-BR' || draft.language === 'en' ? ['pt-BR', 'en'] : [draft.language, 'pt-BR', 'en']
-  const clock = previewClock(language, draft.timezone, now)
+  function submitPreferences(event: FormEvent) {
+    event.preventDefault()
+    if (!draft || !baseline || saving) return
+    const next: UserProfile = {
+      ...baseline,
+      language: draft.language,
+      timezone: draft.timezone,
+    }
+    const local = profileFieldMessages(language, next)
+    if (Object.keys(local).length > 0) {
+      setPreferencesMessage('')
+      setPreferencesError(new ApiError(local.displayName || local.bio || local.jobTitle || text('profile.error.checkFields'), 400, local))
+      return
+    }
+    void persist(next, 'preferences')
+  }
+
+  function onTabsKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (!['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft', 'Home', 'End'].includes(event.key)) return
+    event.preventDefault()
+    const index = sections.indexOf(section)
+    const nextIndex = event.key === 'Home'
+      ? 0
+      : event.key === 'End'
+        ? sections.length - 1
+        : event.key === 'ArrowUp' || event.key === 'ArrowLeft'
+          ? (index - 1 + sections.length) % sections.length
+          : (index + 1) % sections.length
+    const next = sections[nextIndex] ?? 'account'
+    setSection(next)
+    document.getElementById(`profile-tab-${next}`)?.focus()
+  }
+
+  if (!orgId) return null
 
   return (
-    <form onSubmit={submit} noValidate className="space-y-4">
+    <div className="space-y-4">
       <PageHeader title={text('profile.title')} description={text('profile.description')} />
-      {message && <p role="status" className="rounded-lg bg-green-50 p-4 text-sm text-green-800">{message}</p>}
-      {error && (
-        <div role="alert" className="flex flex-wrap items-center gap-3 rounded-lg bg-red-50 p-4 text-sm text-red-700">
-          <span>{error.message}</span>
-          {error.status === 409 && <Button type="button" onClick={() => setReloadKey((value) => value + 1)} variant="outline" size="small" fullWidth={false}>{text('profile.reload')}</Button>}
+      <ProfileIdentityCard
+        language={language}
+        profile={baseline}
+        timezone={baseline?.timezone ?? ''}
+        editDisabled={!baseline || saving}
+        onEdit={() => { setSection('account'); setEditing(true) }}
+      />
+      <div className="md:grid md:grid-cols-[16rem_minmax(0,1fr)] md:items-start md:gap-6">
+        <div className="mb-4 md:hidden">
+          <Select
+            id="profile-section"
+            label={text('profile.sections')}
+            value={section}
+            onChange={(event) => setSection(event.target.value as SectionId)}
+          >
+            {sections.map((item) => <option key={item} value={item}>{text(sectionLabel[item])}</option>)}
+          </Select>
         </div>
-      )}
-      <fieldset disabled={saving} className="m-0 space-y-4 border-0 p-0">
-        <Card className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Input id="profile-name" label={text('profile.name')} requiredMark compact maxLength={200} value={draft.displayName} error={fieldErrors.displayName} onChange={(event) => setDraft({ ...draft, displayName: event.target.value })} />
-            <Select id="profile-language" label={text('profile.language')} requiredMark value={draft.language} error={fieldErrors.language} onChange={(event) => setDraft({ ...draft, language: event.target.value })}>
-              {languageChoices.map((choice) => (
-                <option key={choice} value={choice}>{choice === 'pt-BR' ? text('profile.language.ptBR') : choice === 'en' ? text('profile.language.en') : choice}</option>
-              ))}
-            </Select>
-            <Select id="profile-timezone" label={text('profile.timezone')} requiredMark value={draft.timezone} error={fieldErrors.timezone} onChange={(event) => setDraft({ ...draft, timezone: event.target.value })}>
-              {!draft.timezone && <option value="">{text('profile.selectPlaceholder')}</option>}
-              {zoneChoices.map((zone) => <option key={zone} value={zone}>{zone}</option>)}
-            </Select>
+        <div role="tablist" aria-orientation="vertical" aria-label={text('profile.sections')} className="hidden flex-col gap-1 md:flex" onKeyDown={onTabsKeyDown}>
+          {sections.map((item) => {
+            const selected = item === section
+            return (
+              <button
+                key={item}
+                id={`profile-tab-${item}`}
+                type="button"
+                role="tab"
+                aria-selected={selected}
+                aria-controls="profile-panel"
+                tabIndex={selected ? 0 : -1}
+                className={`rounded-lg px-3 py-2 text-left text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0C70F2] ${selected ? 'bg-blue-50 font-semibold text-[#0C70F2]' : 'text-slate-700 hover:bg-slate-50'}`}
+                onClick={() => setSection(item)}
+              >
+                {text(sectionLabel[item])}
+              </button>
+            )
+          })}
+        </div>
+        <div role="tabpanel" id="profile-panel" aria-labelledby="profile-section-title" tabIndex={0} className="min-w-0 space-y-4 outline-none">
+          <h2 id="profile-section-title" className="text-xl font-semibold text-[#083B7A]">{text(sectionLabel[section])}</h2>
+          <div hidden={section !== 'account'}>
+            <AccountSection
+              language={language}
+              draft={draft}
+              baseline={baseline}
+              loading={loading}
+              loadError={loadError}
+              editing={editing}
+              saving={saving}
+              message={accountMessage}
+              error={accountError}
+              onChange={setDraft}
+              onSubmit={submitAccount}
+              onCancel={cancelAccount}
+              onReload={reload}
+            />
           </div>
-          <p className="text-sm text-slate-600">
-            <span className="font-semibold text-[#083B7A]">{text('profile.preview')}. </span>
-            {text('profile.previewNow')}: {clock || '—'}
-          </p>
-        </Card>
-        <div className="flex flex-wrap justify-end gap-3">
-          <Button type="button" variant="outline" fullWidth={false} onClick={cancel} disabled={saving}>{text('profile.cancel')}</Button>
-          <Button type="submit" fullWidth={false} disabled={saving}>{saving ? text('profile.saving') : text('profile.save')}</Button>
+          <div hidden={section !== 'preferences'}>
+            <PreferencesSection
+              language={language}
+              draft={draft}
+              baseline={baseline}
+              loading={loading}
+              loadError={loadError}
+              saving={saving}
+              message={preferencesMessage}
+              error={preferencesError}
+              onChange={setDraft}
+              onSubmit={submitPreferences}
+              onCancel={cancelPreferences}
+              onReload={reload}
+            />
+          </div>
+          <div hidden={section !== 'notifications'}>
+            <NotificationPreferences />
+          </div>
+          <div hidden={section !== 'security'}>
+            <SecuritySection language={language} />
+          </div>
+          <div hidden={section !== 'help'}>
+            <HelpSection language={language} />
+          </div>
         </div>
-      </fieldset>
-    </form>
+      </div>
+    </div>
   )
 }
