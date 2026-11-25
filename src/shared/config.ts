@@ -1,11 +1,14 @@
 export type PublicConfigInput = {
   clerkPublishableKey?: string
   apiUrl?: string
+  otlpEndpoint?: string
 }
 
 export type PublicConfig = {
   clerkPublishableKey: string
   apiUrl: string
+  // Optional address of the OTLP receiver shown in the OpenTelemetry tab (spec 011, F4). Empty when not set.
+  otlpEndpoint: string
 }
 
 const DEFAULT_API_URL = 'http://localhost:8080'
@@ -22,9 +25,11 @@ declare global {
 export function resolvePublicConfig(runtime: PublicConfigInput | undefined, buildTime: PublicConfigInput): PublicConfig {
   const clerkPublishableKey = firstNonEmpty(runtime?.clerkPublishableKey, buildTime.clerkPublishableKey)
   const apiUrl = stripTrailingSlashes(firstNonEmpty(runtime?.apiUrl, buildTime.apiUrl, DEFAULT_API_URL))
+  const otlpEndpoint = stripTrailingSlashes(firstNonEmpty(runtime?.otlpEndpoint, buildTime.otlpEndpoint))
   assertPublishableKey(clerkPublishableKey)
   assertApiUrl(apiUrl)
-  return { clerkPublishableKey, apiUrl }
+  if (otlpEndpoint) assertOtlpEndpoint(otlpEndpoint)
+  return { clerkPublishableKey, apiUrl, otlpEndpoint }
 }
 
 export function readPublicConfig(): PublicConfig {
@@ -32,6 +37,7 @@ export function readPublicConfig(): PublicConfig {
   return resolvePublicConfig(runtime, {
     clerkPublishableKey: import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
     apiUrl: import.meta.env.VITE_API_URL,
+    otlpEndpoint: import.meta.env.VITE_OTLP_ENDPOINT,
   })
 }
 
@@ -60,6 +66,25 @@ function assertPublishableKey(key: string): void {
   }
   if (!PUBLISHABLE_KEY.test(key)) {
     throw new Error('VITE_CLERK_PUBLISHABLE_KEY deve ser a chave publicável, começando com pk_test_ ou pk_live_.')
+  }
+}
+
+// Same rules as the API URL, but a path is allowed: some receivers live under a path.
+function assertOtlpEndpoint(endpoint: string): void {
+  let url: URL
+  try {
+    url = new URL(endpoint)
+  } catch {
+    throw new Error('VITE_OTLP_ENDPOINT deve ser uma URL http ou https.')
+  }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    throw new Error('VITE_OTLP_ENDPOINT deve usar http ou https.')
+  }
+  if (url.username || url.password) {
+    throw new Error('VITE_OTLP_ENDPOINT não pode incluir usuário ou senha.')
+  }
+  if (url.search !== '' || url.hash !== '' || endpoint.includes('?') || endpoint.includes('#')) {
+    throw new Error('VITE_OTLP_ENDPOINT não pode ter parâmetros (?) nem âncora (#).')
   }
 }
 

@@ -1,10 +1,16 @@
 import { emptyProductDraft } from './types'
 import type { ProductUiDraft } from './types'
+import { logLevels } from './otelSnippet'
 
 const storageKey = (id: string) => `lhamalog.productDraft.v1:${id}`
 
 function asString(value: unknown, fallback: string) {
   return typeof value === 'string' ? value : fallback
+}
+
+function asTags(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  return value.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter(Boolean)
 }
 
 function asBoolean(value: unknown, fallback: boolean) {
@@ -18,17 +24,11 @@ export function normalizeProductDraft(value: unknown): ProductUiDraft {
   return {
     productType: asString(parsed.productType, empty.productType),
     environment: asString(parsed.environment, empty.environment),
-    team: asString(parsed.team, empty.team),
-    criticality: asString(parsed.criticality, empty.criticality),
-    project: asString(parsed.project, empty.project),
-    service: asString(parsed.service, empty.service),
-    logLevel: asString(parsed.logLevel, empty.logLevel) || empty.logLevel,
-    active: asBoolean(parsed.active, empty.active),
-    otelEndpoint: asString(parsed.otelEndpoint, empty.otelEndpoint),
-    otelProtocol: asString(parsed.otelProtocol, empty.otelProtocol) || empty.otelProtocol,
-    otelService: asString(parsed.otelService, empty.otelService),
-    otelHeaders: asString(parsed.otelHeaders, empty.otelHeaders),
-    otelEnabled: asBoolean(parsed.otelEnabled, empty.otelEnabled),
+    owner: asString(parsed.owner, empty.owner),
+    teamEmail: asString(parsed.teamEmail, empty.teamEmail),
+    tags: asTags(parsed.tags),
+    otelTraces: asBoolean(parsed.otelTraces, empty.otelTraces),
+    otelLogLevel: logLevels.find((level) => level === parsed.otelLogLevel) ?? empty.otelLogLevel,
   }
 }
 

@@ -9,6 +9,7 @@ type InputProps = ComponentPropsWithoutRef<'input'> & {
   compact?: boolean
   hideLabel?: boolean
   requiredMark?: boolean
+  hint?: string
 }
 
 export function Input({
@@ -21,6 +22,7 @@ export function Input({
   compact = false,
   hideLabel = false,
   requiredMark = false,
+  hint,
   className = '',
   ...props
 }: InputProps) {
@@ -42,7 +44,7 @@ export function Input({
           aria-required={requiredMark || props['aria-required'] ? true : undefined}
           aria-invalid={error ? true : props['aria-invalid']}
           aria-describedby={
-            [props['aria-describedby'], error ? `${id}-error` : undefined]
+            [props['aria-describedby'], hint ? `${id}-hint` : undefined, error ? `${id}-error` : undefined]
               .filter(Boolean)
               .join(' ') || undefined
           }
@@ -78,6 +80,12 @@ export function Input({
           </div>
         )}
       </div>
+
+      {hint && (
+        <p id={`${id}-hint`} className="text-xs text-slate-500">
+          {hint}
+        </p>
+      )}
 
       {error && (
         <p id={`${id}-error`} className="text-sm text-red-600">

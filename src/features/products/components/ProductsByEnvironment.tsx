@@ -2,10 +2,15 @@ import { useAppliedPreferences } from '../../profile/preferences'
 import { Card } from '../../../shared/ui/Card'
 import { DistributionBars } from '../../../shared/ui/DistributionBars'
 
+// null shows "—" with an empty bar: the Core does not count products by environment yet (spec 009, F1).
 type ProductsByEnvironmentProps = {
-  production: number
-  staging: number
-  development: number
+  production: number | null
+  staging: number | null
+  development: number | null
+}
+
+function bar(value: number | null) {
+  return value === null ? { value: 0, formattedValue: '—' } : { value }
 }
 
 export function ProductsByEnvironment({ production, staging, development }: ProductsByEnvironmentProps) {
@@ -21,9 +26,9 @@ export function ProductsByEnvironment({ production, staging, development }: Prod
       <DistributionBars
         locale={language}
         items={[
-          { label: 'Produção', value: production, color: 'blue' },
-          { label: 'Homologação', value: staging, color: 'amber' },
-          { label: 'Desenvolvimento', value: development, color: 'navy' },
+          { label: 'Produção', ...bar(production), color: 'blue' },
+          { label: 'Homologação', ...bar(staging), color: 'amber' },
+          { label: 'Desenvolvimento', ...bar(development), color: 'navy' },
         ]}
       />
     </Card>

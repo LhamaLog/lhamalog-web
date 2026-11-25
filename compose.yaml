@@ -26,6 +26,7 @@ services:
     environment:
       VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY:-}
       VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+      VITE_OTLP_ENDPOINT: ${VITE_OTLP_ENDPOINT:-}
     tmpfs:
       - /tmp:rw,nosuid,nodev,mode=1777
       - /var/log/nginx:rw,nosuid,nodev,uid=101,gid=101,mode=755

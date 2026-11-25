@@ -14,12 +14,19 @@ import {
   membershipBlocksInvite,
   resendPlan,
   roleLabel,
+  teamAccessDeniedMessage,
   teamLoadKey,
 } from '../invitations'
 import { companyMembersPath, deactivationPath, readMemberList } from '../memberContract'
 import { activeAdminCount, deactivatedTeamBlock, isActiveAdmin, localLastAdminGuard, mergeMember, roleToUpdate, shouldApplyTeamList, teamListsForCurrentOrganization, teamScreen } from '../members'
 import type { InviteRole, MemberRow } from '../types'
 import { emailFieldError, roleFieldError } from '../validation'
+import { useAccess } from '../../access/useAccess'
+import { teamPageGate } from '../../access/accessContract'
+import { canDeactivate, canDemote, demoteGuard, inviteHelpFor, inviteRolesFor, isOwnerRow, ownerDeactivateMessage, resendBlocked, rowRoleLabel } from '../ownerRules'
+import { fullAccessMessage } from '../productAccess'
+import { personRolesPath, readPersonRoles } from '../../notification-roles/roleContract'
+import { MemberProductsPanel } from './MemberProductsPanel'
 import { Button } from '../../../shared/ui/Button'
 import { Card } from '../../../shared/ui/Card'
 import { ErrorState } from '../../../shared/ui/ErrorState'
@@ -104,6 +111,12 @@ export function TeamPage() {
   const { user } = useUser()
   const { organization, isLoaded } = useOrganization()
   const request = useApi()
+  // LLT-120: owner and invitation rules come from the Core access (spec 012, US2 and US3).
+  const access = useAccess()
+  const ownerUserId = access.ownerUserId
+  const inviteOptions = inviteRolesFor(access.role, ownerUserId !== null)
+  const [productsFor, setProductsFor] = useState<MemberRow | null>(null)
+  const [rolesText, setRolesText] = useState<Record<string, string>>({})
   const orgIdRef = useRef(orgId)
   const organizationRef = useRef(organization)
   const requestRef = useRef(request)
@@ -195,7 +208,7 @@ export function TeamPage() {
     if (!organization || busy) return
     const started = orgId
     const emailError = emailFieldError(email)
-    const roleError = roleFieldError(role)
+    const roleError = roleFieldError(role) ?? (inviteOptions.includes(role) ? undefined : 'Escolha um cargo que você pode convidar.')
     setFieldErrors({ emailAddress: emailError, role: roleError })
     setMessage('')
     setError('')
@@ -248,6 +261,12 @@ export function TeamPage() {
 
   async function resend(invitation: OrganizationInvitationResource) {
     if (!organization || busy) return
+    const blockedResend = resendBlocked(access.role, ownerUserId !== null, invitation.role)
+    if (blockedResend) {
+      setMessage('')
+      setError(blockedResend)
+      return
+    }
     const started = orgId
     setMessage('')
     setError('')
@@ -363,6 +382,12 @@ export function TeamPage() {
       setError('Escolha Administrador ou Membro.')
       return
     }
+    const ownerBlock = demoteGuard(row.userId, ownerUserId, next)
+    if (ownerBlock) {
+      setMessage('')
+      setError(ownerBlock)
+      return
+    }
     setMessage('')
     setError('')
     setBusy('role')
@@ -398,8 +423,27 @@ export function TeamPage() {
     }
   }
 
+  // Notification roles of one person, loaded only when asked (spec 012, US6 scenario 4).
+  async function showRoles(userId: string) {
+    const path = personRolesPath(userId)
+    if (!path) return
+    setRolesText((current) => ({ ...current, [userId]: 'Carregando cargos...' }))
+    try {
+      const body = readPersonRoles(await requestRef.current<unknown>(path))
+      const text = !body ? 'Não foi possível ler os cargos.' : body.roles.length === 0 ? 'Sem cargo de notificação.' : body.roles.map((item) => item.name).join(', ')
+      setRolesText((current) => ({ ...current, [userId]: text }))
+    } catch (reason) {
+      setRolesText((current) => ({ ...current, [userId]: reason instanceof Error ? reason.message : 'Não foi possível carregar os cargos.' }))
+    }
+  }
+
   async function changeStatus(row: MemberRow, status: 'active' | 'deactivated') {
     if (!row.userId || busy) return
+    if (status === 'deactivated' && !canDeactivate(row.userId, ownerUserId)) {
+      setMessage('')
+      setError(ownerDeactivateMessage)
+      return
+    }
     if (status === 'deactivated') {
       const who = row.name.trim() || row.email.trim() || 'este usuário'
       if (!window.confirm(`Desativar ${who}? A pessoa continua na empresa, com status Desativado.`)) return
@@ -451,6 +495,13 @@ export function TeamPage() {
 
   if (!isLoaded || !organization) return <LoadingState label="Carregando equipe..." />
   if (!orgId) return null
+  // LLT-120 (spec 012, T035): the page opens by the MEMBERS_VIEW permission of the Core; the LLT-168 rules below stay.
+  const gate = teamPageGate(access)
+  if (gate === 'loading') return <LoadingState label="Carregando acesso..." />
+  if (gate === 'hidden') return null
+  if (gate === 'denied') {
+    return <p role="alert" className="rounded-lg bg-red-50 p-4 text-sm text-red-700">{teamAccessDeniedMessage}</p>
+  }
   const screen = teamScreen({ orgRole, blockedMessage: blocked })
   if (screen.mode === 'denied') {
     return <p role="alert" className="rounded-lg bg-red-50 p-4 text-sm text-red-700">{screen.message}</p>
@@ -475,10 +526,10 @@ export function TeamPage() {
             <div className="grid gap-4 md:grid-cols-2">
               <Input id="team-email" label="E-mail" type="email" autoComplete="email" requiredMark value={email} error={fieldErrors.emailAddress} onChange={(event) => setEmail(event.target.value)} />
               <Select id="team-role" label="Cargo" requiredMark value={role} error={fieldErrors.role} onChange={(event) => setRole(event.target.value as InviteRole)}>
-                <option value="org:member">Membro</option>
-                <option value="org:admin">Administrador</option>
+                {inviteOptions.map((option) => <option key={option} value={option}>{roleLabel(option)}</option>)}
               </Select>
             </div>
+            {inviteHelpFor(inviteOptions) ? <p className="text-sm text-slate-600">{inviteHelpFor(inviteOptions)}</p> : null}
             <Button type="submit" fullWidth={false}>{busy === 'send' ? 'Enviando...' : 'Enviar convite'}</Button>
           </fieldset>
         </form>
@@ -544,13 +595,14 @@ export function TeamPage() {
               </thead>
               <tbody>
                 {memberRows.map((row) => {
-                  const current = roleToUpdate(row.role)
+                  const owner = isOwnerRow(row.userId, ownerUserId)
+                  const current = canDemote(row.userId, ownerUserId) ? roleToUpdate(row.role) : null
                   const draft = row.userId ? roleDraft[row.userId] ?? current : null
                   return (
                     <tr key={row.userId ?? `${row.email}-${row.role}`} className="border-t border-slate-200">
                       <td className="px-2 py-3">{row.name}</td>
                       <td className="px-2 py-3">{row.email}</td>
-                      <td className="px-2 py-3">{roleLabel(row.role)}</td>
+                      <td className="px-2 py-3">{rowRoleLabel(row.role, owner)}</td>
                       <td className="px-2 py-3">{row.status === 'deactivated' ? 'Desativado' : 'Ativo'}</td>
                       <td className="px-2 py-3">{formatLastAccess(row.lastAccessAt)}</td>
                       <td className="px-2 py-3">
@@ -565,7 +617,17 @@ export function TeamPage() {
                             {current && draft ? <Button variant="outline" size="small" fullWidth={false} disabled={busy !== null || draft === current} onClick={() => { void saveRole(row) }}>{busy === 'role' ? 'Salvando...' : 'Salvar cargo'}</Button> : null}
                             {row.status === 'deactivated'
                               ? <Button variant="soft" size="small" fullWidth={false} disabled={busy !== null} onClick={() => { void changeStatus(row, 'active') }}>{busy === 'reactivate' ? 'Reativando...' : 'Reativar'}</Button>
-                              : <Button variant="outline" size="small" fullWidth={false} disabled={busy !== null} onClick={() => { void changeStatus(row, 'deactivated') }}>{busy === 'deactivate' ? 'Desativando...' : 'Desativar'}</Button>}
+                              : owner ? null : <Button variant="outline" size="small" fullWidth={false} disabled={busy !== null} onClick={() => { void changeStatus(row, 'deactivated') }}>{busy === 'deactivate' ? 'Desativando...' : 'Desativar'}</Button>}
+                            {access.can('PRODUCT_ACCESS_MANAGE')
+                              ? owner || roleToUpdate(row.role) === 'admin'
+                                ? <span className="text-xs text-slate-600">{fullAccessMessage}</span>
+                                : <Button variant="soft" size="small" fullWidth={false} onClick={() => setProductsFor(row)}>Produtos</Button>
+                              : null}
+                            {access.can('NOTIFICATION_ROLES_MANAGE') && row.userId
+                              ? rolesText[row.userId]
+                                ? <span className="text-xs text-slate-600">Cargos: {rolesText[row.userId]}</span>
+                                : <Button variant="soft" size="small" fullWidth={false} onClick={() => { if (row.userId) void showRoles(row.userId) }}>Cargos</Button>
+                              : null}
                           </div>
                         ) : null}
                       </td>
@@ -575,6 +637,14 @@ export function TeamPage() {
               </tbody>
             </table>
           </div>
+        ) : null}
+        {productsFor?.userId ? (
+          <MemberProductsPanel
+            key={productsFor.userId}
+            userId={productsFor.userId}
+            personLabel={productsFor.name.trim() || productsFor.email.trim() || 'usuário'}
+            onClose={() => setProductsFor(null)}
+          />
         ) : null}
         {listMayBeIncomplete(memberTotal) ? <p role="status" className="mt-4 rounded-lg bg-amber-50 p-4 text-sm text-amber-800">{incompleteListMessage}</p> : null}
         {memberTotal > pageSize ? <div className="mt-4"><Pagination page={memberPage} pageSize={pageSize} totalItems={memberTotal} itemLabel="usuários" onPageChange={setMemberPage} /></div> : null}

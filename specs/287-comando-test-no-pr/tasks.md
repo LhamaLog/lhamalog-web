@@ -16,7 +16,8 @@
 
 ## Path Conventions
 
-- Workflow: `.github/workflows/pr-validation.yml`
+- Validação de pull request: `.github/workflows/pr-validation.yml`
+- Reexecução por comentário: `.github/workflows/pr-rerun.yml`
 - Regras: `scripts/pr-validation.mjs`
 - Teste: `tests/pr-validation.test.mjs`
 - Documentação da limitação: `README.md` e `specs/287-comando-test-no-pr/spec.md`
@@ -48,11 +49,11 @@
 
 **Goal**: Comentário aceito refaz a validação no head e atualiza o comentário do marcador, sem bloquear o merge e sem fork
 
-**Independent Test**: O job `reexecutar` em `.github/workflows/pr-validation.yml` só corre em `issue_comment` `created` de pull request. Com `rerun=true` e head no próprio repositório, faz checkout do SHA, roda `npm ci`, `npm test` e `npm run build`, monta o comentário com a cópia de `scripts/pr-validation.mjs` e atualiza o marcador `<!-- llt-285-validacao-prs -->`. O job não falha a rodada.
+**Independent Test**: O job `reexecutar` em `.github/workflows/pr-rerun.yml` só corre em `issue_comment` `created` de pull request. Com `rerun=true` e head no próprio repositório, faz checkout do SHA, roda `npm ci`, `npm test` e `npm run build`, monta o comentário com a cópia de `scripts/pr-validation.mjs` e atualiza o marcador `<!-- llt-285-validacao-prs -->`. O job não falha a rodada.
 
 ### Implementation for User Story 1
 
-- [x] T004 [US1] Em `.github/workflows/pr-validation.yml`, acrescentar `on.issue_comment.types: [created]` e o job `reexecutar`. O job `validar` continua só em `pull_request`, com o mesmo `if` de repositório do head. O job novo copia `scripts/pr-validation.mjs` para o temporário do runner antes do checkout do head, chama `--gate`, busca o pull request, recusa fork comparando `head.repo.full_name` com `github.repository`, faz checkout do SHA com `persist-credentials: false`, repete instalação, teste e compilação com Node 26.12.1, monta o comentário com a cópia do script e atualiza ou cria o comentário do marcador. Passos que podem falhar usam `continue-on-error` ou `exit 0`
+- [x] T004 [US1] O job `reexecutar` está em `.github/workflows/pr-rerun.yml`, com `on.issue_comment.types: [created]`. O job `validar` continua em `.github/workflows/pr-validation.yml`, só em `pull_request`, com o mesmo `if` de repositório do head. O job novo copia `scripts/pr-validation.mjs` para o temporário do runner antes do checkout do head, chama `--gate`, busca o pull request, recusa fork comparando `head.repo.full_name` com `github.repository`, faz checkout do SHA com `persist-credentials: false`, repete instalação, teste e compilação com Node 26.12.1, monta o comentário com a cópia do script e atualiza ou cria o comentário do marcador. Passos que podem falhar usam `continue-on-error` ou `exit 0`
 
 **Checkpoint**: A reexecução atualiza um comentário só e termina verde
 
@@ -66,7 +67,7 @@
 
 ### Implementation for User Story 2
 
-- [x] T005 [US2] No `if` de `reexecutar` em `.github/workflows/pr-validation.yml`, exigir `github.event.issue` com chave `pull_request`, `github.event.comment.user.type != 'Bot'`, login diferente de `github-actions[bot]`, associação `OWNER` ou `MEMBER` ou `COLLABORATOR`, e `contains` do corpo com `test`. Não obter o head quando `steps.gate.outputs.rerun` não for `true` ou quando o head for de outro repositório
+- [x] T005 [US2] No `if` de `reexecutar` em `.github/workflows/pr-rerun.yml`, exigir `github.event.issue` com chave `pull_request`, `github.event.comment.user.type != 'Bot'`, login diferente de `github-actions[bot]`, associação `OWNER` ou `MEMBER` ou `COLLABORATOR`, e `contains` do corpo com `test`. Não obter o head quando `steps.gate.outputs.rerun` não for `true` ou quando o head for de outro repositório
 
 **Checkpoint**: Issue, bot, associação recusada, texto a mais e fork não instalam dependência
 
@@ -80,7 +81,7 @@
 
 ### Implementation for User Story 3
 
-- [x] T006 [US3] Em `.github/workflows/pr-validation.yml`, reagir com `eyes` no `comment_id` do comando antes de instalar, e ao final com `rocket` ou `-1` conforme `scripts/pr-validation.mjs --reaction`. Os dois passos usam `continue-on-error`. A reação final também corre se o checkout do head falhou depois dos olhos
+- [x] T006 [US3] Em `.github/workflows/pr-rerun.yml`, reagir com `eyes` no `comment_id` do comando antes de instalar, e ao final com `rocket` ou `-1` conforme `scripts/pr-validation.mjs --reaction`. Os dois passos usam `continue-on-error`. A reação final também corre se o checkout do head falhou depois dos olhos
 
 **Checkpoint**: O comentário `test` mostra início e fim sem mudar o comentário de validação
 
@@ -148,5 +149,5 @@
 
 - Não alterar `AGENTS.md`, `CLAUDE.md` nem arquivos de instrução de agentes
 - Não gravar segredo
-- Não criar outro workflow
+- A LLT-294 criou `.github/workflows/pr-rerun.yml` para o job `reexecutar`. `.github/workflows/pr-validation.yml` ficou só com `validar`
 - A limitação da `main` não se contorna neste repositório: o GitHub não lê `issue_comment` da branch do pull request

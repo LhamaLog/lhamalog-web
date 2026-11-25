@@ -1,10 +1,18 @@
+export type Personality = 'SIMPLE' | 'STANDARD' | 'DETAILED'
+
+// Same fields as the Core product context (lhamalog-core specs/009-contexto-produto).
 export type ProductContext = {
-  problemSolved: string
-  targetAudience: string
-  differentiators: string
-  keywords: string
-  restrictions: string
+  functionalDescription: string
+  personality: Personality
+  responseLanguage: string
+  architecture: string[]
+  scope: string[]
+  sensitiveData: string[]
 }
+
+export type ContextListField = 'architecture' | 'scope' | 'sensitiveData'
+
+export type OtelLogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR'
 
 export type Product = {
   id: string
@@ -17,6 +25,8 @@ export type Product = {
   createdAt: string
   context: ProductContext
   version: number
+  // Set while the product is archived (Core specs/002-editar-arquivar-produto); null when active.
+  archivedAt?: string | null
   // TODO: read when present. GET /api/products does not guarantee these fields yet.
   environment?: string
   owner?: string
@@ -30,41 +40,34 @@ export type Product = {
 export type ProductUiDraft = {
   productType: string
   environment: string
-  team: string
-  criticality: string
-  project: string
-  service: string
-  logLevel: string
-  active: boolean
-  otelEndpoint: string
-  otelProtocol: string
-  otelService: string
-  otelHeaders: string
-  otelEnabled: boolean
+  // Fields of the Figma that the Core does not store yet (LLT-123, F1).
+  owner: string
+  teamEmail: string
+  tags: string[]
+  // OpenTelemetry tab (spec 011, F1): Logs is always on and Metrics always off, so only these two are kept.
+  otelTraces: boolean
+  otelLogLevel: OtelLogLevel
 }
 
-export const emptyProductContext: ProductContext = {
-  problemSolved: '',
-  targetAudience: '',
-  differentiators: '',
-  keywords: '',
-  restrictions: '',
+export function emptyProductContext(): ProductContext {
+  return {
+    functionalDescription: '',
+    personality: 'STANDARD',
+    responseLanguage: 'pt-BR',
+    architecture: [],
+    scope: [],
+    sensitiveData: [],
+  }
 }
 
 export function emptyProductDraft(): ProductUiDraft {
   return {
     productType: '',
     environment: '',
-    team: '',
-    criticality: '',
-    project: '',
-    service: '',
-    logLevel: 'INFO',
-    active: true,
-    otelEndpoint: '',
-    otelProtocol: 'OTLP/HTTP',
-    otelService: '',
-    otelHeaders: '',
-    otelEnabled: true,
+    owner: '',
+    teamEmail: '',
+    tags: [],
+    otelTraces: false,
+    otelLogLevel: 'INFO',
   }
 }

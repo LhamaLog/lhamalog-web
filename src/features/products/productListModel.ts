@@ -1,4 +1,4 @@
-import type { Product, ProductUiDraft } from './types'
+import type { Product } from './types'
 
 const environmentAliases: Record<string, string> = {
   production: 'Produção',
@@ -84,19 +84,4 @@ export function formatPercent(value?: number | null, locale = 'pt-BR') {
 export function initials(name: string, locale = 'pt-BR') {
   const letters = name.trim().split(/\s+/).slice(0, 2).map((part) => part[0] ?? '')
   return letters.join('').toLocaleUpperCase(locale) || '•'
-}
-
-export function productFieldErrors(input: { editing: boolean; name: string; category: string; draft: ProductUiDraft }) {
-  if (input.editing) return {}
-  const errors: Record<string, string> = {}
-  if (!input.name.trim()) errors.name = 'Informe o nome do produto.'
-  if (!input.draft.productType.trim()) errors.productType = 'Selecione o tipo de produto.'
-  if (!input.draft.environment.trim()) errors.environment = 'Selecione o ambiente.'
-  if (!input.category.trim()) errors.category = 'Informe o domínio ou a área.'
-  if (!input.draft.team.trim()) errors.team = 'Informe a equipe responsável.'
-  if (!input.draft.criticality.trim()) errors.criticality = 'Selecione a criticidade.'
-  if (!input.draft.project.trim()) errors.project = 'Informe o projeto.'
-  if (!input.draft.service.trim()) errors.service = 'Informe a aplicação principal.'
-  if (!input.draft.logLevel.trim()) errors.logLevel = 'Selecione o nível de log.'
-  return errors
 }
