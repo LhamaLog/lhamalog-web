@@ -75,6 +75,8 @@ A composição usa ocorrências fictícias com busca local por título, descriç
 
 LLT-135 (spec 008): a lista, os filtros e o detalhe agora usam o Core em `/ocorrencias` e `/ocorrencias/:id`. O `OccurrenceCard` ganhou contagem, status, "Recorrente" e produto, com descrição e tags opcionais; o `OccurrencesView` aceita painéis opcionais e estados próprios; o cabeçalho ganhou o tamanho de página. Entraram `OccurrencesPage`, `OccurrenceFilters` e `OccurrenceDetailPage`. Os painéis de métricas continuam só na demonstração.
 
+LLT-136 (spec 013): o detalhe ganhou o `OccurrenceActions` (seletor de status, alterar, arquivar/desarquivar, com conflito e recarga), a lista ganhou o seletor de situação (Ativas/Arquivadas) pelo `controls` do `OccurrencesHeader`, e o `OccurrenceCard` ganhou o selo "Arquivada".
+
 ## 6 Empresa
 
 - [x] Implementar cabeçalho da tela de Configurações da Empresa.
