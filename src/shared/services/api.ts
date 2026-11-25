@@ -44,6 +44,8 @@ export async function apiRequest<T>(baseUrl: string, path: string, token: string
     const message = serverMessage || messageFor(response.status, code)
     throw new ApiError(message, response.status, body?.fieldErrors ?? {}, code, serverMessage)
   }
+  // 204 No Content has no body on purpose (LLT-120: role and role member deletion).
+  if (response.status === 204) return undefined as T
   if (body === null) throw new ApiError('O servidor retornou uma resposta inválida.', response.status)
   return body as T
 }

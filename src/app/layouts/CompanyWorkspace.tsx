@@ -8,9 +8,17 @@ import { ProductsPage } from '../../features/products/components/ProductsPage'
 import { ProfilePage } from '../../features/profile/components/ProfilePage'
 import { NotificationPreferences } from '../../features/notificationPreferences/components/NotificationPreferences'
 import { TeamPage } from '../../features/team/components/TeamPage'
+import { TeamTabs, teamTabFromPath } from '../../features/team/components/TeamTabs'
+import type { TeamTab } from '../../features/team/components/TeamTabs'
+import { NotificationRolesPage } from '../../features/notification-roles/components/NotificationRolesPage'
+import { PermissionsMatrix } from '../../features/access/components/PermissionsMatrix'
 import { PlansPage } from '../../features/billing/components/PlansPage'
 import { onSubscriptionRequired } from '../../shared/services/subscriptionRedirect'
-import { organizationProfileNavigation, teamMenuHiddenItems } from '../../features/team/invitations'
+import { organizationProfileNavigation } from '../../features/team/invitations'
+import { AccessProvider } from '../../features/access/AccessProvider'
+import { teamMenuHidden } from '../../features/access/accessContract'
+import { useAccess } from '../../features/access/useAccess'
+import { ErrorState } from '../../shared/ui/ErrorState'
 import { setAppliedClerkLocale } from '../../features/profile/clerkLocale'
 import { profileMessage } from '../../features/profile/messages'
 import { UserPreferencesProvider, useAppliedPreferences } from '../../features/profile/preferences'
@@ -22,13 +30,26 @@ export function CompanyWorkspace() {
   if (!isLoaded) return <LoadingState />
   return (
     <UserPreferencesProvider>
-      <WorkspaceShell />
+      <AccessProvider>
+        <WorkspaceShell />
+      </AccessProvider>
     </UserPreferencesProvider>
   )
 }
 
+// Team screen with its tabs (LLT-120, spec 012 W1/W2): people (LLT-167/168), notification roles and permissions.
+function TeamSection({ tab }: { tab: TeamTab }) {
+  return (
+    <div className="space-y-5">
+      <TeamTabs active={tab} />
+      {tab === 'roles' ? <NotificationRolesPage /> : tab === 'permissions' ? <PermissionsMatrix /> : <TeamPage />}
+    </div>
+  )
+}
+
 function WorkspaceShell() {
-  const { orgId, orgRole } = useAuth()
+  const { orgId } = useAuth()
+  const access = useAccess()
   const { organization } = useOrganization()
   const { user } = useUser()
   const { language, headerName } = useAppliedPreferences()
@@ -57,7 +78,7 @@ function WorkspaceShell() {
       activeItem: plan ? 'plan' : team ? 'team' : profile ? 'profile' : products ? 'products' : 'company',
       productName: 'Produtos da empresa',
       homeHref: '/empresa',
-      hiddenItems: teamMenuHiddenItems(orgRole),
+      hiddenItems: teamMenuHidden(access),
       onProductSelect: () => navigate('/produtos'),
       onItemSelect: item => {
         if (item === 'products') navigate('/produtos')
@@ -102,7 +123,8 @@ function WorkspaceShell() {
         /></div>
       <Link to="/organizacoes/nova" className="rounded-lg px-3 py-2 text-sm font-semibold text-[#0C70F2] hover:bg-blue-50">{text('shell.registerCompany')}</Link>
     </div>
+    {orgId && access.status === 'error' ? <ErrorState title="Não foi possível carregar o seu acesso" description={access.error} onRetry={access.reload} /> : null}
     {!orgId ? <EmptyState title={text('shell.emptyCompanyTitle')} description={text('shell.emptyCompanyDescription')} />
-      : <div key={orgId}>{plan ? <PlansPage /> : team ? <TeamPage /> : profile ? <div className="space-y-6"><ProfilePage /><NotificationPreferences /></div> : products ? <ProductsPage /> : <CompanyPage organizationId={organization?.id ?? orgId} />}</div>}
+      : <div key={orgId}>{plan ? <PlansPage /> : team ? <TeamSection tab={teamTabFromPath(location.pathname)} /> : profile ? <div className="space-y-6"><ProfilePage /><NotificationPreferences /></div> : products ? <ProductsPage /> : <CompanyPage organizationId={organization?.id ?? orgId} />}</div>}
   </AppLayout>
 }
