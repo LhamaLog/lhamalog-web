@@ -24,6 +24,7 @@ const permissions: Record<string, string> = {
   PRODUCTS_EDIT: 'Editar produto',
   PRODUCTS_ARCHIVE: 'Arquivar e desarquivar produto',
   INGESTION_TOKENS_MANAGE: 'Gerenciar tokens de ingestão',
+  OCCURRENCES_MANAGE: 'Alterar status e arquivar ocorrências',
   NOTIFICATION_ROLES_MANAGE: 'Gerenciar cargos de notificação',
   SUBSCRIPTION_MANAGE: 'Gerenciar a assinatura',
   PENDING_ACCESS_APPROVE: 'Aprovar acessos pendentes',

@@ -48,11 +48,16 @@ export function attributeLabel(name: string): string {
   return attributes[name] ?? name
 }
 
-// Who changed the status: "Sistema" for the system, otherwise the id of the person.
-export function changedByLabel(changedBy: { type: string; id: string | null }): string {
+// Who changed the status: "Sistema" for the system, otherwise the member name when known, else the id.
+export function changedByLabel(changedBy: { type: string; id: string | null }, names?: ReadonlyMap<string, string>): string {
   if (changedBy.type === 'SYSTEM') return 'Sistema'
+  if (changedBy.id && names?.get(changedBy.id)) return names.get(changedBy.id) as string
   return changedBy.id || 'Usuário'
 }
+
+export const archivedLabel = 'Arquivada'
+
+export const situationLabels = { active: 'Ativas', archived: 'Arquivadas' } as const
 
 // null means unknown: the line is not shown.
 export function sensitiveDataLabel(value: boolean | null): string | null {

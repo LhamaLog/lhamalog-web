@@ -51,10 +51,11 @@ test('a Core without LLT-120 falls back to the Clerk role with the same permissi
   assert.ok(admin.permissions.includes('MEMBERS_VIEW'))
   assert.ok(admin.permissions.includes('MEMBERS_INVITE_MEMBER'))
   assert.ok(!admin.permissions.includes('SUBSCRIPTION_MANAGE'))
+  assert.ok(admin.permissions.includes('OCCURRENCES_MANAGE'))
   assert.equal(accessFallback('admin').role, 'ADMIN')
   const member = accessFallback('org:member')
   assert.equal(member.role, 'MEMBER')
-  assert.deepEqual(member.permissions, ['COMPANY_VIEW', 'PRODUCTS_CREATE', 'PRODUCTS_EDIT'])
+  assert.deepEqual(member.permissions, ['COMPANY_VIEW', 'OCCURRENCES_MANAGE', 'PRODUCTS_CREATE', 'PRODUCTS_EDIT'])
   assert.equal(accessFallback(null).role, 'MEMBER')
 })
 
