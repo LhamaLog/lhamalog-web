@@ -44,4 +44,6 @@ Linhas 16 a 25 do `TESTE-MANUAL.md` do pacote da LLT-124. A preencher na Parte D
 
 | # | Resultado |
 |---|---|
-| 16 a 25 | pendente |
+| 16 a 23 | pendente: precisam de login (o Claude in Chrome não estava conectado em 27/11) |
+| 24 | **OK em 27/11/2026**, sem login: `npm run dev` na `LLT-180-instrucoes-opentelemetry`, Chrome sem janela com um perfil novo (sem sessão), Core desligado. `/docs/opentelemetry` abriu inteira, com os endereços do `.env.local` (4328 e 4327), sem pedir login. Como o Core estava desligado, a página não depende dele. |
+| 25 | pendente: precisa de login |
