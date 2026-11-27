@@ -36,6 +36,9 @@ import { useOwnerOptions } from '../useOwnerOptions'
 import { activeSignals } from '../otelSnippet'
 import { readPublicConfig } from '../../../shared/config'
 import { ApiKeyField } from './ApiKeyField'
+import { IngestionTokensSection } from './IngestionTokensSection'
+import { useAccess } from '../../access/useAccess'
+import { canManageTokens } from '../tokenManagement'
 import { ConnectionStatusPanel } from './ConnectionStatusPanel'
 import { OtelConnectionCard } from './OtelConnectionCard'
 import { endsSession } from '../../../shared/services/sessionRedirect'
@@ -93,10 +96,12 @@ export function ProductForm(props: FormProps) {
   const { orgRole } = useAuth()
   // Address of the OTLP receiver (spec 011, F4). Empty when VITE_OTLP_ENDPOINT is not set.
   const otlpEndpoint = readPublicConfig().otlpEndpoint
-  return <ProductEditor {...props} request={request} owners={owners} admin={canArchive(orgRole)} otlpEndpoint={otlpEndpoint} />
+  // Ingestion keys follow the INGESTION_TOKENS_MANAGE permission of LLT-120 (spec 013, K6).
+  const manageTokens = canManageTokens(useAccess())
+  return <ProductEditor {...props} request={request} owners={owners} admin={canArchive(orgRole)} manageTokens={manageTokens} otlpEndpoint={otlpEndpoint} />
 }
 
-export function ProductEditor({ product, onSaved, onCancel, request, areas = [], owners = null, admin = false, otlpEndpoint = '' }: FormProps & { request: ProductRequest; owners?: string[] | null; admin?: boolean; otlpEndpoint?: string }) {
+export function ProductEditor({ product, onSaved, onCancel, request, areas = [], owners = null, admin = false, manageTokens = false, otlpEndpoint = '' }: FormProps & { request: ProductRequest; owners?: string[] | null; admin?: boolean; manageTokens?: boolean; otlpEndpoint?: string }) {
   const [tab, setTab] = useState<ProductTab>('info')
   const [name, setName] = useState(product?.name ?? '')
   const [description, setDescription] = useState(product?.description ?? '')
@@ -112,6 +117,9 @@ export function ProductEditor({ product, onSaved, onCancel, request, areas = [],
   const [notice, setNotice] = useState('')
   // Badge of the "Status da conexão" panel, reported by the API key field (spec 011, F1).
   const [connection, setConnection] = useState<'waiting' | 'none' | 'unknown'>('unknown')
+  // Spec 013 (K9): the top field and the keys section read the list again when the other one changes it.
+  const [topTokensRevision, setTopTokensRevision] = useState(0)
+  const [sectionTokensRevision, setSectionTokensRevision] = useState(0)
   const pending = useRef(false)
   const controller = useRef<AbortController | null>(null)
   const editing = Boolean(product)
@@ -312,10 +320,14 @@ export function ProductEditor({ product, onSaved, onCancel, request, areas = [],
               logLevel={draft.otelLogLevel}
               onTracesChange={(otelTraces) => patchDraft({ otelTraces })}
               onLogLevelChange={(otelLogLevel) => patchDraft({ otelLogLevel })}
-              apiKey={<ApiKeyField productId={base?.id} productName={base?.name ?? name} archived={archived} admin={admin} request={request} onConnectionChange={setConnection} />}
+              apiKey={<ApiKeyField productId={base?.id} productName={base?.name ?? name} archived={archived} admin={manageTokens} request={request} onConnectionChange={setConnection} revision={topTokensRevision} onTokensChanged={() => setSectionTokensRevision((count) => count + 1)} />}
             />
           )}
         </fieldset>
+        {/* Outside the fieldset: on an archived product, Revogar still works (spec 013, K7). */}
+        {tab === 'otel' && base && manageTokens && (
+          <IngestionTokensSection productId={base.id} archived={archived} request={request} revision={sectionTokensRevision} onChanged={() => setTopTokensRevision((count) => count + 1)} />
+        )}
         </div>
         <aside className="space-y-4 lg:sticky lg:top-4">
           {tab === 'info' && <InfoHelp />}

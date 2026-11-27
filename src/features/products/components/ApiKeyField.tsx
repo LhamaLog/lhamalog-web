@@ -30,16 +30,21 @@ type Props = {
   productId?: string
   productName: string
   archived: boolean
+  // Who manages keys: since spec 013 (K6), the INGESTION_TOKENS_MANAGE permission of LLT-120, no longer the Clerk role.
   admin: boolean
   request: Request
   onConnectionChange: (state: 'waiting' | 'none' | 'unknown') => void
+  // Spec 013 (K9): bumped when the "Chaves deste produto" section changes the keys, so this field reads them again.
+  revision?: number
+  // Called after "Gerar nova" creates or rotates a key, so the section reads them again.
+  onTokensChanged?: () => void
 }
 
 const helpText = 'Envie no header de autorização. Ela aparece só uma vez.'
 
 // "Chave de API" of the Figma (spec 011, US2 and F5). The secret lives only in this component's state: it is never
 // stored, logged or put in the URL or in the snippet, and it is gone when the component leaves the screen (FR-W03).
-export function ApiKeyField({ productId, productName, archived, admin, request, onConnectionChange }: Props) {
+export function ApiKeyField({ productId, productName, archived, admin, request, onConnectionChange, revision = 0, onTokensChanged }: Props) {
   const [tokens, setTokens] = useState<TokenView[] | null>(null)
   const [secret, setSecret] = useState('')
   const [notice, setNotice] = useState('')
@@ -61,7 +66,7 @@ export function ApiKeyField({ productId, productName, archived, admin, request, 
       .then((value) => { if (!current.signal.aborted) setTokens(readTokenList(value)) })
       .catch((reason) => { if (!current.signal.aborted && !endsSession(reason)) setError(messageOf(reason, 'Não foi possível carregar a chave.')) })
     return () => current.abort()
-  }, [canList, productId, request])
+  }, [canList, productId, request, revision])
 
   const active = tokens ? activeToken(tokens) : null
   const previous = tokens ? expiringToken(tokens) : null
@@ -86,12 +91,14 @@ export function ApiKeyField({ productId, productName, archived, admin, request, 
         if (!rotation) throw new ApiError('O servidor retornou uma resposta inválida.', 0)
         setTokens(tokensAfterRotation(tokens, rotation))
         show(rotation.created.secret, rotation.created.notice)
+        onTokensChanged?.()
       } else {
         const created = readCreatedToken(await request<unknown>(tokensPath(productId), { method: 'POST', signal: current.signal, body: JSON.stringify({ name: defaultTokenName(productName) }) }))
         if (current.signal.aborted) return
         if (!created) throw new ApiError('O servidor retornou uma resposta inválida.', 0)
         setTokens(tokensAfterCreate(tokens, created))
         show(created.secret, created.notice)
+        onTokensChanged?.()
       }
     } catch (reason) {
       if (!current.signal.aborted && !endsSession(reason)) setError(messageOf(reason, 'Não foi possível gerar a chave.'))

@@ -26,7 +26,7 @@ function text(value: unknown): string | null {
   return typeof value === 'string' && value !== '' ? value : null
 }
 
-function readTokenView(value: unknown): TokenView | null {
+export function readTokenView(value: unknown): TokenView | null {
   if (!value || typeof value !== 'object') return null
   const record = value as Record<string, unknown>
   const id = text(record.id)
@@ -92,6 +92,14 @@ export function rotatePath(productId: string, tokenId: string): string {
   return `${tokensPath(productId)}/${encodeURIComponent(tokenId)}/rotate`
 }
 
+// Spec 013: revoke one key and read the audit of the product.
+export function revokePath(productId: string, tokenId: string): string {
+  return `${tokensPath(productId)}/${encodeURIComponent(tokenId)}/revoke`
+}
+
+export function auditPath(productId: string): string {
+  return `${tokensPath(productId)}/audit`
+}
 // The Core accepts names up to 100 characters.
 export function defaultTokenName(productName: string): string {
   return productName.trim().slice(0, 100) || 'Chave de API'
@@ -134,4 +142,9 @@ export function tokensAfterCreate(list: TokenView[], created: CreatedToken): Tok
 export function tokensAfterRotation(list: TokenView[], rotation: Rotation): TokenView[] {
   const others = list.filter((item) => item.id !== rotation.created.token.id && item.id !== rotation.previous.id)
   return [rotation.created.token, rotation.previous, ...others]
+}
+
+// A revoked key stays in the list, in the same place (spec 013, US2.1).
+export function tokensAfterRevoke(list: TokenView[], revoked: TokenView): TokenView[] {
+  return list.map((item) => (item.id === revoked.id ? revoked : item))
 }
