@@ -94,14 +94,14 @@ export function ProductForm(props: FormProps) {
   const owners = useOwnerOptions()
   // Same rule as the Core for archive and unarchive (W2). Reading orgRole changes nothing in the Clerk setup.
   const { orgRole } = useAuth()
-  // Address of the OTLP receiver (spec 011, F4). Empty when VITE_OTLP_ENDPOINT is not set.
-  const otlpEndpoint = readPublicConfig().otlpEndpoint
+  // Addresses of the OTLP receiver: HTTP (spec 011, F4) and gRPC (spec 014, I2). Empty when not set.
+  const { otlpEndpoint, otlpGrpcEndpoint } = readPublicConfig()
   // Ingestion keys follow the INGESTION_TOKENS_MANAGE permission of LLT-120 (spec 013, K6).
   const manageTokens = canManageTokens(useAccess())
-  return <ProductEditor {...props} request={request} owners={owners} admin={canArchive(orgRole)} manageTokens={manageTokens} otlpEndpoint={otlpEndpoint} />
+  return <ProductEditor {...props} request={request} owners={owners} admin={canArchive(orgRole)} manageTokens={manageTokens} otlpEndpoint={otlpEndpoint} otlpGrpcEndpoint={otlpGrpcEndpoint} />
 }
 
-export function ProductEditor({ product, onSaved, onCancel, request, areas = [], owners = null, admin = false, manageTokens = false, otlpEndpoint = '' }: FormProps & { request: ProductRequest; owners?: string[] | null; admin?: boolean; manageTokens?: boolean; otlpEndpoint?: string }) {
+export function ProductEditor({ product, onSaved, onCancel, request, areas = [], owners = null, admin = false, manageTokens = false, otlpEndpoint = '', otlpGrpcEndpoint = '' }: FormProps & { request: ProductRequest; owners?: string[] | null; admin?: boolean; manageTokens?: boolean; otlpEndpoint?: string; otlpGrpcEndpoint?: string }) {
   const [tab, setTab] = useState<ProductTab>('info')
   const [name, setName] = useState(product?.name ?? '')
   const [description, setDescription] = useState(product?.description ?? '')
@@ -315,6 +315,7 @@ export function ProductEditor({ product, onSaved, onCancel, request, areas = [],
           {tab === 'otel' && (
             <OtelConnectionCard
               endpoint={otlpEndpoint}
+              grpcEndpoint={otlpGrpcEndpoint}
               productName={name}
               traces={draft.otelTraces}
               logLevel={draft.otelLogLevel}

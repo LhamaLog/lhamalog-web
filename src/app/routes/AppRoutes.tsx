@@ -8,6 +8,7 @@ import { CreateOrganizationPage } from '../../features/auth/components/CreateOrg
 import { ChooseOrganizationTask } from '../../features/auth/components/ChooseOrganizationTask'
 import { SetupMfaTask } from '../../features/auth/components/SetupMfaTask'
 import { ResetPasswordTask } from '../../features/auth/components/ResetPasswordTask'
+import { OpenTelemetryDocsPage } from '../../features/docs/OpenTelemetryDocsPage'
 
 // Rotas da autenticação. O /* no fim é necessário nos componentes da Clerk,
 // que usam sub-rotas (ex.: /sign-in/factor-one).
@@ -16,6 +17,8 @@ export function AppRoutes() {
     <Routes>
       {/* Demonstração atual, só para sessão ativa */}
       <Route path="/" element={<Navigate to="/empresa" replace />} />
+      {/* Documentação pública da integração OpenTelemetry (LLT-180): sem login e sem chamada ao Core */}
+      <Route path="/docs/opentelemetry" element={<OpenTelemetryDocsPage />} />
       <Route path="/componentes" element={<ProtectedRoute><App /></ProtectedRoute>} />
       <Route path="/empresa" element={<ProtectedRoute><CompanyWorkspace /></ProtectedRoute>} />
       <Route path="/produtos" element={<ProtectedRoute><CompanyWorkspace /></ProtectedRoute>} />

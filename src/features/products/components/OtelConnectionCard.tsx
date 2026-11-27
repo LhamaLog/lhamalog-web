@@ -1,13 +1,18 @@
 import { useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Card } from '../../../shared/ui/Card'
-import { endpointNotConfigured, envSnippet, javaSnippet } from '../otelSnippet'
+import { collectorSnippet, collectorTokenVariable } from '../collectorSnippet'
+import { docsPath } from '../otelDocs'
+import { authHeaderLines, endpointFor, endpointNotConfigured, envSnippet, javaSnippet } from '../otelSnippet'
+import type { OtelProtocol } from '../otelSnippet'
 import type { OtelLogLevel } from '../types'
 import { CopyButton } from './CopyButton'
 import { LogLevelSlider } from './LogLevelSlider'
 
 type Props = {
+  // OTLP/HTTP endpoint (spec 011) and OTLP/gRPC endpoint (spec 014, I2). Empty when not configured.
   endpoint: string
+  grpcEndpoint?: string
   productName: string
   traces: boolean
   logLevel: OtelLogLevel
@@ -17,13 +22,24 @@ type Props = {
   apiKey?: ReactNode
 }
 
-// "Conexão com OpenTelemetry" of 04-produto-integracao-otel.png (spec 011, US1).
-export function OtelConnectionCard({ endpoint, productName, traces, logLevel, onTracesChange, onLogLevelChange, apiKey }: Props) {
-  const [snippetTab, setSnippetTab] = useState<'env' | 'java'>('env')
+type SnippetTab = 'env' | 'java' | 'collector'
+
+const snippetTabs: [SnippetTab, string][] = [['env', 'Variáveis de ambiente'], ['java', 'Java (agente)'], ['collector', 'OpenTelemetry Collector']]
+
+const protocols: [OtelProtocol, string][] = [['http', 'HTTP'], ['grpc', 'gRPC']]
+
+// "Conexão com OpenTelemetry" of 04-produto-integracao-otel.png (spec 011, US1). Spec 014 adds the protocol selector,
+// the OpenTelemetry Collector example, the authentication block and the link to the public docs (I1).
+export function OtelConnectionCard({ endpoint: httpEndpoint, grpcEndpoint = '', productName, traces, logLevel, onTracesChange, onLogLevelChange, apiKey }: Props) {
+  const [snippetTab, setSnippetTab] = useState<SnippetTab>('env')
+  // Protocol of the endpoint field, of the examples and of the authentication block (spec 014, I1).
+  const [protocol, setProtocol] = useState<OtelProtocol>('http')
   const endpointInput = useRef<HTMLInputElement>(null)
-  // The snippet never receives the key: it always shows <sua-chave> (FR-W03).
-  const snippetInput = { endpoint, productName, traces }
-  const snippet = snippetTab === 'env' ? envSnippet(snippetInput) : javaSnippet(snippetInput)
+  const endpoint = endpointFor(protocol, { http: httpEndpoint, grpc: grpcEndpoint })
+  // The examples never receive the key: <sua-chave> or ${env:LHAMALOG_TOKEN} (FR-W03, spec 014 I5).
+  const snippetInput = { endpoint, productName, traces, protocol }
+  const snippet = snippetTab === 'env' ? envSnippet(snippetInput) : snippetTab === 'java' ? javaSnippet(snippetInput) : collectorSnippet(snippetInput)
+  const auth = authHeaderLines(protocol)
 
   return (
     <Card className="space-y-5 sm:p-6">
@@ -79,11 +95,28 @@ export function OtelConnectionCard({ endpoint, productName, traces, logLevel, on
       </div>
 
       <div className="flex flex-col gap-2">
-        <span className="text-sm font-semibold text-slate-900">Configuração da aplicação</span>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <span className="text-sm font-semibold text-slate-900">Configuração da aplicação</span>
+          <div role="radiogroup" aria-label="Protocolo" className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white p-1">
+            <span className="px-2 text-xs text-slate-500" aria-hidden="true">Protocolo</span>
+            {protocols.map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={protocol === value}
+                onClick={() => setProtocol(value)}
+                className={`cursor-pointer rounded-md px-3 py-1 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0C70F2] ${protocol === value ? 'bg-[#0C70F2] font-semibold text-white' : 'text-[#083B7A] hover:bg-blue-50'}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="overflow-hidden rounded-xl bg-[#0B1A33] text-slate-100">
           <div className="flex items-center justify-between gap-3 border-b border-slate-700 px-4">
             <div role="tablist" aria-label="Formato da configuração" className="flex gap-4">
-              {([['env', 'Variáveis de ambiente'], ['java', 'Java (agente)']] as const).map(([value, label]) => (
+              {snippetTabs.map(([value, label]) => (
                 <button
                   key={value}
                   type="button"
@@ -100,8 +133,30 @@ export function OtelConnectionCard({ endpoint, productName, traces, logLevel, on
           </div>
           <pre className="overflow-x-auto px-4 py-4 text-xs leading-6"><code>{snippet}</code></pre>
         </div>
-        <p className="text-xs text-slate-500">Cole essas variáveis no ambiente da aplicação e reinicie o serviço. Troque {'<sua-chave>'} pela Chave de API.</p>
+        <p className="text-xs text-slate-500">
+          {snippetTab === 'collector'
+            ? `Salve como config.yaml no servidor do OpenTelemetry Collector e defina a variável ${collectorTokenVariable} com a Chave de API. A chave não fica no arquivo.`
+            : 'Cole essas variáveis no ambiente da aplicação e reinicie o serviço. Troque <sua-chave> pela Chave de API.'}
+        </p>
       </div>
+
+      <div className="flex flex-col gap-2 rounded-xl border border-slate-200 bg-field p-4">
+        <span className="text-sm font-semibold text-slate-900">Cabeçalho de autenticação</span>
+        <p className="text-xs text-slate-500">{auth.intro}</p>
+        <code className="w-fit rounded-md bg-white px-2 py-1 font-mono text-xs text-slate-900">{auth.header}</code>
+        <p className="text-xs text-slate-500">{auth.refusal}</p>
+      </div>
+
+      <a
+        href={docsPath}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-[#0C70F2] hover:text-[#083B7A] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0C70F2]"
+      >
+        Ver documentação completa
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" /></svg>
+        <span className="sr-only">(abre em nova aba)</span>
+      </a>
     </Card>
   )
 }

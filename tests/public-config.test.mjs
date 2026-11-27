@@ -53,3 +53,18 @@ test('the OTLP endpoint must be http or https, without user, password, query or 
   assert.throws(() => resolvePublicConfig({ clerkPublishableKey: publishable, otlpEndpoint: 'https://otlp.example.com/?a=1' }, {}), /VITE_OTLP_ENDPOINT/)
   assert.throws(() => resolvePublicConfig({ clerkPublishableKey: publishable, otlpEndpoint: 'não é url' }, {}), /VITE_OTLP_ENDPOINT/)
 })
+
+// Spec 014 (LLT-180, I2): the gRPC endpoint has the same rules and the same two sources as the HTTP one.
+test('the optional OTLP gRPC endpoint follows the same rules as the HTTP one', () => {
+  assert.equal(resolvePublicConfig({ clerkPublishableKey: publishable }, {}).otlpGrpcEndpoint, '')
+  assert.equal(resolvePublicConfig({ clerkPublishableKey: publishable, otlpGrpcEndpoint: 'https://otlp-grpc.example.com/' }, { otlpGrpcEndpoint: 'http://localhost:4327' }).otlpGrpcEndpoint, 'https://otlp-grpc.example.com')
+  assert.equal(resolvePublicConfig({ clerkPublishableKey: publishable, otlpGrpcEndpoint: ' ' }, { otlpGrpcEndpoint: 'http://localhost:4327//' }).otlpGrpcEndpoint, 'http://localhost:4327')
+  assert.equal(resolvePublicConfig({ clerkPublishableKey: publishable, otlpEndpoint: 'http://localhost:4328' }, {}).otlpGrpcEndpoint, '')
+  assert.throws(() => resolvePublicConfig({ clerkPublishableKey: publishable, otlpGrpcEndpoint: 'grpc://otlp.example.com' }, {}), /VITE_OTLP_GRPC_ENDPOINT/)
+  assert.throws(() => resolvePublicConfig({ clerkPublishableKey: publishable, otlpGrpcEndpoint: 'https://user:secret@otlp.example.com' }, {}), /VITE_OTLP_GRPC_ENDPOINT não pode incluir usuário ou senha/)
+  assert.throws(() => resolvePublicConfig({ clerkPublishableKey: publishable, otlpGrpcEndpoint: 'https://otlp.example.com/?a=1' }, {}), /VITE_OTLP_GRPC_ENDPOINT/)
+  assert.throws(() => resolvePublicConfig({ clerkPublishableKey: publishable, otlpGrpcEndpoint: 'https://otlp.example.com/#x' }, {}), /VITE_OTLP_GRPC_ENDPOINT/)
+  assert.throws(() => resolvePublicConfig({ clerkPublishableKey: publishable, otlpGrpcEndpoint: 'não é url' }, {}), /VITE_OTLP_GRPC_ENDPOINT/)
+  // The HTTP messages keep naming the HTTP variable.
+  assert.throws(() => resolvePublicConfig({ clerkPublishableKey: publishable, otlpEndpoint: 'https://user:secret@otlp.example.com' }, {}), /VITE_OTLP_ENDPOINT não pode incluir usuário ou senha/)
+})

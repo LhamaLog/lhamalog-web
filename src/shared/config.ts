@@ -2,6 +2,7 @@ export type PublicConfigInput = {
   clerkPublishableKey?: string
   apiUrl?: string
   otlpEndpoint?: string
+  otlpGrpcEndpoint?: string
 }
 
 export type PublicConfig = {
@@ -9,6 +10,8 @@ export type PublicConfig = {
   apiUrl: string
   // Optional address of the OTLP receiver shown in the OpenTelemetry tab (spec 011, F4). Empty when not set.
   otlpEndpoint: string
+  // Optional address of the OTLP/gRPC receiver (spec 014, I2). Empty when not set.
+  otlpGrpcEndpoint: string
 }
 
 const DEFAULT_API_URL = 'http://localhost:8080'
@@ -26,10 +29,12 @@ export function resolvePublicConfig(runtime: PublicConfigInput | undefined, buil
   const clerkPublishableKey = firstNonEmpty(runtime?.clerkPublishableKey, buildTime.clerkPublishableKey)
   const apiUrl = stripTrailingSlashes(firstNonEmpty(runtime?.apiUrl, buildTime.apiUrl, DEFAULT_API_URL))
   const otlpEndpoint = stripTrailingSlashes(firstNonEmpty(runtime?.otlpEndpoint, buildTime.otlpEndpoint))
+  const otlpGrpcEndpoint = stripTrailingSlashes(firstNonEmpty(runtime?.otlpGrpcEndpoint, buildTime.otlpGrpcEndpoint))
   assertPublishableKey(clerkPublishableKey)
   assertApiUrl(apiUrl)
-  if (otlpEndpoint) assertOtlpEndpoint(otlpEndpoint)
-  return { clerkPublishableKey, apiUrl, otlpEndpoint }
+  if (otlpEndpoint) assertOtlpEndpoint(otlpEndpoint, 'VITE_OTLP_ENDPOINT')
+  if (otlpGrpcEndpoint) assertOtlpEndpoint(otlpGrpcEndpoint, 'VITE_OTLP_GRPC_ENDPOINT')
+  return { clerkPublishableKey, apiUrl, otlpEndpoint, otlpGrpcEndpoint }
 }
 
 export function readPublicConfig(): PublicConfig {
@@ -38,6 +43,7 @@ export function readPublicConfig(): PublicConfig {
     clerkPublishableKey: import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
     apiUrl: import.meta.env.VITE_API_URL,
     otlpEndpoint: import.meta.env.VITE_OTLP_ENDPOINT,
+    otlpGrpcEndpoint: import.meta.env.VITE_OTLP_GRPC_ENDPOINT,
   })
 }
 
@@ -69,22 +75,23 @@ function assertPublishableKey(key: string): void {
   }
 }
 
-// Same rules as the API URL, but a path is allowed: some receivers live under a path.
-function assertOtlpEndpoint(endpoint: string): void {
+// Same rules as the API URL, but a path is allowed: some receivers live under a path. Used for the HTTP and the gRPC
+// receiver (spec 014, I2); the messages name the variable.
+function assertOtlpEndpoint(endpoint: string, variable: string): void {
   let url: URL
   try {
     url = new URL(endpoint)
   } catch {
-    throw new Error('VITE_OTLP_ENDPOINT deve ser uma URL http ou https.')
+    throw new Error(`${variable} deve ser uma URL http ou https.`)
   }
   if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-    throw new Error('VITE_OTLP_ENDPOINT deve usar http ou https.')
+    throw new Error(`${variable} deve usar http ou https.`)
   }
   if (url.username || url.password) {
-    throw new Error('VITE_OTLP_ENDPOINT não pode incluir usuário ou senha.')
+    throw new Error(`${variable} não pode incluir usuário ou senha.`)
   }
   if (url.search !== '' || url.hash !== '' || endpoint.includes('?') || endpoint.includes('#')) {
-    throw new Error('VITE_OTLP_ENDPOINT não pode ter parâmetros (?) nem âncora (#).')
+    throw new Error(`${variable} não pode ter parâmetros (?) nem âncora (#).`)
   }
 }
 

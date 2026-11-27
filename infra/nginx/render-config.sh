@@ -67,33 +67,43 @@ if [ "${#API}" -gt 500 ]; then
   fail "VITE_API_URL é longa demais."
 fi
 
-# Optional address of the OTLP receiver shown in the OpenTelemetry tab (spec 011, F4 and N4).
-OTLP=${VITE_OTLP_ENDPOINT:-}
-OTLP=$(printf '%s' "$OTLP" | sed 's#/*$##')
+# Optional addresses of the OTLP receiver shown in the OpenTelemetry tab: HTTP (spec 011, F4 and N4) and gRPC
+# (spec 014, I2). Same rules for both; the messages name the variable and never print the value.
+check_otlp() {
+  name=$1
+  value=$2
+  [ -n "$value" ] || return 0
 
-if [ -n "$OTLP" ]; then
-  case "$OTLP" in
+  case "$value" in
     http://*|https://*) ;;
     *)
-      fail "VITE_OTLP_ENDPOINT deve ser uma URL http ou https."
+      fail "$name deve ser uma URL http ou https."
       ;;
   esac
 
-  case "$OTLP" in
+  case "$value" in
     *[\ \"\'\\@?\#]*)
-      fail "VITE_OTLP_ENDPOINT não pode ter usuário, senha, parâmetros, âncora, aspas ou espaços."
+      fail "$name não pode ter usuário, senha, parâmetros, âncora, aspas ou espaços."
       ;;
   esac
 
-  if [ "${#OTLP}" -gt 500 ]; then
-    fail "VITE_OTLP_ENDPOINT é longa demais."
+  if [ "${#value}" -gt 500 ]; then
+    fail "$name é longa demais."
   fi
-fi
+}
+
+OTLP=${VITE_OTLP_ENDPOINT:-}
+OTLP=$(printf '%s' "$OTLP" | sed 's#/*$##')
+check_otlp VITE_OTLP_ENDPOINT "$OTLP"
+
+OTLP_GRPC=${VITE_OTLP_GRPC_ENDPOINT:-}
+OTLP_GRPC=$(printf '%s' "$OTLP_GRPC" | sed 's#/*$##')
+check_otlp VITE_OTLP_GRPC_ENDPOINT "$OTLP_GRPC"
 
 mkdir -p /tmp/lhamalog
 tmp=$(mktemp /tmp/lhamalog/config.XXXXXX)
 cat > "$tmp" <<EOF
-window.__LHAMALOG_CONFIG__={"clerkPublishableKey":"$KEY","apiUrl":"$API","otlpEndpoint":"$OTLP"};
+window.__LHAMALOG_CONFIG__={"clerkPublishableKey":"$KEY","apiUrl":"$API","otlpEndpoint":"$OTLP","otlpGrpcEndpoint":"$OTLP_GRPC"};
 EOF
 chmod 644 "$tmp"
 mv "$tmp" /tmp/lhamalog/config.js

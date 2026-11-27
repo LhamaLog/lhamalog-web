@@ -72,3 +72,46 @@ test('levels of the slider and the active signals of the status panel', async ()
   assert.equal(activeSignals(false), 'Logs')
   assert.equal(activeSignals(true), 'Logs, Traces')
 })
+
+// Spec 014 (LLT-180): protocol selector, gRPC and the authentication block (I2, I4, FR-I02).
+test('with gRPC, the SDK snippets use the grpc protocol, the gRPC endpoint and the lowercase metadata (I4)', async () => {
+  const { envSnippet, javaSnippet } = await import('../src/features/products/otelSnippet.ts')
+  const input = { endpoint: 'http://localhost:4327', productName: 'Gateway de Pagamentos', traces: false, protocol: 'grpc' }
+  assert.equal(envSnippet(input), [
+    'OTEL_SERVICE_NAME=gateway-de-pagamentos',
+    'OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4327',
+    'OTEL_EXPORTER_OTLP_PROTOCOL=grpc',
+    'OTEL_EXPORTER_OTLP_HEADERS=authorization=Bearer%20<sua-chave>',
+    'OTEL_LOGS_EXPORTER=otlp',
+    'OTEL_TRACES_EXPORTER=none',
+    'OTEL_METRICS_EXPORTER=none',
+  ].join('\n'))
+  const command = javaSnippet({ ...input, traces: true })
+  for (const line of ['-Dotel.exporter.otlp.protocol=grpc', '-Dotel.exporter.otlp.headers=authorization=Bearer%20<sua-chave>', '-Dotel.traces.exporter=otlp', '-Dotel.metrics.exporter=none']) {
+    assert.ok(command.includes(line), line)
+  }
+  // Without a protocol, HTTP, as in spec 011.
+  assert.match(envSnippet({ endpoint: 'http://localhost:4328', productName: 'API', traces: false }), /^OTEL_EXPORTER_OTLP_PROTOCOL=http\/protobuf$/m)
+})
+
+test('the endpoint of the chosen protocol (I2)', async () => {
+  const { endpointFor } = await import('../src/features/products/otelSnippet.ts')
+  const endpoints = { http: 'http://localhost:4328', grpc: 'http://localhost:4327' }
+  assert.equal(endpointFor('http', endpoints), 'http://localhost:4328')
+  assert.equal(endpointFor('grpc', endpoints), 'http://localhost:4327')
+  assert.equal(endpointFor('grpc', { http: 'http://localhost:4328', grpc: '' }), '')
+})
+
+test('the authentication block of each protocol always uses the placeholder (FR-I02)', async () => {
+  const { authHeaderLines } = await import('../src/features/products/otelSnippet.ts')
+  assert.deepEqual(authHeaderLines('http'), {
+    intro: 'Envie a Chave de API no cabeçalho HTTP:',
+    header: 'Authorization: Bearer <sua-chave>',
+    refusal: 'Sem a chave, ou com uma chave revogada ou expirada, o LhamaLog responde 401.',
+  })
+  assert.deepEqual(authHeaderLines('grpc'), {
+    intro: 'Envie a Chave de API na metadata gRPC:',
+    header: 'authorization: Bearer <sua-chave>',
+    refusal: 'Sem a chave, ou com uma chave revogada ou expirada, o LhamaLog responde UNAUTHENTICATED.',
+  })
+})

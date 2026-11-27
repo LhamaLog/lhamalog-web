@@ -123,11 +123,14 @@ São dois momentos diferentes:
 
 `VITE_OTLP_ENDPOINT` é opcional: o endereço do receptor OTLP (o `lhamalog-collector`) que a aba "Integração OpenTelemetry" do produto mostra e usa no exemplo de configuração da aplicação. Não é segredo. Aceita `http` ou `https`, com caminho, sem usuário, senha, parâmetros ou âncora; a barra final é removida. Sem valor, a aba mostra "Endereço ainda não configurado.". Um valor inválido impede a página de abrir, com a mensagem do erro, como acontece com o `VITE_API_URL`. Vale nos dois momentos acima: no Vite e no `/config.js` do contêiner. No perfil local, o Coletor recebe OTLP/HTTP em `http://localhost:4328`.
 
+`VITE_OTLP_GRPC_ENDPOINT` é opcional e segue as mesmas regras e os mesmos dois caminhos: o endereço do receptor OTLP/gRPC, mostrado quando a pessoa escolhe o protocolo gRPC na aba e na documentação pública. No perfil local, o Coletor recebe OTLP/gRPC em `http://localhost:4327` (em produção, 4317).
+
 ## Rotas
 
 | Caminho | Tela |
 | --- | --- |
 | `/` | Redireciona para `/empresa`. |
+| `/docs/opentelemetry` | Documentação pública da integração com OpenTelemetry (LLT-180). Abre sem login e não chama o Core. |
 | `/empresa` | Dados, endereço e contexto da empresa ativa, com sessão. |
 | `/produtos` | Cadastro, lista e contexto de produtos acessíveis, com sessão. |
 | `/componentes` | Demonstração visual preservada, com sessão. |

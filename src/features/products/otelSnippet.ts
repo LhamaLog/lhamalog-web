@@ -1,4 +1,4 @@
-// "Configuração da aplicação" of the OpenTelemetry tab (spec 011). Pure functions.
+// "Configuração da aplicação" of the OpenTelemetry tab (spec 011, protocol and gRPC from spec 014). Pure functions.
 // The input has no key: the snippet always uses the <sua-chave> placeholder (FR-W03).
 // It follows what the Collector accepts: Authorization Bearer (N1), logs and traces, no metrics (N2).
 
@@ -12,10 +12,16 @@ export function activeSignals(traces: boolean): string {
   return traces ? 'Logs, Traces' : 'Logs'
 }
 
+// OTLP/HTTP or OTLP/gRPC (spec 014, I1 and I2).
+export type OtelProtocol = 'http' | 'grpc'
+
 export type SnippetInput = {
+  // The endpoint of the chosen protocol (endpointFor).
   endpoint: string
   productName: string
   traces: boolean
+  // Without it, HTTP, as in spec 011.
+  protocol?: OtelProtocol
 }
 
 export const keyPlaceholder = '<sua-chave>'
@@ -24,8 +30,22 @@ export const endpointNotConfigured = 'Endereço ainda não configurado.'
 
 export const endpointPlaceholder = '<endereço ainda não configurado>'
 
-// OTEL_EXPORTER_OTLP_HEADERS values are URL encoded, so the space after Bearer is %20.
-const authorizationHeader = `Authorization=Bearer%20${keyPlaceholder}`
+// OTEL_EXPORTER_OTLP_HEADERS values are URL encoded, so the space after Bearer is %20. On gRPC the metadata name is
+// lowercase, which is what the Collector reads (spec 014, I4).
+function authorizationHeader(protocol: OtelProtocol): string {
+  return `${protocol === 'grpc' ? 'authorization' : 'Authorization'}=Bearer%20${keyPlaceholder}`
+}
+
+export function endpointFor(protocol: OtelProtocol, endpoints: { http: string; grpc: string }): string {
+  return protocol === 'grpc' ? endpoints.grpc : endpoints.http
+}
+
+// "Cabeçalho de autenticação" of the tab and of the public docs (spec 014, FR-I02). Always with the placeholder.
+export function authHeaderLines(protocol: OtelProtocol): { intro: string; header: string; refusal: string } {
+  return protocol === 'grpc'
+    ? { intro: 'Envie a Chave de API na metadata gRPC:', header: `authorization: Bearer ${keyPlaceholder}`, refusal: 'Sem a chave, ou com uma chave revogada ou expirada, o LhamaLog responde UNAUTHENTICATED.' }
+    : { intro: 'Envie a Chave de API no cabeçalho HTTP:', header: `Authorization: Bearer ${keyPlaceholder}`, refusal: 'Sem a chave, ou com uma chave revogada ou expirada, o LhamaLog responde 401.' }
+}
 
 // Like the Figma: "Gateway de Pagamentos" becomes gateway-de-pagamentos (N3).
 export function serviceName(productName: string): string {
@@ -40,12 +60,12 @@ export function serviceName(productName: string): string {
   return slug || 'meu-servico'
 }
 
-function settings({ endpoint, productName, traces }: SnippetInput): [string, string][] {
+function settings({ endpoint, productName, traces, protocol = 'http' }: SnippetInput): [string, string][] {
   return [
     ['service.name', serviceName(productName)],
     ['exporter.otlp.endpoint', endpoint.trim() || endpointPlaceholder],
-    ['exporter.otlp.protocol', 'http/protobuf'],
-    ['exporter.otlp.headers', authorizationHeader],
+    ['exporter.otlp.protocol', protocol === 'grpc' ? 'grpc' : 'http/protobuf'],
+    ['exporter.otlp.headers', authorizationHeader(protocol)],
     ['logs.exporter', 'otlp'],
     ['traces.exporter', traces ? 'otlp' : 'none'],
     ['metrics.exporter', 'none'],

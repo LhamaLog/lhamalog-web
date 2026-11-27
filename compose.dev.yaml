@@ -21,6 +21,7 @@ services:
       VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY:-}
       VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
       VITE_OTLP_ENDPOINT: ${VITE_OTLP_ENDPOINT:-}
+      VITE_OTLP_GRPC_ENDPOINT: ${VITE_OTLP_GRPC_ENDPOINT:-}
       WATCH_POLLING: ${WATCH_POLLING:-false}
     volumes:
       - ./:/home/node/app
