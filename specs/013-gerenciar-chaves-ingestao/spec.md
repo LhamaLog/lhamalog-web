@@ -3,7 +3,7 @@
 **Feature Branch**: `LLT-179-gerenciar-chaves-ingestao`
 **Spec**: `specs/013-gerenciar-chaves-ingestao` (013 conferido livre na `origin/Development` em 27/11/2026; 012 é a LLT-120)
 **Feature (Jira)**: LLT-124 "Credenciais de ingestão OpenTelemetry" (Epic LLT-100), card LLT-179
-**Status**: Implementada em 27/11/2026 (Fases 0 a 4). Clarify pelas recomendações do pacote, a conferir pelo Pedro; roteiro no navegador pendente (Parte D)
+**Status**: Implementada em 27/11/2026 (Fases 0 a 4). Clarify pelas recomendações do pacote, a conferir pelo Pedro; roteiro no navegador feito em 27/11/2026 (Parte D: linhas 1 a 6 e 8 a 15 OK; a 7 e a 15 como riscos aceitos; ver `quickstart.md`)
 
 **Input**: complemento Web da LLT-179 ("Gerar, revogar e rotacionar token de ingestão do produto"), parte da Feature "Credenciais de ingestão OpenTelemetry" (E04.F3). Na revisão de 17/11, o Michel não moveu a Feature para Feito porque a LLT-179 não estava concluída. O Core da 179 (spec `010-tokens-ingestao`, PR #8) entrega gerar, listar, revogar, rotacionar e auditoria. O Web da 179 (spec `011-tokens-ingestao`, PR #15) entregou só o que o Figma mostra: uma "Chave de API" com "Gerar nova" e "Copiar" (decisão F5 de 20/11). Listar, revogar e histórico ficaram de fora, com a pendência registrada: "pedir ao Figma uma tela de revogação, importante para chave vazada". Esta spec fecha essa lacuna.
 

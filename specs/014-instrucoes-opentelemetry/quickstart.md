@@ -44,6 +44,14 @@ Linhas 16 a 25 do `TESTE-MANUAL.md` do pacote da LLT-124. A preencher na Parte D
 
 | # | Resultado |
 |---|---|
-| 16 a 23 | pendente: precisam de login (o Claude in Chrome não estava conectado em 27/11) |
+| 16 | **OK em 27/11/2026** (Chrome, conta do Pedro). HTTP: endpoint `http://localhost:4328`; bloco "Authorization: Bearer <sua-chave>". |
+| 17 | **OK.** gRPC: endpoint `http://localhost:4327`; bloco "authorization: Bearer <sua-chave>". |
+| 18 | **OK.** Os três exemplos usam `gateway-de-pagamentos`, nos dois protocolos (HTTP: `http/protobuf`, `otlphttp/lhamalog`; gRPC: `grpc`, `otlp/lhamalog` com `tls.insecure`). Nenhum tem métricas (`OTEL_METRICS_EXPORTER=none`, sem pipeline `metrics`). Traces liga e desliga `OTEL_TRACES_EXPORTER`/`-Dotel.traces.exporter` e o pipeline `traces`. |
+| 19 | **OK.** "Gerar nova" no topo (sem chave ativa, criou): com o aviso aberto, a chave só está no campo "Chave de API"; 0 blocos de código com `llt_`; os exemplos usam `<sua-chave>` e `${env:LHAMALOG_TOKEN}`. |
+| 20 | **OK.** YAML HTTP e gRPC da aba, com `localhost` trocado por `host.docker.internal` só para o Docker: `validate` do `otelcol-contrib` 0.163.1 aceitou os dois. |
+| 21 | **OK.** Collector HTTP com `-e LHAMALOG_TOKEN` (a chave da linha 19, não a antiga, porque a área de transferência já tinha outra): log sem `Authorization` para `:14318` deu `200` e chegou ao OpenObserve com `productid`, `tenantid` e `servicename` (inserido pelo processor `resource`). |
+| 22 | **OK.** O mesmo com o YAML gRPC: chegou ao OpenObserve. O Docker tentou primeiro o IPv6 do `host.docker.internal` (aviso, não erro). |
+| 23 | **OK.** "Ver documentação completa" abre `/docs/opentelemetry` numa aba nova (`target="_blank"`, `rel="noopener noreferrer"`). |
 | 24 | **OK em 27/11/2026**, sem login: `npm run dev` na `LLT-180-instrucoes-opentelemetry`, Chrome sem janela com um perfil novo (sem sessão), Core desligado. `/docs/opentelemetry` abriu inteira, com os endereços do `.env.local` (4328 e 4327), sem pedir login. Como o Core estava desligado, a página não depende dele. |
-| 25 | pendente: precisa de login |
+| 24 (de novo) | **OK em 27/11/2026**, com o Core ligado: Chrome sem janela com perfil novo mostrou os 10 tópicos (inclusive `partial_success`, 413, 415, `Retry-After`, 30 s e "Problemas comuns"), sem tela de login e sem chave real; na aba aberta pelo link, nenhuma chamada a `localhost:8080`. |
+| 25 | **OK.** Depois das linhas 1 a 23: `localStorage` com 4 itens e `sessionStorage` com 1, nenhum com `llt_`; console só com as mensagens do Vite, do React DevTools e o aviso da Clerk de chaves de desenvolvimento. |

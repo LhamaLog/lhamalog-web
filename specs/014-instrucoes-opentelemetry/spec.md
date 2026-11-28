@@ -3,7 +3,7 @@
 **Feature Branch**: `LLT-180-instrucoes-opentelemetry`
 **Spec**: `specs/014-instrucoes-opentelemetry` (014 conferido livre na `origin/Development` em 27/11/2026)
 **Feature (Jira)**: LLT-124 "Credenciais de ingestão OpenTelemetry" (Epic LLT-100), card LLT-180
-**Status**: Implementada em 27/11/2026 (Fases 0 a 5), menos o T010 (produto arquivado, reservado para o Pedro). Roteiro no navegador pendente (Parte D)
+**Status**: Implementada em 27/11/2026 (Fases 0 a 5), menos o T010 (produto arquivado, reservado para o Pedro). Roteiro no navegador feito em 27/11/2026 (Parte D: linhas 16 a 25 OK; ver `quickstart.md` e `fechamento-feature.md`)
 
 **Input**: LLT-180 (Epic LLT-100 "Empresa e produtos (multiproduto)", Feature "Credenciais de ingestão OpenTelemetry", E04.F3.2, USID_015, prioridade Alta). "Como usuário, quero um passo a passo para apontar meu OTel Collector/SDK ao LhamaLog." Critérios de aceite do card:
 
